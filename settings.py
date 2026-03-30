@@ -79,4 +79,70 @@ class Tile:
 
         pygame.draw(tela, self.color, rect)
 
+
+#tiles especiais,vão herda as caracteristicas de tile original
+class Espinho(Tile):
+
+    def __init__(self):
+        super().__init__(
+            tile_id=4,
+            solid=False,
+            color=(120, 20, 20),
+            damage=20
+        )
+    
+    def drawn(self, tela, rect):
         
+        pts = [
+            (rect.centerx, rect.top + 4),
+            (rect.right - 4, rect.bottom - 4),
+            (rect.left + 4, rect.bottom - 4)]
+        
+        pygame.draw.polygon(tela, self.color, pts)
+
+class torcha(Tile):
+
+    def __init__(self):
+
+        super().__init__(
+            tile_id=7,
+            solid=False,
+            color= Torch_Orange
+        )
+
+    def drawn(self, tela, rect):
+
+        #cabo da torcha
+        pygame.draw.rect(tela, (100, 70, 30), (rect.center - 3, rect.centery, 6, 16 ))
+
+        #fogo da tocha
+        pygame.draw.ellipse(tela, Torch_Orange, (rect.center - 7, rect.top + 8, 14, 18 ))
+
+        pygame.draw.ellipse(tela, (255, 220, 80), (rect.center - 4, rect.top + 11, 8, 11 ))
+
+
+class bau(Tile):
+
+    def __init__(self):
+        super().__init__(
+            tile_id=6,
+            solid=False,
+            color= Dourado
+        )
+        self.collected = False
+
+    def on_enter(self, player):
+        #se o player tocar no bau vai dar o item
+        if not self.collected:
+            self.collected = True
+            player.tem_espada = True #sempre vai dar espada por inicio
+
+    def drawn(self, tela, rect):
+        if self.collected:
+            return #se o bau for aberto, ele some 
+        pygame.draw.rect(tela, (100, 70, 20), rect, border_radius=4)
+
+        pygame.draw.rect(tela, Dourado, (rect.x, rect.y, rect.widht, rect.height // 2), border_radius=4)
+
+        pygame.draw.rect(tela , Dourado , (rect.centerx - 5, rect.y + 8, 10, 10), border_radius=2)
+

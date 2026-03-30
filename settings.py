@@ -2,7 +2,8 @@ import pygame
 
 #constantes globaid
 
-#janela do game'
+#janela do game
+Tela_cheia =
 Screen_widht = 1280
 Screen_height = 720
 FPS = 60
@@ -146,3 +147,33 @@ class bau(Tile):
 
         pygame.draw.rect(tela , Dourado , (rect.centerx - 5, rect.y + 8, 10, 10), border_radius=2)
 
+
+
+
+
+
+#Registros = dicionarios de todos os ids/tile
+
+#chave id =bau()
+Registro_ID = {
+    0: None, #nao desenhar nada
+    1: Tile(tile_id=1, solid=True, color=Stone_gray), #parede do calabouço
+    2: Tile(tile_id=2, solid=True, color=(60, 60, 68)), #chao calabouço
+    3: Tile(tile_id=3, solid=False, color=(80, 60, 30)), #escada
+    4: Espinho(), #espinho
+    5: Tile(tile_id=5, solid=True, color=(90, 55, 20)), #porta
+    6: bau(), #bau
+    7: torcha(), #torcha
+
+}
+
+
+#Ids em ordem numerica pra não esquecer
+Tile_vazio = 0
+Tile_parede = 1
+Tile_chão = 2
+Tile_escada = 3
+Tile_espinho = 4
+Tile_porta = 5
+Tile_bau = 6
+Tile_torcha = 7

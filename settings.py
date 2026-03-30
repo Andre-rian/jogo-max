@@ -3,7 +3,7 @@ import pygame
 #constantes globaid
 
 #janela do game
-Tela_cheia =
+Telacheia_normal = False
 Screen_widht = 1280
 Screen_height = 720
 FPS = 60

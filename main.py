@@ -38,12 +38,15 @@ class Jogo:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit
-                    sys.exit
+                    sys.exit()
                     
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F11:
-                        self._Mudar_telacheia()
+                        self._Mudar_telacheia() 
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
 
             #sem update por agora
 

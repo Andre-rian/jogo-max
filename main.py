@@ -1,6 +1,18 @@
 import pygame
 import sys
 from settings import Screen_widht, Screen_height, FPS, Titulo, Telacheia_normal
+from core.camera_player import Camera
+
+
+
+
+
+
+
+camera = Camera(40,13)
+player_rect = pygame.Rect(100, 300, 32, 52)
+
+
 
 
 class Jogo:
@@ -47,11 +59,17 @@ class Jogo:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_d]: player_rect.x += 4
+            if keys[pygame.K_a]: player_rect.x -= 4
 
-            #sem update por agora
-
-            #desenhar
+            #atualizar a camera
+            camera.atualizar(player_rect)
             self.screen.fill((22, 20, 28))
+            #desenhar
+            pos_tela = camera.aplicar(player_rect)
+            pygame.draw.rect(self.screen, (80, 120, 200), pos_tela)
+            
             pygame.display.flip()
             self.clock.tick(FPS)
 

@@ -10,7 +10,7 @@ FPS = 60
 Titulo = "Knight tales"
 
 #Titulo
-Titulo_size = 48
+Tile_size = 48
 
 
 #fisica player
@@ -76,9 +76,9 @@ class Tile:
         if self.damage > 0:
             player.take_damage(self.damage)
 
-    def drawn(self, tela, rect):
+    def draw(self, tela, rect):
 
-        pygame.draw(tela, self.color, rect)
+        pygame.draw.rect(tela, self.color, rect)
 
 
 #tiles especiais,vão herda as caracteristicas de tile original
@@ -92,7 +92,7 @@ class Espinho(Tile):
             damage=20
         )
     
-    def drawn(self, tela, rect):
+    def draw(self, tela, rect):
         
         pts = [
             (rect.centerx, rect.top + 4),
@@ -111,15 +111,16 @@ class torcha(Tile):
             color= Torch_Orange
         )
 
-    def drawn(self, tela, rect):
+    def draw(self, tela, rect):
 
         #cabo da torcha
-        pygame.draw.rect(tela, (100, 70, 30), (rect.center - 3, rect.centery, 6, 16 ))
+        pygame.draw.rect(tela, (100, 70, 30),
+                          (rect.centerx - 3, rect.centery, 6, 16 ))
 
         #fogo da tocha
-        pygame.draw.ellipse(tela, Torch_Orange, (rect.center - 7, rect.top + 8, 14, 18 ))
+        pygame.draw.ellipse(tela, Torch_Orange, (rect.centerx - 7, rect.top + 8, 14, 18 ))
 
-        pygame.draw.ellipse(tela, (255, 220, 80), (rect.center - 4, rect.top + 11, 8, 11 ))
+        pygame.draw.ellipse(tela, (255, 220, 80), (rect.centerx - 4, rect.top + 11, 8, 11 ))
 
 
 class bau(Tile):
@@ -138,7 +139,7 @@ class bau(Tile):
             self.collected = True
             player.tem_espada = True #sempre vai dar espada por inicio
 
-    def drawn(self, tela, rect):
+    def draw(self, tela, rect):
         if self.collected:
             return #se o bau for aberto, ele some 
         pygame.draw.rect(tela, (100, 70, 20), rect, border_radius=4)

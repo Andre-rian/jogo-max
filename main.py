@@ -1,16 +1,14 @@
 import pygame
 import sys
-from settings import Screen_widht, Screen_height, FPS, Titulo, Telacheia_normal
+from settings import Screen_widht, Screen_height, FPS, Titulo, Telacheia_normal, Tile_size
 from core.camera_player import Camera
+from world.tile_map import Tilemap
+from world.rooms import Salas, spwans
 
 
 
 
 
-
-
-camera = Camera(40,13)
-player_rect = pygame.Rect(100, 300, 32, 52)
 
 
 
@@ -23,7 +21,20 @@ class Jogo:
         self.tela_cheia = Telacheia_normal
         self.screen = self.Criar_janela()
         self.clock = pygame.time.Clock()
-    
+
+        #carrega sala 1
+        grid = Salas['calabouço_1']
+        self.mapa = Tilemap(grid)
+        self.camera = Camera(len(grid[0]), len(grid))
+
+        #rect temporario simulando o player
+        spwan = spwans['calabouço_1']
+        self.player_rect = pygame.Rect(
+            spwan[0] * Tile_size,
+            spwan[1] * Tile_size,
+            32, 52
+        )
+
     def Criar_janela(self):
 
         if self.tela_cheia:
@@ -49,7 +60,7 @@ class Jogo:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit
+                    pygame.quit()
                     sys.exit()
                     
 
@@ -59,15 +70,17 @@ class Jogo:
                     if event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
+            #teclas temporarias
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_d]: player_rect.x += 4
-            if keys[pygame.K_a]: player_rect.x -= 4
+            if keys[pygame.K_d]: self.player_rect.x += 4
+            if keys[pygame.K_a]: self.player_rect.x -= 4
 
             #atualizar a camera
-            camera.atualizar(player_rect)
+            self.camera.atualizar(self.player_rect)
             self.screen.fill((22, 20, 28))
+            self.mapa.desenhar(self.screen, self.camera)
             #desenhar
-            pos_tela = camera.aplicar(player_rect)
+            pos_tela = self.camera.aplicar(self.player_rect)
             pygame.draw.rect(self.screen, (80, 120, 200), pos_tela)
             
             pygame.display.flip()

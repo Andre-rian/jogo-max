@@ -1,5 +1,5 @@
 import pygame
-from settings import Screen_widht, Screen_height, Titulo_size
+from settings import Screen_widht, Screen_height, Tile_size
 
 
 class Camera:
@@ -8,8 +8,8 @@ class Camera:
         self.offset = pygame.Vector2(0, 0)
 
         #tamanho do mapa em pixels 
-        self.mapa_largura = largura_mapa_tiles * Titulo_size
-        self.mapa_altura = altura_mapa_tiles * Titulo_size
+        self.mapa_largura = largura_mapa_tiles * Tile_size
+        self.mapa_altura = altura_mapa_tiles * Tile_size
 
         #suavização do movimento da camera
         self.suavizaçao = 0.12 
@@ -43,5 +43,5 @@ class Camera:
     def atualizar_limite(self, largura_tiles, altura_tiles):
         #vai ser utilizado quando o player trocar de cenario/salar
 
-        self.mapa_largura = largura_tiles * Titulo_size
-        self.mapa_altura = altura_tiles * Titulo_size
+        self.mapa_largura = largura_tiles * Tile_size
+        self.mapa_altura = altura_tiles * Tile_size

@@ -205,19 +205,17 @@ class Player(Entity):
         
     #recarrega stamina
     def _atualizar_stamina(self, teclas):
-        #por enquanto a stamina so recupera quando o player ta sem fazer nada(vou tentar mudar ainda hj)#
+        #mundaça na stamina como prometido, agora ela so nao recupera se o player esta fazendo uma "ação pesada"
         
-        em_acao = (self.em_dahs or
+        em_acao_pesada = (self.em_dahs or
                 self.atacando or
-                teclas[pygame.K_SPACE] or
-                teclas[pygame.K_a] or
-                teclas[pygame.K_d])
+                teclas[pygame.K_SPACE])
         
-        if em_acao or not self.no_chao:
+        if em_acao_pesada or not self.no_chao:
             #reseta o delay enquanto esta em açao
             self.stamina_delay = Stamina_delay
         else:
-            #conta down do delay
+            #recupera normalmente a stamina
             if self.stamina_delay > 0:
                 self.stamina_delay -= 1
             else:

@@ -44,6 +44,17 @@ ataque_cooldown = 30
 
 inimigo_knockback = 8
 
+#stamina
+
+
+Stamina_max = 100
+Stamina_pulo = 20 #gastar ao pular
+Stamina_dash = 40 #gastar ao dar dash
+Stamina_ataque = 10
+Stamina_recarga = 0.4 #stamina recuperada por frame parado
+Stamina_delay =  90 #frames de espera até começa a recarrega 
+
+
 #cores 
 
 

@@ -2,7 +2,9 @@ import pygame
 import math
 from entities.entity import Entity
 from settings import (
-    Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown, Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size 
+    Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown,
+      Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size,
+      Stamina_pulo, Stamina_dash, Stamina_ataque, Stamina_recarga, Stamina_delay
 )
 
 class Player(Entity):
@@ -68,6 +70,7 @@ class Player(Entity):
         self._mover_horizontal(teclas)
         self._pular(teclas)
         self._atacar(pos_mouse_mundo)
+        self._atualizar_stamina(teclas)
 
         self.aplicar_gravidade()
         self.mover_com_colisão(rects_solidos)
@@ -113,13 +116,15 @@ class Player(Entity):
             self._ultimo_toque["direita"] = self._frame_atual
     
     def _iniciar_dash(self, direçao):
+        if not self._tem_stamina(Stamina_dash):
+            return #sem stamina = sem dash
         self.em_dahs = True
         self.direçao_dash = direçao
         self.timer_dash = Dash_duration
         self.cooldown_dash = Dash_cooldown
         self.vel.y = 0 #cancela a gravidade no dash
         self.olhando_dir = direçao > 0
-
+        self._gastar_stamina(Stamina_dash)
     
     #MOVIMENTO HORIZONTAL
 
@@ -143,13 +148,16 @@ class Player(Entity):
                 self.vel.x = 0
 
     #PULO
-    def _pular(self,teclas):
+    def _pular(self, teclas):
         if self.em_dahs:
             #so pular se tiver no chao
             return
         if teclas[pygame.K_SPACE] and self.no_chao:
+            if not self._tem_stamina(Stamina_pulo):
+                return #sem stamina nao pula
             self.vel.y = player_pulo
             self.no_chao = False
+            self._gastar_stamina(Stamina_pulo)
 
     #ATAQUEEEE -- clique esquerdo do mouse
     def _atacar(self, pos_mouse_mundo):
@@ -160,10 +168,14 @@ class Player(Entity):
         if self.cooldown_ataque > 0:
             return
         
+        if not self._tem_stamina(Stamina_ataque):
+            return #sem stamina = sem ataque
+        
         if pygame.mouse.get_pressed()[0]:   #botao esquerdo
             self.atacando = True
             self.timer_ataque = ataque_cooldown // 2
             self.cooldown_ataque = ataque_cooldown
+            self._gastar_stamina(Stamina_ataque)
 
             #atualizar a direçao com base no mouse
             dx = pos_mouse_mundo.x - self.rect.centerx
@@ -191,6 +203,40 @@ class Player(Entity):
                 32
             )
         
+    #recarrega stamina
+    def _atualizar_stamina(self, teclas):
+        #por enquanto a stamina so recupera quando o player ta sem fazer nada(vou tentar mudar ainda hj)#
+        
+        em_acao = (self.em_dahs or
+                self.atacando or
+                teclas[pygame.K_SPACE] or
+                teclas[pygame.K_a] or
+                teclas[pygame.K_d])
+        
+        if em_acao or not self.no_chao:
+            #reseta o delay enquanto esta em açao
+            self.stamina_delay = Stamina_delay
+        else:
+            #conta down do delay
+            if self.stamina_delay > 0:
+                self.stamina_delay -= 1
+            else:
+                #recarrega gradualmente
+                self.stamina = min(
+                    self.stamina_max,
+                    self.stamina + Stamina_recarga
+                )
+        
+
+    #verificar se tem stamina
+
+    def _tem_stamina(self, custo):
+        return self.stamina >= custo
+    
+    def _gastar_stamina(self, custo):
+        #garante que a stamina vai ser gastar, e nao vai ficar abaixo de 0
+        self.stamina = max(0, self.stamina - custo)
+
 
     #TIMES - CONTA os downs de dash e ataques
 

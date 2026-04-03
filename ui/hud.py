@@ -29,6 +29,7 @@ class Hud:
             self._timer_mensagem -= 1
 
     #draw principal
+
     def desenhar(self, tela, player):
         #fundo semitrasparente atras da mensagem
 
@@ -102,6 +103,57 @@ class Hud:
 
         tela.blit(msg, (x, y))
 
+
+    #DESENHAR BARRA STAMINA
+    def _desenhar_barra_stamina(self, tela, player):
+        #fundo semitrasparente
+        fundo = pygame.Surface((230, 44), pygame.SRCALPHA)
+        fundo.fill((0, 0, 0, 140))
+        tela.blit(fundo, (12, 54))
+
+
+        #label
+        label = self.fonte_pequena.render("ST", True, (80, 160, 200))
+        tela.blit(label, (18, 62))
+
+        bar_x, bar_y = 44, 64
+        bar_w, bar_h = 180, 10
+
+        #fundo da barra
+        pygame.draw.rect(tela, (15, 30, 50), 
+                         (bar_x, bar_y, bar_w, bar_h),
+                         border_radius=3)
+
+        # prenchimento azul
+        ratio = max(0, player.stamina / player.stamina_max)
+        fill_w = int(bar_w * ratio)
+
+        if ratio > 0.3:
+            cor_st = (60, 160, 220) #azul claro = st alto
+
+        else:
+            cor_st = (40, 80, 160) #azul escuro = st baixo
+        if fill_w > 0:
+            pygame.draw.rect(tela, cor_st,
+                             (bar_x, bar_y, fill_w, bar_h), border_radius=3 )
+ 
+        #borda
+        pygame.draw.rect(tela, (40, 100, 140),
+                         (bar_x, bar_y, bar_w, bar_h), 1, border_radius=3)
+
+        #numero 
+        texto_st = self.fonte_pequena.render(
+            f"{int(player.stamina)} / {player.stamina_max}", True, Branco)
+        tela.blit(texto_st, (bar_x + bar_w + 8, bar_y - 2))
+
+        #indicador de delay (cereja do bolo)
+        if player.stamina_delay > 0 and player.stamina < player.stamina_max:
+            if player._frame_atual % 20 < 10: #piscar a cada 10 frames
+                aviso = self.fonte_pequena.render("...", True, (100, 140, 180))
+                tela.blit(aviso, (bar_x, bar_y - 14))
+ 
+ 
+ 
     #debug no canto inferior direito
     def _desenhar_debug(self, tela, player):
         #sao so informaçoes para me ajuda durante a criaçao do game
@@ -112,6 +164,7 @@ class Hud:
             f'Vel    : ({player.vel.x:.1f}, {player.vel.y:.1f})',
             f'Dash CD: {player.cooldown_dash}',
             f'No chão: {player.no_chao}',
+            f'Stamina: {int(player.stamina)}', 
         ]
         for i, linha in enumerate(linhas):
             txt = self.fonte_pequena.render(linha, True, (140, 140, 140))

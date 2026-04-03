@@ -1,5 +1,5 @@
 import pygame 
-from settings import Gravidade, Max_Fall_Speed
+from settings import Gravidade, Max_Fall_Speed, Stamina_max
 
 class Entity(pygame.sprite.Sprite):
 
@@ -12,7 +12,7 @@ class Entity(pygame.sprite.Sprite):
 
         #posiçao e tamanho no mundo
         self.rect = pygame.Rect(x, y, largura, altura)
-
+        self.no_chao = False
         #velocidade em pixeis 
         self.vel = pygame.Vector2(0,0)
 
@@ -20,6 +20,12 @@ class Entity(pygame.sprite.Sprite):
         self.hp_max = hp_max
         self.hp = hp_max
         self.vivo = True
+ 
+        #stamina
+        self.stamina_max = Stamina_max
+        self.stamina = Stamina_max
+        self.stamina_delay = 0 #o contador espara pra recarrega
+
 
         #frames de invencibilidade apos ser hitado
         self.invencivel = False

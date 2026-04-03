@@ -1,0 +1,87 @@
+import pygame 
+from settings import Gravidade, Max_Fall_Speed
+
+class Entity(pygame.sprite.Sprite):
+
+    #Classe base para todas as entidades do game player,inimigo, boss e ect
+    #possui a responsabilidade de guarda vida,velocidade, aplicar gravidade e ect
+
+    def __init__(self, x, y, largura, altura, hp_max):
+        super().__init__()
+        
+
+        #posiçao e tamanho no mundo
+        self.rect = pygame.Rect(x, y, largura, altura)
+
+        #velocidade em pixeis 
+        self.vel = pygame.Vector2(0,0)
+
+        #vida 
+        self.hp_max = hp_max
+        self.hp = hp_max
+        self.vivo = True
+
+        #frames de invencibilidade apos ser hitado
+        self.invencivel = False
+        self.timer_invenc = 0
+        self.Frames_ivenc = 40
+
+    #Gravidade 
+    def aplicar_gravidade(self):
+        #adicionar a gravidade no jogo, sendo ela a velocida vertical,e tambem adicionar o limite dela
+        
+        self.vel.y = min(self.vel.y + Gravidade, Max_Fall_Speed)
+    
+    #COLISAO
+    def mover_com_colisão(self, rects_solidos):
+        #move o rect pelo os eixos separadamente 
+
+        #eixo x
+
+        self.rect.x += int(self.vel.x)
+
+        for tile in rects_solidos:
+            if self.rect.colliderect(tile):
+                if self.vel.x > 0:      #indo para direita
+                    self.rect.right = tile.left
+                elif self.vel.x < 0:
+                    self.rect.left = tile.right #indo para esquerda
+                self.vel.x = 0 
+
+        #eixo y
+        self.no_chao = False
+        self.rect.y += int(self.vel.y)
+
+        for tile in rects_solidos:
+            if self.rect.colliderect(tile):
+                if self.vel.y > 0:      #caindo
+                    self.rect.bottom = tile.top
+                    self.no_chao = True
+                elif self.vel.y < 0:    #subindo(bateu no teto)
+                    self.rect.top = tile.bottom
+                self.vel.y = 0 
+
+    #Dano/combante
+    def receber_dano(self, quantidade):
+        #Reduz o hp. se tiver invencivel = ignora. apos levar dano = frames de invecibilidade
+
+        if self.invencivel or not self.vivo:
+            return
+        
+        self.hp -= quantidade
+
+        if self.hp <= 0:
+            self.hp = 0
+            self.vivo = False
+        else:
+            #ativar os frames de invencibilidade
+            self.invencivel = True
+            self.timer_invenc = self.Frames_ivenc
+
+    def atualizar_invencibilidade(self):
+        #conta a quantidade de frames da invencibilidade
+
+        if self.invencivel:
+            self.timer_invenc -= 1
+            if self.timer_invenc <= 0:
+                self.invencivel = False

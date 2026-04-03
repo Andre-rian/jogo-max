@@ -4,7 +4,7 @@ from settings import Screen_widht, Screen_height, FPS, Titulo, Telacheia_normal,
 from core.camera_player import Camera
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans
-
+from entities.player import Player
 
 
 
@@ -29,12 +29,10 @@ class Jogo:
 
         #rect temporario simulando o player
         spwan = spwans['calabouço_1']
-        self.player_rect = pygame.Rect(
+        self.player = Player(
             spwan[0] * Tile_size,
-            spwan[1] * Tile_size,
-            32, 52
+            spwan[1] * Tile_size
         )
-
     def Criar_janela(self):
 
         if self.tela_cheia:
@@ -71,17 +69,21 @@ class Jogo:
                         pygame.quit()
                         sys.exit()
             #teclas temporarias
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_d]: self.player_rect.x += 4
-            if keys[pygame.K_a]: self.player_rect.x -= 4
+            pos_mouse_mundo = self.camera.mouse_para_mundo(pygame.mouse.get_pos())
+
 
             #atualizar a camera
-            self.camera.atualizar(self.player_rect)
+            self.player.atualizar(
+                self.mapa.rect_solidos,
+                self.camera,
+                pos_mouse_mundo
+            )
+            self.camera.atualizar(self.player.rect)
             self.screen.fill((22, 20, 28))
             self.mapa.desenhar(self.screen, self.camera)
             #desenhar
-            pos_tela = self.camera.aplicar(self.player_rect)
-            pygame.draw.rect(self.screen, (80, 120, 200), pos_tela)
+            pos_tela = self.camera.aplicar(self.player.rect)
+            self.player.desenhar(self.screen, self.camera)
             
             pygame.display.flip()
             self.clock.tick(FPS)

@@ -1,0 +1,303 @@
+import pygame
+import math
+from entities.entity import Entity
+from settings import (
+    Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown, Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size 
+)
+
+class Player(Entity):
+
+    #possiveis estados de maquina
+    Parado = "parado"
+    Correndo = "correndo"
+    Pulando = "pulando"
+    Caindo = "caindo"
+    Dash = "Dash"
+    Atacando = "atacando"
+    Morto = "morto"
+
+    def __init__(self, x, y):
+        super().__init__(x, y, largura=32, altura=52, hp_max=vida_max_player)
+
+        #estado atual da maquina de estado 
+        
+        self.estado = self.Parado
+
+        #Dash
+        self.em_dahs = False
+        self.timer_dash = 0
+        self.cooldown_dash = 0
+        self.direçao_dash = 0
+
+        #detectar duplo toque - guarda o frame do ultimo toque de cada tecla
+
+        self._ultimo_toque = {"esquerda": -999, "direita": -999}
+
+        self._frame_atual = 0 #contador de frames atuais
+
+        #guarda o estado das teclas no frame anterior 
+        #(detectar o momento exato do toque)`
+        self._teclas_anterior = None
+
+        #ataque
+        self.atacando = False
+        self.timer_ataque = 0
+        self.cooldown_ataque = 0
+
+        #invetario(bem basico)
+        self.tem_espada = False
+        self.tem_armadura = False 
+
+
+        #checkpoin(inicial)
+        self.checkpoint_pos = pygame.Vector2(x, y)
+        self.checkpoint_sala = 'calabouço_1' 
+
+
+    #UPDATE
+    def atualizar(self, rects_solidos, camera, pos_mouse_mundo):
+        if not self.vivo:
+            self.estado = self.Morto
+            return
+        
+        self._frame_atual += 1
+
+        teclas = pygame.key.get_pressed()
+        
+        self._verificar_dash(teclas)
+        self._mover_horizontal(teclas)
+        self._pular(teclas)
+        self._atacar(pos_mouse_mundo)
+
+        self.aplicar_gravidade()
+        self.mover_com_colisão(rects_solidos)
+        self.atualizar_invencibilidade()
+        self._atualizar_estado()
+        self._atualizar_times()
+
+        #salvar teclas para o proximo frame
+        self._teclas_anterior = teclas
+
+    #dash - duplo toque a ou d
+
+    def _verificar_dash(self, teclas):
+        #detectar o duplo toque dentro da janela de frames
+        #calcular o tempo de um clique ao outro e detectar se pode haver o dash ou nao, por isso a biblioteca math
+
+        if self.em_dahs:
+            return #se ja ta em dash, nao acontece nada
+        
+        if self._teclas_anterior is None:
+            return #PRIMEIRO frame, nao tem um antes
+        
+        # detectar o momento do toque
+        toque_esq = teclas[pygame.K_a] and not self._teclas_anterior[pygame.K_a]
+        toque_dir = teclas[pygame.K_d] and not self._teclas_anterior[pygame.K_d]
+
+        if toque_esq:
+            intervalo = self._frame_atual - self._ultimo_toque["esquerda"]
+            #intervalo > 1 evitar detectar o mesmo toque duas vezes
+            
+            if 1 < intervalo <= Double_tap_window and self.cooldown_dash == 0:
+                self._iniciar_dash(-1)
+                
+            self._ultimo_toque["esquerda"] = self._frame_atual
+
+        if toque_dir:
+            intervalo = self._frame_atual - self._ultimo_toque["direita"]
+            #intervalo > 1 evitar detectar o mesmo toque duas vezes
+            
+            if 1 < intervalo <= Double_tap_window and self.cooldown_dash == 0:
+                self._iniciar_dash(1)
+                
+            self._ultimo_toque["direita"] = self._frame_atual
+    
+    def _iniciar_dash(self, direçao):
+        self.em_dahs = True
+        self.direçao_dash = direçao
+        self.timer_dash = Dash_duration
+        self.cooldown_dash = Dash_cooldown
+        self.vel.y = 0 #cancela a gravidade no dash
+        self.olhando_dir = direçao > 0
+
+    
+    #MOVIMENTO HORIZONTAL
+
+    def _mover_horizontal(self, teclas):
+        if self.em_dahs:
+            #durante o dash a velocidade é fixa
+            self.vel.x = Dash_speed * self.direçao_dash
+            return
+        
+        if teclas[pygame.K_d]:
+            self.vel.x = Speed_player
+            self.olhando_dir = True
+        
+        elif teclas[pygame.K_a]:
+            self.vel.x = -Speed_player
+            self.olhando_dir = False
+        else:
+            #friçao - desacerela gradualmente ao soltar a tecla
+            self.vel.x *= 0.8
+            if abs(self.vel.x) < 0.5:
+                self.vel.x = 0
+
+    #PULO
+    def _pular(self,teclas):
+        if self.em_dahs:
+            #so pular se tiver no chao
+            return
+        if teclas[pygame.K_SPACE] and self.no_chao:
+            self.vel.y = player_pulo
+            self.no_chao = False
+
+    #ATAQUEEEE -- clique esquerdo do mouse
+    def _atacar(self, pos_mouse_mundo):
+        #sem espada nao atacar(por enquanto)
+        if not self.tem_espada:
+            return
+
+        if self.cooldown_ataque > 0:
+            return
+        
+        if pygame.mouse.get_pressed()[0]:   #botao esquerdo
+            self.atacando = True
+            self.timer_ataque = ataque_cooldown // 2
+            self.cooldown_ataque = ataque_cooldown
+
+            #atualizar a direçao com base no mouse
+            dx = pos_mouse_mundo.x - self.rect.centerx
+            self.olhando_dir = dx >= 0
+
+    def get_rect_ataque(self):
+        #retorna o rect da hitbox dp ataque  enquanto esta atacando.é ele que vai verificar as hitsbox dos inimigos
+
+        if not self.atacando:
+            return None
+        
+        if self.olhando_dir:  #atacando para direita
+            return pygame.Rect(
+                self.rect.right, 
+                self.rect.centery - 16,
+                ataque_range, 
+                32
+            )
+        
+        else:
+            return pygame.Rect(
+                self.rect.left - ataque_range,
+                self.rect.centery - 16,
+                ataque_range,
+                32
+            )
+        
+
+    #TIMES - CONTA os downs de dash e ataques
+
+    def _atualizar_times(self):
+        if self.em_dahs:
+            self.timer_dash -= 1
+            if self.timer_dash <= 0:
+                self.em_dahs = False
+                self.vel.x = 0
+
+        #cooldowm entre dashes
+        if self.cooldown_dash > 0:
+            self.cooldown_dash -= 1 
+
+        #ataque ativo
+
+        if self.atacando:
+            self.timer_ataque -= 1
+            if self.timer_ataque <= 0:
+                self.atacando = False
+
+        #cooldown entres ataques
+
+        if self.cooldown_ataque > 0:
+            self.cooldown_ataque -= 1
+
+    #MAQUINA DE ESTADOS 
+
+    def _atualizar_estado(self):
+        #define o estado atual com base no player
+
+        if self.em_dahs:
+            self.estado = self.Dash
+        elif self.atacando:
+            self.estado = self.Atacando
+        elif not self.no_chao and self.vel.y > 0:
+            self.estado = self.Caindo
+        elif not self.no_chao and self.vel.y < 0:
+            self.estado = self.Pulando
+        elif abs(self.vel.x) > 0.5:
+            self.estado = self.Correndo
+        else:
+            self.estado = self.Parado
+
+    
+    #CHECKPOINT (PROVISORIO)
+
+    def defenir_checkpoint(self, nome_sala):
+        #salva a posição atual como checkpoint
+
+        self.checkpoint_pos.x = self.rect.x
+        self.checkpoint_pos.y = self.rect.y
+        self.checkpoint_sala = nome_sala
+
+    def respawnar(self): 
+        #voltar para o ultimo checkpoint com o hp cheio
+        self.rect.x = int(self.checkpoint_pos.x)
+        self.rect.y = int(self.checkpoint_pos.y)
+        self.hp = self.hp_max
+        self.vivo = True
+        self.vel = pygame.Vector2(0,0)
+        self.estado = self.Parado
+        self.em_dahs = False 
+        self.atacando = False
+
+    
+
+    #DESENHO (placerholder geometrico ou coisa do tipo)
+    def desenhar(self, tela, camera):
+        sr = camera.aplicar(self.rect)
+
+        #piscar durante invecibilidade 
+        if self.invencivel and self._frame_atual % 6 < 3:
+            return
+        
+        #corpo - cinza com armadura e marrom sem (provisorio enquanto nao colocar uma sprite)
+        
+        cor_corpo = (90, 95, 105)
+        if self.tem_armadura:
+            cor_corpo = (70, 55, 40)
+        pygame.draw.rect(tela, cor_corpo, sr, border_radius=4)
+
+        #capacete
+
+        pygame.draw.rect(tela, cor_corpo, ( sr.x + 4, sr.y, sr.width - 8, 20), border_radius=6)
+
+
+        #viseira
+        pygame.draw.rect(tela, (200, 170, 80), (sr.x + 8, sr.y + 6, 6, 5), border_radius=2)
+
+
+        #espada so se tiver
+        if self.tem_espada:
+            if self.olhando_dir:
+                pts = [(sr.right, sr.centery),
+                       (sr.right + 24, sr.centery - 4),
+                       (sr.right + 26, sr.centery),
+                       (sr.right + 24, sr.centery + 4)]
+            else:
+                pts = [(sr.left, sr.centery),
+                       (sr.left - 24, sr.centery - 4),
+                       (sr.left - 26, sr.centery),
+                       (sr.left - 24, sr.centery + 4)]
+            pygame.draw.polygon(tela, (200, 210, 220), pts)
+
+        #rastro azul do dash
+        if self.em_dahs:
+            rastro = pygame.Surface((sr.width, sr.height), pygame.SRCALPHA)
+            rastro.fill((100, 180, 255, 80))
+            tela.blit(rastro, sr)

@@ -144,7 +144,7 @@ class bau(Tile):
             return #se o bau for aberto, ele some 
         pygame.draw.rect(tela, (100, 70, 20), rect, border_radius=4)
 
-        pygame.draw.rect(tela, Dourado, (rect.x, rect.y, rect.widht, rect.height // 2), border_radius=4)
+        pygame.draw.rect(tela, Dourado, (rect.x, rect.y, rect.width, rect.height // 2), border_radius=4)
 
         pygame.draw.rect(tela , Dourado , (rect.centerx - 5, rect.y + 8, 10, 10), border_radius=2)
 

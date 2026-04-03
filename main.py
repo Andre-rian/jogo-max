@@ -5,6 +5,7 @@ from core.camera_player import Camera
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans
 from entities.player import Player
+from ui.hud import Hud
 
 
 
@@ -33,6 +34,11 @@ class Jogo:
             spwan[0] * Tile_size,
             spwan[1] * Tile_size
         )
+
+        #adicionar o hud na tela
+        self.hud = Hud()
+
+
     def Criar_janela(self):
 
         if self.tela_cheia:
@@ -78,12 +84,16 @@ class Jogo:
                 self.camera,
                 pos_mouse_mundo
             )
+            self.hud.atualizar()
             self.camera.atualizar(self.player.rect)
             self.screen.fill((22, 20, 28))
             self.mapa.desenhar(self.screen, self.camera)
+
+
             #desenhar
             pos_tela = self.camera.aplicar(self.player.rect)
             self.player.desenhar(self.screen, self.camera)
+            self.hud.desenhar(self.screen, self.player)
             
             pygame.display.flip()
             self.clock.tick(FPS)

@@ -8,3 +8,4 @@ ui/__pycache__/hud.cpython-314.pyc
 world/__pycache__/tile_map.cpython-314.pyc
 world/__pycache__/rooms.cpython-314.pyc
 entities/__pycache__/enemy.cpython-314.pyc
+core/__pycache__/game_scene.cpython-314.pyc

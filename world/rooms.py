@@ -54,3 +54,9 @@ Salas = {
     'calabouço_1': Sala1_Calabouço,
     'calabouço_2': Sala2_Calabouço
 }
+Inimigos_por_sala = {
+    'calabouço_1': [], # a cela nao tem inimigos
+    'calabouço_2': [
+        (6, 10, 4 * 48, 14 * 48)], #inimigos no corredor (teste por agora)
+
+}

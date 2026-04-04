@@ -7,3 +7,4 @@ entities/__pycache__/player.cpython-314.pyc
 ui/__pycache__/hud.cpython-314.pyc
 world/__pycache__/tile_map.cpython-314.pyc
 world/__pycache__/rooms.cpython-314.pyc
+entities/__pycache__/enemy.cpython-314.pyc

@@ -13,6 +13,7 @@ class Entity(pygame.sprite.Sprite):
         #posiçao e tamanho no mundo
         self.rect = pygame.Rect(x, y, largura, altura)
         self.no_chao = False
+        self.olhando_dir = True
         #velocidade em pixeis 
         self.vel = pygame.Vector2(0,0)
 

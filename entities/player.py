@@ -47,7 +47,7 @@ class Player(Entity):
         self.cooldown_ataque = 0
 
         #invetario(bem basico)
-        self.tem_espada = False
+        self.tem_espada = True
         self.tem_armadura = False 
 
 

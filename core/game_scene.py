@@ -1,4 +1,5 @@
 import pygame
+import sys
 from settings import *
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
@@ -26,6 +27,11 @@ class Gamescene:
         self.timer_morto = 0
         self.duraçao_morte = 180
 
+
+        #menu de pausa
+        self.pausado = False
+        self.opçoes_pause = ["Continuar", "Salvar", "Sair"]
+        self.opçoes_selecionadas = 0
     #CARREGA A SALA 
 
     def _carregar_sala(self, nome_sala, posiçao_spwan= None):
@@ -64,10 +70,14 @@ class Gamescene:
 
     
     #ATUALIZAR  
-    def atualizar(self, eventos):
+    def atualizar(self, eventos): 
         teclas = pygame.key.get_pressed()
         pos_mouse = pygame.mouse.get_pos()
         pos_mouse_mundo = self.camera.mouse_para_mundo(pos_mouse)
+
+        if self.pausado:
+            self._atualizar_pausa(eventos)
+            return
 
         rects_solidos = self.mapa.rect_solidos
 
@@ -110,6 +120,32 @@ class Gamescene:
         #hud
         self.hud.atualizar()
 
+
+    def _atualizar_pausa(self, eventos):
+        #navega o menu com as setas e confirma com enter
+        for evento in eventos:
+            if evento.type == pygame.KEYDOWN:
+
+                if evento.key == pygame.K_UP:
+                    self.opçoes_selecionadas = (self.opçoes_selecionadas - 1) % len(self.opçoes_pause)
+                
+                elif evento.key == pygame.K_DOWN:
+                    self.opçoes_selecionadas = (self.opçoes_selecionadas + 1) % len(self.opçoes_pause)
+
+                elif evento.key == pygame.K_RETURN:
+                    self._confirma_opçao_pausa()
+
+
+    def _confirma_opçao_pausa(self):
+        opçao = self.opçoes_pause[self.opçoes_selecionadas]
+
+        if opçao == "Continuar":
+            self.pausado = False
+        elif opçao == "Salvar":
+            self.hud.mostra_mensagem("sistema de saves em breve")
+        elif opçao == "Sair":
+            pygame.quit()
+            sys.exit()
 
     def _verificar_combante(self):
         #checa se o player acertou algum inimigo
@@ -197,6 +233,11 @@ class Gamescene:
                 self.player.receber_dano(dano)
                 break 
     
+
+
+    def alternar_pausa(self):
+        self.pausado = not self.pausado
+        self.opçoes_selecionadas = 0 #reseta ao sair do menu
     #DESENHAR   
     
     def desenhar(self):
@@ -212,6 +253,13 @@ class Gamescene:
         #tela de morte - desenhada por cima de tudo
         if self.morrendo:
             self._desenhar_tela_morte()
+
+
+        #tela de menu
+        if self.pausado:
+            self._desenhar_pausa()
+
+
 
     def _desenhar_tela_morte(self):
         #fade escuro com o texto voce morreu centralizado
@@ -230,4 +278,34 @@ class Gamescene:
             texto = fonte.render("VOCÊ MORREU", True, Vermelho_sangue)
             x = Screen_widht // 2 - texto.get_width() // 2
             y = Screen_height // 2 - texto.get_height() // 2
+            self.tela.blit(texto, (x, y))
+
+    def _desenhar_pausa(self):
+        #fundo semitrasnparente
+        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0 , 160))
+        self.tela.blit(overlay, (0, 0))
+
+
+        fonte_titulo = pygame.font.SysFont("Georgia", 48, bold=True)
+        fonte_opçao = pygame.font.SysFont("Georgia", 30)
+
+        #titulo
+        titulo = fonte_titulo.render("PAUSA", True, Dourado)
+        self.tela.blit(titulo, (Screen_widht // 2 - titulo.get_width() // 2, 220))
+        
+
+        #opçoes
+        for i, opçao in enumerate(self.opçoes_pause):
+            selecionado = i == self.opçoes_selecionadas
+            cor = Dourado if selecionado else Branco
+            texto = fonte_opçao.render(opçao, True, cor)
+            x = Screen_widht // 2 - texto.get_width() // 2
+            y = 320 + i * 50
+
+            #seta indicando a opçao selecionada
+            if selecionado:
+                seta = fonte_opçao.render("▶", True, Dourado)
+                self.tela.blit(seta, (x - 30, y))
+
             self.tela.blit(texto, (x, y))

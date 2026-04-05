@@ -35,8 +35,7 @@ class Jogo:
                     sys.exit()
                 if evento.type == pygame.KEYDOWN:
                     if evento.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
+                        self.scene.alternar_pausa()
                     if evento.key == pygame.K_F11:
                         self._Mudar_telacheia()
 

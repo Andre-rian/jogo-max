@@ -19,7 +19,12 @@ class Gamescene:
         self.player.tem_espada = False 
         #carrega a sala
         self._carregar_sala("calabouço_2")
+        self.player.defenir_checkpoint("calabouço_1")
 
+
+        self.morrendo = False
+        self.timer_morto = 0
+        self.duraçao_morte = 180
 
     #CARREGA A SALA 
 
@@ -75,6 +80,20 @@ class Gamescene:
         #atualizar os baus
         self._checar_bau()
 
+        #atuallizar o checar_morte
+        self._checar_morte()
+
+        #bloquueia os outros atualizar se o player estiver morto
+        if self.morrendo:
+
+            #camera segue o player
+            self.camera.atualizar(self.player.rect)
+
+            #hud
+            self.hud.atualizar()
+            return
+
+
         #atualizar inimigos
         for inimigo in self.inimigos:
             inimigo.atualizar(rects_solidos, self.player)
@@ -122,8 +141,24 @@ class Gamescene:
                 self.hud.mostra_mensagem("espada encontrada")
                 break
 
+    
 
+    def _checar_morte(self):
+        #dectetar se o player morreu, se sim colocar o "voce morreu" na tela tipo dark souls
 
+        if not self.player.vivo and not self.morrendo:
+            #inicia o timer de morte
+            self.morrendo = True
+            self.timer_morto = self.duraçao_morte
+
+        if self.morrendo:
+            self.timer_morto -= 1
+            if self.timer_morto <= 0:
+                #respwana  no lugar do checkpoint, que ainda vai ser aprimorado
+                self._carregar_sala(self.player.checkpoint_sala)
+                self.player.respawnar()
+                self.player.defenir_checkpoint(self.player.checkpoint_sala)
+                self.morrendo = False
 
     #verificar passagem
     def _checar_transiçao(self):
@@ -165,3 +200,26 @@ class Gamescene:
         self.player.desenhar(self.tela, self.camera)
 
         self.hud.desenhar(self.tela, self.player)  
+
+        #tela de morte - desenhada por cima de tudo
+        if self.morrendo:
+            self._desenhar_tela_morte()
+
+    def _desenhar_tela_morte(self):
+        #fade escuro com o texto voce morreu centralizado
+
+        progresso = 1 - (self.timer_morto / self.duraçao_morte)
+        alpha = int(progresso * 200) #maximo 200 de 255, pra tela nao ficar toda preta
+
+        #superfice transparente
+        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0 , alpha))
+        self.tela.blit(overlay, (0, 0))
+
+        #texto so aparece depois do fade ta na metade
+        if progresso > 0.4:
+            fonte = pygame.font.SysFont("Georgia", 64, bold=True)
+            texto = fonte.render("VOCÊ MORREU", True, Vermelho_sangue)
+            x = Screen_widht // 2 - texto.get_width() // 2
+            y = Screen_height // 2 - texto.get_height() // 2
+            self.tela.blit(texto, (x, y))

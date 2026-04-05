@@ -30,6 +30,7 @@ class Enemy(Entity):
         self.estado = self.Patrulha
         self.cooldown_ataq = 0
         self._frame = 0
+        self.timer_knockback = 0
 
         #começa a patrulha pela a direita
         self.vel.x = self.Vel_patrulha
@@ -45,6 +46,17 @@ class Enemy(Entity):
             
         self._frame += 1
         dano_causado = 0
+
+        #parte do knockback
+        if self.timer_knockback > 0:
+            self.timer_knockback -= 1
+            self.aplicar_gravidade()
+            self.mover_com_colisão(rects_solidos)
+            self.atualizar_invencibilidade()
+            if self.cooldown_ataq > 0:
+                self.cooldown_ataq -= 1
+            return 0 #nao rodar a ia do inimigo
+
 
         #distancia horizontal/x ate o player
         dist = abs(player.rect.centerx - self.rect.centerx)
@@ -69,7 +81,7 @@ class Enemy(Entity):
                 self.vel.x = self.Vel_patrulha
                 self.olhando_dir = True
 
-            elif self.rect.right <= self.patrulha_dir:
+            elif self.rect.right >= self.patrulha_dir:
                 self.vel.x = -self.Vel_patrulha
                 self.olhando_dir = False
 
@@ -95,9 +107,13 @@ class Enemy(Entity):
 
         self.receber_dano(dano)
         # knoback o inimigo sofre a repulsao quando atacado
-        self.vel.x = direçao_knockback * 7
-        self.vel.y = -4 #o saltinho pra cima de lei
 
+        self.vel.x = direçao_knockback * 7
+    
+        self.vel.y = -4 #o saltinho pra cima de lei
+        self.timer_knockback = 12 #knockback nao estava sendo aplicado 
+        
+        
     #DESENHO
     def desenhar(self, tela, camera):
         if not self.vivo:
@@ -123,16 +139,19 @@ class Enemy(Entity):
         olho_x = sr.centerx + (5 if self.olhando_dir else -5)
         pygame.draw.circle(tela, cor_olho, (olho_x, sr.y +10), 4)
 
-        def _desenhar_hp(self, tela, sr):
-            bar_w = sr.width
-            ratio = self.hp / self.hp_max
+        if self.hp < self.hp_max:
+            self._desenhar_hp(tela, sr)
 
-            #fundo
-            pygame.draw.rect(tela, (60, 20, 20),
-                        (sr.x, sr.y - 8, bar_w, 4), border_radius=2)
+    def _desenhar_hp(self, tela, sr):
+        bar_w = sr.width
+        ratio = self.hp / self.hp_max
+
+        #fundo
+        pygame.draw.rect(tela, (60, 20, 20),
+                (sr.x, sr.y - 8, bar_w, 4), border_radius=2)
                 
-            #preenchimento
-            if ratio > 0:
-                pygame.draw.rect(tela, (200, 40, 40),
-                            (sr.x, sr.y - 8, int(bar_w * ratio), 4),
-                                border_radius=2)
+        #preenchimento
+        if ratio > 0:
+            pygame.draw.rect(tela, (200, 40, 40),
+                    (sr.x, sr.y - 8, int(bar_w * ratio), 4),
+                        border_radius=2)

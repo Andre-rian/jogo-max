@@ -10,7 +10,7 @@ FPS = 60
 Titulo = "Knight tales"
 
 #Titulo
-Tile_size = 48
+Tile_size = 32
 
 
 #fisica player

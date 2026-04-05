@@ -13,6 +13,7 @@ class Tilemap:
 
         self.rect_solidos = self._calcular_rects_solidos()
         self.rects_dano = self._calcular_rects_dano()
+        self.rects_bau = self._calcular_rects_bau()
 
         #pré calculo
 
@@ -49,6 +50,26 @@ class Tilemap:
                         tile.damage   # guarda o dano junto com o rect
                     ))
         return rects
+
+    def _calcular_rects_bau(self):
+    #cria os rects para os baus
+        rects = []
+        for linha_i, linha in enumerate(self.grid):
+            for col_i, tile_id in enumerate(linha):
+                if tile_id == 6: #tile do bau
+                    rects.append((
+                        pygame.Rect(
+                            col_i  * Tile_size,
+                            linha_i * Tile_size,
+                            Tile_size,
+                            Tile_size
+                        ),
+                        col_i, #guarda col para depois
+                        linha_i  # guarda linha para depois
+                    ))
+        return rects
+
+
 
     #desenhar
     def desenhar(self, tela, camera):
@@ -107,3 +128,4 @@ class Tilemap:
             #recalcular as colisoes pois o mapa mudou
             self.rect_solidos = self._calcular_rects_solidos()
             self.rects_dano = self._calcular_rects_dano()
+            self.rects_bau = self._calcular_rects_bau()

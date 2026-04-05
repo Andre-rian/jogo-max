@@ -16,8 +16,7 @@ class Gamescene:
         self.hud = Hud()
         #cria o hud e reeutilizar ele em outras salas
         self.player = Player(0, 0)
-        self.player.tem_espada = True #temporario enquanto nao adiciono uma forma de obter a espada
-
+        self.player.tem_espada = False 
         #carrega a sala
         self._carregar_sala("calabouço_2")
 
@@ -73,6 +72,9 @@ class Gamescene:
         #atualizar a transiçao de cena
         self._checar_transiçao()
 
+        #atualizar os baus
+        self._checar_bau()
+
         #atualizar inimigos
         for inimigo in self.inimigos:
             inimigo.atualizar(rects_solidos, self.player)
@@ -104,6 +106,25 @@ class Gamescene:
         #remove os inimigos mortos da lista inimigos
         self.inimigos = [in_ for in_ in self.inimigos if in_.vivo ]
     
+    def _checar_bau(self):
+        #se o player encosta(provisorio) no bau:recebe o item , bau some, hud mostar a mensagem'
+        teclas = pygame.key.get_pressed()
+
+        for rect_bau, col, linha in self.mapa.rects_bau:
+            if self.player.rect.colliderect(rect_bau):
+                #esta perto do bau
+                self.hud.mostra_mensagem("pressione E para abrir") #provisorio
+                
+                   
+            if teclas[pygame.K_e]:
+                self.player.tem_espada = True
+                self.mapa.remover_tile(col, linha)
+                self.hud.mostra_mensagem("espada encontrada")
+                break
+
+
+
+
     #verificar passagem
     def _checar_transiçao(self):
         #verificar se o player saiu pela borda da sala e carrega a nova, se existir conexao é claro

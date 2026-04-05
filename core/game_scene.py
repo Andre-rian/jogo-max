@@ -19,7 +19,7 @@ class Gamescene:
         self.player = Player(0, 0)
         self.player.tem_espada = False 
         #carrega a sala
-        self._carregar_sala("calabouço_2")
+        self._carregar_sala("calabouço_1")
         self.player.defenir_checkpoint("calabouço_1")
 
 
@@ -202,18 +202,25 @@ class Gamescene:
     #verificar passagem
     def _checar_transiçao(self):
         #verificar se o player saiu pela borda da sala e carrega a nova, se existir conexao é claro
-        conexoes_sala = Conexoes.get(self.sala_atual, {})
 
+        #proteçao anti bug de teleporte da transiçao de fase
+        conexoes_sala = Conexoes.get(self.sala_atual, {})
+        if hasattr(self, "_coldown_transiçao") and self.cooldown_transiçao > 0:
+            self._cooldown_transiçao -= 1
+            return
 
 
 
         #direita
         if self.player.rect.right >= self.largura_mapa:
+            conexoes_sala = Conexoes.get(self.sala_atual, {})
             proxima = conexoes_sala.get("direita")
             if proxima:
                 #entra pela a esquerda da nova sala
                 linha_spwan = spwans[proxima][1]
-                self._carregar_sala(proxima, posiçao_spwan=(1, linha_spwan))
+                self._carregar_sala(proxima, posiçao_spwan=(2, linha_spwan))
+                self._cooldown_transiçao = 60
+                return
 
         #esquerda
         elif self.player.rect.left <= 0:
@@ -221,9 +228,11 @@ class Gamescene:
             if proxima:
                 #entra pela a direita da nova sala
                 grid = Salas[proxima]
-                ultima_col = len(grid[0]) - 2 # -2 para nao spwana dentro da parede
+                ultima_col = len(grid[0]) - 3 # -3 para nao spwana dentro da parede e longe da borda
                 linha_spwan = spwans[proxima][1]
                 self._carregar_sala(proxima, posiçao_spwan=(ultima_col, linha_spwan))
+                self._cooldown_transiçao = 360
+                return
 
 
     #sistema de dano nos espinhos para parkou

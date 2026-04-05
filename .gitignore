@@ -20,3 +20,4 @@ ui/__pycache__/__init__.cpython-313.pyc
 world/__pycache__/rooms.cpython-313.pyc
 ui/__pycache__/hud.cpython-313.pyc
 world/__pycache__/tile_map.cpython-313.pyc
+core/__pycache__/animated_sprite.cpython-314.pyc

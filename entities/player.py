@@ -1,6 +1,7 @@
 import pygame
 import math
 from entities.entity import Entity
+from core.animated_sprite import AnimetedSprite
 from settings import (
     Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown,
       Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size,
@@ -56,6 +57,20 @@ class Player(Entity):
         self.checkpoint_sala = 'calabouço_1' 
 
 
+        # animações
+        KNIGHT = "assets/sprites/player/knight/"
+        self.animacoes = {
+            self.Parado:   AnimetedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=2),
+            self.Correndo: AnimetedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=2),
+            self.Pulando:  AnimetedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=2),
+            self.Caindo:   AnimetedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=2),
+            self.Atacando: AnimetedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=2),
+            self.Dash:     AnimetedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=2),
+            self.Morto:    AnimetedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=2),
+                }
+        self._estado_anterior = self.Parado
+        self.anim_atual = self.animacoes[self.Parado]
+
     #UPDATE
     def atualizar(self, rects_solidos, camera, pos_mouse_mundo):
         if not self.vivo:
@@ -77,6 +92,16 @@ class Player(Entity):
         self.atualizar_invencibilidade()
         self._atualizar_estado()
         self._atualizar_times()
+
+        #troca a animaçao se o estado mudou
+        if self.estado != self._estado_anterior:
+            self.anim_atual = self.animacoes.get(self.estado, self.animacoes[self.Parado])
+            self.anim_atual.resetar()
+            self._estado_anterior = self.estado
+
+        #avançar o frame da animaçao atual
+        self.anim_atual.atualizar()
+
 
         #salvar teclas para o proximo frame
         self._teclas_anterior = teclas
@@ -300,6 +325,16 @@ class Player(Entity):
         self.em_dahs = False 
         self.atacando = False
 
+
+    #colisao
+    def mover_com_colisão(self, rects_solidos):
+        # chama a colisão normal da Entity
+        super().mover_com_colisão(rects_solidos)
+    
+        # se estava em dash e bateu na parede (vel.x zerou), cancela o dash
+        if self.em_dahs and self.vel.x == 0:
+            self.em_dahs = False
+            self.timer_dash = 0
     
 
     #DESENHO (placerholder geometrico ou coisa do tipo)
@@ -310,35 +345,14 @@ class Player(Entity):
         if self.invencivel and self._frame_atual % 6 < 3:
             return
         
-        #corpo - cinza com armadura e marrom sem (provisorio enquanto nao colocar uma sprite)
-        
-        cor_corpo = (90, 95, 105)
-        if self.tem_armadura:
-            cor_corpo = (70, 55, 40)
-        pygame.draw.rect(tela, cor_corpo, sr, border_radius=4)
+        #centraliza a sprite visualmente sobre o rect de colisão
+        sprite_w = self.anim_atual.largura
+        sprite_h = self.anim_atual.altura
+        offset_x = sr.centerx - sprite_w // 2
+        offset_y = sr.bottom - sprite_h
 
-        #capacete
-
-        pygame.draw.rect(tela, cor_corpo, ( sr.x + 4, sr.y, sr.width - 8, 20), border_radius=6)
-
-
-        #viseira
-        pygame.draw.rect(tela, (200, 170, 80), (sr.x + 8, sr.y + 6, 6, 5), border_radius=2)
-
-
-        #espada so se tiver
-        if self.tem_espada:
-            if self.olhando_dir:
-                pts = [(sr.right, sr.centery),
-                       (sr.right + 24, sr.centery - 4),
-                       (sr.right + 26, sr.centery),
-                       (sr.right + 24, sr.centery + 4)]
-            else:
-                pts = [(sr.left, sr.centery),
-                       (sr.left - 24, sr.centery - 4),
-                       (sr.left - 26, sr.centery),
-                       (sr.left - 24, sr.centery + 4)]
-            pygame.draw.polygon(tela, (200, 210, 220), pts)
+        espelhado = not self.olhando_dir
+        self.anim_atual.desenhar(tela, offset_x, offset_y, espelhado)
 
         #rastro azul do dash
         if self.em_dahs:

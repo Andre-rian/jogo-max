@@ -33,10 +33,12 @@ class Gamescene:
         grid = Salas[nome_sala]
         self.mapa = Tilemap(grid)
 
+       
+
         #ajuste da camera para o mapa novo
-        largura_mapa = len(grid[0]) * Tile_size
-        altura_mapa = len(grid) * Tile_size
-        self.camera = Camera(largura_mapa, altura_mapa)
+        self.largura_mapa = len(grid[0]) * Tile_size
+        self.altura_mapa = len(grid) * Tile_size
+        self.camera = Camera(self.largura_mapa, self.altura_mapa)
 
         #posiçao do spwan
         if posiçao_spwan is None:
@@ -68,6 +70,9 @@ class Gamescene:
         #atualizar o player
         self.player.atualizar(rects_solidos, self.camera, pos_mouse_mundo)
 
+        #atualizar a transiçao de cena
+        self._checar_transiçao()
+
         #atualizar inimigos
         for inimigo in self.inimigos:
             inimigo.atualizar(rects_solidos, self.player)
@@ -98,7 +103,36 @@ class Gamescene:
     
         #remove os inimigos mortos da lista inimigos
         self.inimigos = [in_ for in_ in self.inimigos if in_.vivo ]
+    
+    #verificar passagem
+    def _checar_transiçao(self):
+        #verificar se o player saiu pela borda da sala e carrega a nova, se existir conexao é claro
+        conexoes_sala = Conexoes.get(self.sala_atual, {})
 
+
+
+
+        #direita
+        if self.player.rect.right >= self.largura_mapa:
+            proxima = conexoes_sala.get("direita")
+            if proxima:
+                #entra pela a esquerda da nova sala
+                linha_spwan = spwans[proxima][1]
+                self._carregar_sala(proxima, posiçao_spwan=(1, linha_spwan))
+
+        #esquerda
+        elif self.player.rect.left <= 0:
+            proxima = conexoes_sala.get("esquerda")
+            if proxima:
+                #entra pela a direita da nova sala
+                grid = Salas[proxima]
+                ultima_col = len(grid[0]) - 2 # -2 para nao spwana dentro da parede
+                linha_spwan = spwans[proxima][1]
+                self._carregar_sala(proxima, posiçao_spwan=(ultima_col, linha_spwan))
+
+
+
+    
     #DESENHAR   
     
     def desenhar(self):

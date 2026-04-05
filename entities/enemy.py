@@ -69,7 +69,7 @@ class Enemy(Entity):
                 self.vel.x = self.Vel_patrulha
                 self.olhando_dir = True
 
-            elif self.rect.dir <= self.patrulha_dir:
+            elif self.rect.right <= self.patrulha_dir:
                 self.vel.x = -self.Vel_patrulha
                 self.olhando_dir = False
 

@@ -80,6 +80,9 @@ class Gamescene:
         #atualizar os baus
         self._checar_bau()
 
+        #atualizar os espinhos
+        self._checar_espinhos()
+
         #atuallizar o checar_morte
         self._checar_morte()
 
@@ -187,7 +190,12 @@ class Gamescene:
                 self._carregar_sala(proxima, posiçao_spwan=(ultima_col, linha_spwan))
 
 
-
+    #sistema de dano nos espinhos para parkou
+    def _checar_espinhos(self):
+        for rect_dano, dano in self.mapa.rects_dano:
+            if self.player.rect.colliderect(rect_dano):
+                self.player.receber_dano(dano)
+                break 
     
     #DESENHAR   
     

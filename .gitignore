@@ -9,3 +9,14 @@ world/__pycache__/tile_map.cpython-314.pyc
 world/__pycache__/rooms.cpython-314.pyc
 entities/__pycache__/enemy.cpython-314.pyc
 core/__pycache__/game_scene.cpython-314.pyc
+__pycache__/settings.cpython-313.pyc
+core/__pycache__/__init__.cpython-313.pyc
+core/__pycache__/camera_player.cpython-313.pyc
+core/__pycache__/game_scene.cpython-313.pyc
+entities/__pycache__/enemy.cpython-313.pyc
+entities/__pycache__/entity.cpython-313.pyc
+entities/__pycache__/player.cpython-313.pyc
+ui/__pycache__/__init__.cpython-313.pyc
+world/__pycache__/rooms.cpython-313.pyc
+ui/__pycache__/hud.cpython-313.pyc
+world/__pycache__/tile_map.cpython-313.pyc

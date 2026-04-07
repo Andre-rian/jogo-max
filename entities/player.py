@@ -1,7 +1,7 @@
 import pygame
 import math
 from entities.entity import Entity
-from core.animated_sprite import AnimetedSprite
+from core.animated_sprite import AnimatedSprite
 from settings import (
     Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown,
       Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size,
@@ -60,13 +60,13 @@ class Player(Entity):
         # animações
         KNIGHT = "assets/sprites/player/knight/"
         self.animacoes = {
-            self.Parado:   AnimetedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=2),
-            self.Correndo: AnimetedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=2),
-            self.Pulando:  AnimetedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=2),
-            self.Caindo:   AnimetedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=2),
-            self.Atacando: AnimetedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=2),
-            self.Dash:     AnimetedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=2),
-            self.Morto:    AnimetedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=2),
+            self.Parado:   AnimatedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=2),
+            self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=2),
+            self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=2),
+            self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=2),
+            self.Atacando: AnimatedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=2),
+            self.Dash:     AnimatedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=2),
+            self.Morto:    AnimatedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=2),
                 }
         self._estado_anterior = self.Parado
         self.anim_atual = self.animacoes[self.Parado]
@@ -74,9 +74,19 @@ class Player(Entity):
     #UPDATE
     def atualizar(self, rects_solidos, camera, pos_mouse_mundo):
         if not self.vivo:
-            self.estado = self.Morto
-            return
+            self.estado = self.Morto                                
+            if self._estado_anterior != self.Morto:   #animação de morte
+                self.anim_atual = self.animacoes[self.Morto]
+                self.anim_atual.resetar()
+                self._estado_anterior = self.estado
+            self.anim_atual.atualizar()
+            return 
         
+
+
+           
+
+
         self._frame_atual += 1
 
         teclas = pygame.key.get_pressed()
@@ -92,6 +102,8 @@ class Player(Entity):
         self.atualizar_invencibilidade()
         self._atualizar_estado()
         self._atualizar_times()
+
+
 
         #troca a animaçao se o estado mudou
         if self.estado != self._estado_anterior:
@@ -340,6 +352,9 @@ class Player(Entity):
     #DESENHO (placerholder geometrico ou coisa do tipo)
     def desenhar(self, tela, camera):
         sr = camera.aplicar(self.rect)
+
+        if not self.vivo and self.estado != self.Morto:
+            return
 
         #piscar durante invecibilidade 
         if self.invencivel and self._frame_atual % 6 < 3:

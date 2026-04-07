@@ -1,8 +1,9 @@
 import pygame
 from entities.entity import Entity
 from settings import Gravidade, Max_Fall_Speed
+from core.animated_sprite import AnimatedSprite
 
-class Enemy(Entity):
+class Skeleton(Entity):
 
     #estados do inimigo
 
@@ -36,13 +37,41 @@ class Enemy(Entity):
         self.vel.x = self.Vel_patrulha
         self.olhando_dir = True
 
+
+        #sprites
+        Skel = "assets/sprites/enemies/monsters/skeleton/"
+
+        self.animacoes = {
+                self.Patrulha:  AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=8, escala=3, n_frames=11),
+                self.Perseguir: AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=5, escala=3, n_frames=11),
+                self.Atacando:  AnimatedSprite(Skel + "Skeleton Attack.png", 43, 37, velocidade=4, escala=3, n_frames=18),
+                self.Morto:     AnimatedSprite(Skel + "Skeleton Dead.png",   33, 32, velocidade=6, escala=3, n_frames=15),
+        }
+        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=8, escala=3, n_frames=8)
+        self.anim_idle = AnimatedSprite(Skel + "Skeleton Idle.png", 24, 32, velocidade=8, escala=3, n_frames=11)
+        self._estado_anterior = self.Patrulha
+        self.anim_atual = self.animacoes[self.Patrulha]
+        self._em_hit = False #flag para animação de hit
+        self._timer_hit = 0
+        
+        
         #update/ atualizar do inimigo
 
     def atualizar(self, rects_solidos, player):
         #retorna o dano causado ao player no frame, 0 se nao causou
 
         if not self.vivo:
-            return 0
+            self.estado = self.Morto
+            self.anim_atual = self.animacoes[self.Morto]
+            self.anim_atual.atualizar()
+            
+            #so remove o esqueleto do mapa apos alguns frames, para dar tempo fazer a animação
+            if not hasattr(self, "_timer_morte"):
+                self._timer_morte = 90
+            self._timer_morte -= 1
+            if self._timer_morte <= 0:
+                return 0 #game scene remove aquele esqueleto da lista
+            return -1 #na animaçao de morte, nao remove ainda
             
         self._frame += 1
         dano_causado = 0
@@ -91,6 +120,26 @@ class Enemy(Entity):
 
         if self.cooldown_ataq > 0:
             self.cooldown_ataq -= 1
+
+        if self._em_hit:
+            self._timer_hit -= 1
+            if self._timer_hit <= 0:
+                self._em_hit = False
+            self.anim_atual = self.anim_hit
+
+        else:
+            # troca a animação se o estado mudou
+            
+            if self.estado != self._estado_anterior:
+                self.anim_atual = self.animacoes.get(self.estado, self.animacoes[self.Patrulha])
+                self.anim_atual.resetar()
+                self._estado_anterior = self.estado
+
+        if self.estado == self.Patrulha and self.vel.x == 0:
+            self.anim_atual = self.anim_idle
+
+        self.anim_atual.atualizar()
+
         return dano_causado
         
     #ATAQUEE
@@ -112,11 +161,17 @@ class Enemy(Entity):
     
         self.vel.y = -4 #o saltinho pra cima de lei
         self.timer_knockback = 12 #knockback nao estava sendo aplicado 
+
+
+        #ativa a animaçao de hit
+        self._em_hit = True
+        self._timer_hit = 8
+        self.anim_hit.resetar()
         
         
     #DESENHO
     def desenhar(self, tela, camera):
-        if not self.vivo:
+        if not self.vivo and not hasattr(self, '_timer_morte'):
             return
             
         sr = camera.aplicar(self.rect)
@@ -125,19 +180,14 @@ class Enemy(Entity):
         if self.invencivel and self._frame % 6 < 3:
             return
             
-        #corpo vermelho escuro (provisorio enquanto nao tem sprites)
-        cor = (120, 35, 35)
-        pygame.draw.rect(tela, cor, sr, border_radius=4)
+        #centraliza as sprites sobre o rect(provisorio enquanto nao uso o metodo mask)
+        sprite_w = self.anim_atual.largura
+        sprite_h = self.anim_atual.altura
+        offset_x = sr.centerx - sprite_w // 2
+        offset_y = sr.bottom - sprite_h
 
-        #capaceta
-        pygame.draw.rect(tela, (80, 25, 25),
-                        (sr.x + 2, sr.y, sr.width - 4, 18), border_radius=5)
-            
-        #olho - branco se esta em patrulha - vermelho se estiver atacando
-        cor_olho = (220, 60, 60) if self.estado in (
-            self.Perseguir, self.Atacando) else (220, 220, 220)
-        olho_x = sr.centerx + (5 if self.olhando_dir else -5)
-        pygame.draw.circle(tela, cor_olho, (olho_x, sr.y +10), 4)
+        espelhado = not self.olhando_dir
+        self.anim_atual.desenhar(tela, offset_x, offset_y, espelhado)
 
         if self.hp < self.hp_max:
             self._desenhar_hp(tela, sr)

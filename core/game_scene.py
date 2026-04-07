@@ -5,7 +5,7 @@ from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
 from core.camera_player import Camera
 from entities.player import Player
-from entities.enemy import Enemy
+from entities.monsters.skeleton import Skeleton
 from ui.hud import Hud
 
 
@@ -66,7 +66,7 @@ class Gamescene:
             col_in, lin_in, pat_esq, pat_dir = dados
             x = col_in * Tile_size
             y = lin_in * Tile_size
-            self.inimigos.append(Enemy(x, y, pat_esq, pat_dir))
+            self.inimigos.append(Skeleton(x, y, pat_esq, pat_dir))
 
     
     #ATUALIZAR  
@@ -81,6 +81,22 @@ class Gamescene:
 
         rects_solidos = self.mapa.rect_solidos
 
+        #atuallizar o checar_morte
+        self._checar_morte()
+
+        #bloquueia os outros atualizar se o player estiver morto
+        if self.morrendo:
+
+            #atualizar o player
+            self.player.atualizar(rects_solidos, self.camera, pos_mouse_mundo)
+
+            #camera segue o player
+            self.camera.atualizar(self.player.rect)
+
+            #hud
+            self.hud.atualizar()
+            return
+
         #atualizar o player
         self.player.atualizar(rects_solidos, self.camera, pos_mouse_mundo)
 
@@ -93,18 +109,9 @@ class Gamescene:
         #atualizar os espinhos
         self._checar_espinhos()
 
-        #atuallizar o checar_morte
-        self._checar_morte()
 
-        #bloquueia os outros atualizar se o player estiver morto
-        if self.morrendo:
 
-            #camera segue o player
-            self.camera.atualizar(self.player.rect)
 
-            #hud
-            self.hud.atualizar()
-            return
 
 
         #atualizar inimigos
@@ -161,8 +168,8 @@ class Gamescene:
                 direçao = 1 if self.player.olhando_dir else -1
                 inimigo.receber_hit(ataque_dano, direçao)
     
-        #remove os inimigos mortos da lista inimigos
-        self.inimigos = [in_ for in_ in self.inimigos if in_.vivo ]
+        #remove os inimigos mortos da lista inimigos e se o timer morto for = 0, ou vivo= False
+        self.inimigos = [in_ for in_ in self.inimigos if in_.vivo or hasattr(in_, "_timer_morte") and in_._timer_morte > 0]
     
     def _checar_bau(self):
         #se o player encosta(provisorio) no bau:recebe o item , bau some, hud mostar a mensagem'
@@ -205,7 +212,7 @@ class Gamescene:
 
         #proteçao anti bug de teleporte da transiçao de fase
         conexoes_sala = Conexoes.get(self.sala_atual, {})
-        if hasattr(self, "_coldown_transiçao") and self.cooldown_transiçao > 0:
+        if hasattr(self, "_cooldown_transiçao") and self._cooldown_transiçao > 0:
             self._cooldown_transiçao -= 1
             return
 

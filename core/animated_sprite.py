@@ -1,9 +1,9 @@
 import pygame
 
-class AnimetedSprite:
+class AnimatedSprite:
     #carrega um spriteshet, fatia em frames e anima automaticamente.
 
-    def __init__(self, caminho, frame_width, frame_height, velocidade=8, escala=1):
+    def __init__(self, caminho, frame_width, frame_height, velocidade=8, escala=1, n_frames=None):
 
         """
         caminho = caminho para a spritesheet
@@ -16,17 +16,20 @@ class AnimetedSprite:
         self.escala = escala
         self._contador = 0
         self._frame_idx = 0
-
+        
         #carrega e fatia o spritesheet
-        self.frames = self._carregar_frames(caminho, frame_width, frame_height, escala)
+        self.frames = self._carregar_frames(caminho, frame_width, frame_height, escala, n_frames)
 
-    def _carregar_frames(self, caminho, fw, fh, escala):
+
+    def _carregar_frames(self, caminho, fw, fh, escala, n_frames=None):
         
         sheet = pygame.image.load(caminho).convert_alpha()
 
-        largura_sheet = sheet.get_width()
-        n_frames = largura_sheet // fw #quantos frames cabem
 
+        if n_frames is None:
+            n_frames = sheet.get_width() // fw
+
+        
         frames = []
         for i in range(n_frames):
             #recorta o frame do spritesheet

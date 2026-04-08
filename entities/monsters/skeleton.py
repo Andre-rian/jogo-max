@@ -220,7 +220,13 @@ class Skeleton(Entity):
         
         sprite_w = self.anim_atual.largura
         sprite_h = self.anim_atual.altura
-        offset_x = sr.centerx - sprite_w // 2
+        if self.olhando_dir:
+            offset_x = sr.centerx - sprite_w // 2 - 10
+        
+        else:
+            offset_x = sr.centerx - sprite_w // 2 + 10
+            
+        
         offset_y = sr.bottom - sprite_h
 
         espelhado = not self.olhando_dir

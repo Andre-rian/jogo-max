@@ -20,7 +20,7 @@ class Player(Entity):
     Morto = "morto"
 
     def __init__(self, x, y):
-        super().__init__(x, y, largura=32, altura=52, hp_max=vida_max_player)
+        super().__init__(x, y, largura=32, altura=66, hp_max=vida_max_player)
 
         #estado atual da maquina de estado 
         
@@ -366,7 +366,12 @@ class Player(Entity):
         #centraliza a sprite visualmente sobre o rect de colisão
         sprite_w = self.anim_atual.largura
         sprite_h = self.anim_atual.altura
-        offset_x = sr.centerx - sprite_w // 2
+        if  self.olhando_dir:
+            offset_x = sr.centerx - sprite_w // 2 + 10
+        else:
+            offset_x = sr.centerx - sprite_w // 2 - 10
+        
+        
         offset_y = sr.bottom - sprite_h
 
         espelhado = not self.olhando_dir

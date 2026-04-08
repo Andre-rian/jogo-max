@@ -6,6 +6,7 @@ from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
 from core.camera_player import Camera
 from entities.player import Player
 from entities.monsters.skeleton import Skeleton
+from entities.monsters.globin import Globin
 from ui.hud import Hud
 
 
@@ -19,6 +20,7 @@ class Gamescene:
         self.player = Player(0, 0)
         self.player.tem_espada = False 
         #carrega a sala
+        self._dir_entrada = None
         self._carregar_sala("calabouço_1")
         self.player.defenir_checkpoint("calabouço_1")
 
@@ -63,13 +65,22 @@ class Gamescene:
         #resetar o time do cooldown ao trocar de sala
         self._cooldown_transiçao = 30
 
+        #tipos dos inimigos
+        _tipos_inimigos = {
+            "skeleton" : Skeleton,
+            "globin" : Globin
+
+        }
+
         #criar os inimigos na sala
         self.inimigos = []
         for dados in Inimigos_por_sala.get(nome_sala, []):
-            col_in, lin_in, pat_esq, pat_dir = dados
+            tipo, col_in, lin_in, pat_esq, pat_dir = dados
             x = col_in * Tile_size
             y = lin_in * Tile_size
-            self.inimigos.append(Skeleton(x, y, pat_esq, pat_dir))
+            classe = _tipos_inimigos.get(tipo)
+            if classe:
+                self.inimigos.append(classe(x, y, pat_esq, pat_dir))
 
     
     #ATUALIZAR  
@@ -218,35 +229,36 @@ class Gamescene:
 
         #proteçao anti bug de teleporte da transiçao de fase
         conexoes_sala = Conexoes.get(self.sala_atual, {})
+
+        # cooldown só bloqueia a direção de onde o player veio
         if hasattr(self, "_cooldown_transiçao") and self._cooldown_transiçao > 0:
             self._cooldown_transiçao -= 1
-            return
+            if self._dir_entrada == "direita" and self.player.rect.left <= 0:
+                return  # bloqueia só esquerda
+            if self._dir_entrada == "esquerda" and self.player.rect.right >= self.largura_mapa:
+                return  # bloqueia só direita
 
-
-
-        #direita
+        # direita
         if self.player.rect.right >= self.largura_mapa:
-            conexoes_sala = Conexoes.get(self.sala_atual, {})
             proxima = conexoes_sala.get("direita")
             if proxima:
-                #entra pela a esquerda da nova sala
                 linha_spwan = spwans[proxima][1]
                 self._carregar_sala(proxima, posiçao_spwan=(2, linha_spwan))
+                self._dir_entrada = "direita"
                 self._cooldown_transiçao = 60
                 return
 
-        #esquerda
+        # esquerda
         elif self.player.rect.left <= 0:
             proxima = conexoes_sala.get("esquerda")
             if proxima:
-                #entra pela a direita da nova sala
                 grid = Salas[proxima]
-                ultima_col = len(grid[0]) - 3 # -3 para nao spwana dentro da parede e longe da borda
+                ultima_col = len(grid[0]) - 3
                 linha_spwan = spwans[proxima][1]
                 self._carregar_sala(proxima, posiçao_spwan=(ultima_col, linha_spwan))
-                self._cooldown_transiçao = 120
+                self._dir_entrada = "esquerda"
+                self._cooldown_transiçao = 60
                 return
-
 
     #sistema de dano nos espinhos para parkou
     def _checar_espinhos(self):
@@ -268,8 +280,15 @@ class Gamescene:
         for inimigo in self.inimigos:
             inimigo.desenhar(self.tela, self.camera)
 
-        self.player.desenhar(self.tela, self.camera)
 
+            #debug do ngc do globin
+            sr_inimigo = self.camera.aplicar(inimigo.rect)
+            pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
+
+
+        self.player.desenhar(self.tela, self.camera)
+        sr_player = self.camera.aplicar(self.player.rect)
+        pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
         self.hud.desenhar(self.tela, self.player)  
 
         #tela de morte - desenhada por cima de tudo

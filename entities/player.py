@@ -79,7 +79,10 @@ class Player(Entity):
                 self.anim_atual = self.animacoes[self.Morto]
                 self.anim_atual.resetar()
                 self._estado_anterior = self.estado
-            self.anim_atual.atualizar()
+            
+            
+            if not self.anim_atual.terminou:
+                    self.anim_atual.atualizar()
             return 
         
 

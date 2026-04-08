@@ -71,10 +71,16 @@ class AnimatedSprite:
     def frame_atual(self):
         #retorna o frame atual como surface util para o metodo mask
         return self.frames[self._frame_idx]
+    
     @property
+    def terminou(self):
+        #verificar se a animação ja terminou
+        return self._frame_idx == len(self.frames) - 1 and self._contador >= self.velocidade - 1
 
+    @property
     def largura(self):
         return self.frames[0].get_width()
+    
     @property
 
     def altura(self):

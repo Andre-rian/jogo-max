@@ -47,7 +47,7 @@ class Skeleton(Entity):
                 self.Atacando:  AnimatedSprite(Skel + "Skeleton Attack.png", 43, 37, velocidade=4, escala=3, n_frames=18),
                 self.Morto:     AnimatedSprite(Skel + "Skeleton Dead.png",   33, 32, velocidade=6, escala=3, n_frames=15),
         }
-        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=8, escala=3, n_frames=8)
+        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=6, escala=3, n_frames=8)
         self.anim_idle = AnimatedSprite(Skel + "Skeleton Idle.png", 24, 32, velocidade=8, escala=3, n_frames=11)
         self._estado_anterior = self.Patrulha
         self.anim_atual = self.animacoes[self.Patrulha]
@@ -60,18 +60,24 @@ class Skeleton(Entity):
     def atualizar(self, rects_solidos, player):
         #retorna o dano causado ao player no frame, 0 se nao causou
 
+
         if not self.vivo:
-            self.estado = self.Morto
-            self.anim_atual = self.animacoes[self.Morto]
-            self.anim_atual.atualizar()
-            
-            #so remove o esqueleto do mapa apos alguns frames, para dar tempo fazer a animação
+            # inicializa só uma vez
             if not hasattr(self, "_timer_morte"):
                 self._timer_morte = 90
+                self.estado = self.Morto
+                self.anim_atual = self.animacoes[self.Morto]
+                self.anim_atual.resetar()
+    
+
+            # só avança a animação se não terminou
+            if not self.anim_atual.terminou:
+                self.anim_atual.atualizar()
+    
             self._timer_morte -= 1
             if self._timer_morte <= 0:
-                return 0 #game scene remove aquele esqueleto da lista
-            return -1 #na animaçao de morte, nao remove ainda
+                return 0
+            return -1
             
         self._frame += 1
         dano_causado = 0
@@ -84,6 +90,21 @@ class Skeleton(Entity):
             self.atualizar_invencibilidade()
             if self.cooldown_ataq > 0:
                 self.cooldown_ataq -= 1
+            
+            #atualiza a animação de hit durante o knockback
+            if self._em_hit:
+                self._timer_hit -= 1
+                if self._timer_hit <= 0:
+                    self._em_hit = False
+                    #reseta a animação ao sair do hit
+                    self.anim_atual = self.animacoes.get(self.estado, self.animacoes[self.Patrulha])
+                    self.anim_atual.atualizar()
+                else:
+                    self.anim_atual = self.anim_hit
+                    #so avança a animação se nao terminou
+                    if not self.anim_hit.terminou:
+                        self.anim_atual.atualizar()
+            
             return 0 #nao rodar a ia do inimigo
 
 
@@ -96,6 +117,8 @@ class Skeleton(Entity):
                 #perto o suficante para a ia enteder que pode atacar
                 self.estado = self.Atacando
                 self.vel.x = 0
+                #cancela a animação de hit ao atacar
+                self._em_hit = False
                 dano_causado = self._tentar_atacar(player)
             else:
                 #persegue o player
@@ -125,10 +148,17 @@ class Skeleton(Entity):
             self._timer_hit -= 1
             if self._timer_hit <= 0:
                 self._em_hit = False
-            self.anim_atual = self.anim_hit
+                self.anim_atual = self.animacoes.get(self.animacoes, self.animacoes[self.Patrulha])
+                self.anim_atual.resetar()
+                self._estado_anterior = self.estado
 
+            else:
+                self.anim_atual = self.anim_hit
+                if not self.anim_hit.terminou:
+                    self.anim_atual.atualizar()
+                return dano_causado
+            
         else:
-            # troca a animação se o estado mudou
             
             if self.estado != self._estado_anterior:
                 self.anim_atual = self.animacoes.get(self.estado, self.animacoes[self.Patrulha])
@@ -157,30 +187,37 @@ class Skeleton(Entity):
         self.receber_dano(dano)
         # knoback o inimigo sofre a repulsao quando atacado
 
-        self.vel.x = direçao_knockback * 7
+        self.vel.x = direçao_knockback * 4
     
-        self.vel.y = -4 #o saltinho pra cima de lei
-        self.timer_knockback = 12 #knockback nao estava sendo aplicado 
+        self.vel.y = -2 #o saltinho pra cima de lei
+        self.timer_knockback = 20 #knockback nao estava sendo aplicado 
+
+        # se morreu nesse hit, criar um time para ser removido da lista
+        if not self.vivo and not hasattr(self, "_timer_morto"):
+            self._timer_morte = 90
+            self.estado = self.Morto
+            self.anim_atual = self.animacoes[self.Morto]
+            self.anim_atual.resetar()
 
 
-        #ativa a animaçao de hit
-        self._em_hit = True
-        self._timer_hit = 8
-        self.anim_hit.resetar()
+        #ativa a animaçao de hit, só se tiver vivo
+        if self.vivo:
+            self._em_hit = True
+            self._timer_hit = 20 
+            self.anim_hit.resetar()
         
         
     #DESENHO
     def desenhar(self, tela, camera):
-        if not self.vivo and not hasattr(self, '_timer_morte'):
+    # só esconde depois que o timer zerou
+        if not self.vivo and (not hasattr(self, '_timer_morte') or self._timer_morte <= 0):
             return
-            
+        
         sr = camera.aplicar(self.rect)
 
-        #piscar durante invecibilidade
-        if self.invencivel and self._frame % 6 < 3:
+        if  self.vivo  and self.invencivel and self._frame % 6 < 3:
             return
-            
-        #centraliza as sprites sobre o rect(provisorio enquanto nao uso o metodo mask)
+        
         sprite_w = self.anim_atual.largura
         sprite_h = self.anim_atual.altura
         offset_x = sr.centerx - sprite_w // 2

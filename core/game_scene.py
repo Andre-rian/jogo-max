@@ -60,6 +60,9 @@ class Gamescene:
         self.player.rect.y = linha * Tile_size
         self.player.vel.xy = (0, 0) #isso zerar a velocida ao trocar de sala
 
+        #resetar o time do cooldown ao trocar de sala
+        self._cooldown_transiçao = 30
+
         #criar os inimigos na sala
         self.inimigos = []
         for dados in Inimigos_por_sala.get(nome_sala, []):
@@ -121,6 +124,10 @@ class Gamescene:
         #verificar combante
         self._verificar_combante()
 
+        #remove os imimigos mortos depois de tudo atualiza
+        self.inimigos = [    in_ for in_ in self.inimigos
+            if in_.vivo or (hasattr(in_, "_timer_morte") and in_._timer_morte > 0)
+            ]
         #camera segue o player
         self.camera.atualizar(self.player.rect)
 
@@ -168,8 +175,7 @@ class Gamescene:
                 direçao = 1 if self.player.olhando_dir else -1
                 inimigo.receber_hit(ataque_dano, direçao)
     
-        #remove os inimigos mortos da lista inimigos e se o timer morto for = 0, ou vivo= False
-        self.inimigos = [in_ for in_ in self.inimigos if in_.vivo or hasattr(in_, "_timer_morte") and in_._timer_morte > 0]
+
     
     def _checar_bau(self):
         #se o player encosta(provisorio) no bau:recebe o item , bau some, hud mostar a mensagem'
@@ -238,7 +244,7 @@ class Gamescene:
                 ultima_col = len(grid[0]) - 3 # -3 para nao spwana dentro da parede e longe da borda
                 linha_spwan = spwans[proxima][1]
                 self._carregar_sala(proxima, posiçao_spwan=(ultima_col, linha_spwan))
-                self._cooldown_transiçao = 360
+                self._cooldown_transiçao = 120
                 return
 
 

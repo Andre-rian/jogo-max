@@ -37,7 +37,7 @@ class Entity(pygame.sprite.Sprite):
     def aplicar_gravidade(self):
         #adicionar a gravidade no jogo, sendo ela a velocida vertical,e tambem adicionar o limite dela
         if self.no_chao:
-            self.vel.y =1
+            self.vel.y = 1
         else:
             self.vel.y = min(self.vel.y + Gravidade, Max_Fall_Speed)
     
@@ -72,7 +72,6 @@ class Entity(pygame.sprite.Sprite):
                     self.vel.y = 0 
         if self.no_chao:
             self.vel.y = 0
-
 
     #Dano/combante
     def receber_dano(self, quantidade):

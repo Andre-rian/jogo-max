@@ -7,6 +7,7 @@ from core.camera_player import Camera
 from entities.player import Player
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
+from entities.monsters.mushroom import Mushroom
 from ui.hud import Hud
 
 
@@ -68,7 +69,8 @@ class Gamescene:
         #tipos dos inimigos
         _tipos_inimigos = {
             "skeleton" : Skeleton,
-            "globin" : Globin
+            "globin" : Globin,
+            "mushroom" : Mushroom
 
         }
 

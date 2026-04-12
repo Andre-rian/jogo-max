@@ -6,10 +6,12 @@ from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
 from core.camera_player import Camera
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
+from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 from entities.player import Player
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
+from entities.monsters.flying_eye import FlyingEye
 from ui.hud import Hud
 
 
@@ -75,7 +77,8 @@ class Gamescene:
         _tipos_inimigos = {
             "skeleton" : Skeleton,
             "globin" : Globin,
-            "mushroom" : Mushroom
+            "mushroom" : Mushroom,
+            "flying_eye": FlyingEye,
 
         }
 
@@ -145,6 +148,9 @@ class Gamescene:
             if hasattr(inimigo, "esporos_spawnar") and inimigo.esporos_spawnar:
                 self.projeteis.extend(inimigo.esporos_spawnar)
                 inimigo.esporos_spawnar.clear()
+            if hasattr(inimigo, "projeteis_spawnar") and inimigo.projeteis_spawnar:
+                self.projeteis.extend(inimigo.projeteis_spawnar)
+                inimigo.projeteis_spawnar.clear()
 
 
         #verificar combante

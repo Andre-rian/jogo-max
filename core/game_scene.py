@@ -4,6 +4,7 @@ from settings import *
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
 from core.camera_player import Camera
+from entities.projeteis.bomba import Bomba
 from entities.player import Player
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
@@ -30,6 +31,8 @@ class Gamescene:
         self.timer_morto = 0
         self.duraçao_morte = 180
 
+        #projeteis  
+        self.projeteis = []
 
         #menu de pausa
         self.pausado = False
@@ -46,7 +49,8 @@ class Gamescene:
         grid = Salas[nome_sala]
         self.mapa = Tilemap(grid)
 
-       
+       #limpa os projeteis ao trocar de sala
+        self.projeteis = []
 
         #ajuste da camera para o mapa novo
         self.largura_mapa = len(grid[0]) * Tile_size
@@ -133,6 +137,10 @@ class Gamescene:
         #atualizar inimigos
         for inimigo in self.inimigos:
             inimigo.atualizar(rects_solidos, self.player)
+            #pega as bombas spawnadas pelos globins e adiciona na lista de projeteis da sala
+            if hasattr(inimigo, "bombas_spawnar") and inimigo.bombas_spawnar:
+                self.projeteis.extend(inimigo.bombas_spawnar)
+                inimigo.bombas_spawnar.clear()
 
         #verificar combante
         self._verificar_combante()
@@ -143,6 +151,14 @@ class Gamescene:
             ]
         #camera segue o player
         self.camera.atualizar(self.player.rect)
+
+        #atualizar os projeteis
+        for proj in self.projeteis:
+            proj.atualizar(rects_solidos, self.player)
+
+        #remove os projeteis inativos depois de atualizar
+        self.projeteis = [p for p in self.projeteis if p.ativo]
+
 
         #hud
         self.hud.atualizar()
@@ -287,6 +303,9 @@ class Gamescene:
             sr_inimigo = self.camera.aplicar(inimigo.rect)
             pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
 
+
+        for proj in self.projeteis:
+            proj.desenhar(self.tela, self.camera)
 
         self.player.desenhar(self.tela, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)

@@ -74,9 +74,10 @@ Inimigos_por_sala = {
     'calabouço_1': [], # a cela nao tem inimigos
     'calabouço_2': [
         ("globin", 5, 10, 100, 300),
-        ("mushroom", 12, 10, 350, 550),], #inimigos no corredor (teste por agora)
+        ], #inimigos no corredor (teste por agora)
 
     "calabouço_3":[
         ("skeleton", 10, 10, 100, 500),
+        ("mushroom", 12, 10, 350, 550),
     ],
 }

@@ -31,7 +31,7 @@ class Entity(pygame.sprite.Sprite):
         #frames de invencibilidade apos ser hitado
         self.invencivel = False
         self.timer_invenc = 0
-        self.Frames_ivenc = 40
+        self.Frames_ivenc = 30 #quantidade de frames de invencibilidade
 
     #Gravidade 
     def aplicar_gravidade(self):
@@ -74,10 +74,11 @@ class Entity(pygame.sprite.Sprite):
             self.vel.y = 0
 
     #Dano/combante
-    def receber_dano(self, quantidade):
+    def receber_dano(self, quantidade, frames_invenc=None):
         #Reduz o hp. se tiver invencivel = ignora. apos levar dano = frames de invecibilidade
 
         if self.invencivel or not self.vivo:
+            
             return
         
         self.hp -= quantidade
@@ -88,7 +89,7 @@ class Entity(pygame.sprite.Sprite):
         else:
             #ativar os frames de invencibilidade
             self.invencivel = True
-            self.timer_invenc = self.Frames_ivenc
+            self.timer_invenc = frames_invenc if frames_invenc is not None else self.Frames_ivenc 
 
     def atualizar_invencibilidade(self):
         #conta a quantidade de frames da invencibilidade

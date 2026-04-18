@@ -34,3 +34,15 @@ entities/projeteis/__pycache__/projetil_flying_eye.cpython-314.pyc
 entities/monsters/__pycache__/flying_eye.cpython-314.pyc
 entities/projeteis/__pycache__/projetil_boss.cpython-314.pyc
 entities/monsters/__pycache__/skeleton_boss.cpython-314.pyc
+entities/projeteis/__pycache__/projetil.cpython-313.pyc
+entities/projeteis/__pycache__/projetil_flying_eye.cpython-313.pyc
+core/__pycache__/animated_sprite.cpython-313.pyc
+entities/monsters/__pycache__/__init__.cpython-313.pyc
+.gitignore
+entities/monsters/__pycache__/flying_eye.cpython-313.pyc
+entities/monsters/__pycache__/globin.cpython-313.pyc
+entities/monsters/__pycache__/mushroom.cpython-313.pyc
+entities/monsters/__pycache__/skeleton.cpython-313.pyc
+entities/projeteis/__pycache__/__init__.cpython-313.pyc
+entities/projeteis/__pycache__/bomba.cpython-313.pyc
+entities/projeteis/__pycache__/esporo_mushroom.cpython-313.pyc

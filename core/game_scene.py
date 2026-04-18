@@ -7,11 +7,13 @@ from core.camera_player import Camera
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
 from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
+from entities.projeteis.projetil_boss import ProjetilBoss
 from entities.player import Player
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
 from entities.monsters.flying_eye import FlyingEye
+from entities.monsters.skeleton_boss import EsqueletoBoss
 from ui.hud import Hud
 
 
@@ -79,18 +81,46 @@ class Gamescene:
             "globin" : Globin,
             "mushroom" : Mushroom,
             "flying_eye": FlyingEye,
+            "esqueleto_boss": EsqueletoBoss,
 
         }
 
         #criar os inimigos na sala
         self.inimigos = []
+        self.boss_atual = None          #referencia do boss para passa para o hud, para criar a barra de vida
+        self.parede_boss = []           #lista de rects da parede que some apos a derrota do boss
+        
         for dados in Inimigos_por_sala.get(nome_sala, []):
-            tipo, col_in, lin_in, pat_esq, pat_dir = dados
-            x = col_in * Tile_size
-            y = lin_in * Tile_size
+            tipo = dados[0]
             classe = _tipos_inimigos.get(tipo)
-            if classe:
+            if not classe:
+                continue
+
+
+            if tipo == "esqueleto_boss":
+                _, col_in, lin_in = dados       # só 3 valores, sem patrulha
+                x = col_in * Tile_size
+                y = lin_in * Tile_size
+                boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
+                self.inimigos.append(boss)
+                self.boss_atual = boss
+
+            else:
+                _, col_in, lin_in, pat_esq, pat_dir = dados
+                x = col_in * Tile_size
+                y = lin_in * Tile_size
                 self.inimigos.append(classe(x, y, pat_esq, pat_dir))
+
+        #montar os rects da parede do boss
+        self.parede_boss = []
+        for linha_idx, linha in enumerate(Salas[nome_sala]):
+            for col_idx, tile in enumerate(linha):
+                if tile == 8:
+                    self.parede_boss.append(pygame.Rect(
+                        col_idx * Tile_size,
+                        linha_idx * Tile_size,
+                        Tile_size, Tile_size
+                    ))
 
     
     #ATUALIZAR  
@@ -103,7 +133,7 @@ class Gamescene:
             self._atualizar_pausa(eventos)
             return
 
-        rects_solidos = self.mapa.rect_solidos
+        rects_solidos = self.mapa.rect_solidos + self.parede_boss
 
         #atuallizar o checar_morte
         self._checar_morte()
@@ -132,8 +162,6 @@ class Gamescene:
 
         #atualizar os espinhos
         self._checar_espinhos()
-
-
 
 
 
@@ -297,6 +325,11 @@ class Gamescene:
                 break 
     
 
+    def _abrir_parede_boss(self):
+        self.parede_boss = []
+        self.boss_atual = None
+        self.hud.mostra_mensagem("O caminho esta livre")
+
 
     def alternar_pausa(self):
         self.pausado = not self.pausado
@@ -314,6 +347,8 @@ class Gamescene:
             sr_inimigo = self.camera.aplicar(inimigo.rect)
             pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
 
+        for r in self.parede_boss:
+            pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)
 
         for proj in self.projeteis:
             proj.desenhar(self.tela, self.camera)
@@ -321,7 +356,7 @@ class Gamescene:
         self.player.desenhar(self.tela, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
-        self.hud.desenhar(self.tela, self.player)  
+        self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 
         #tela de morte - desenhada por cima de tudo
         if self.morrendo:

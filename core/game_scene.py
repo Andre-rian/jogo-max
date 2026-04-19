@@ -10,6 +10,7 @@ from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 from entities.projeteis.projetil_boss import ProjetilBoss
 from entities.player import Player
 from entities.objetos.bau import Bau
+from entities.objetos.fogueira import Fogueira
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
@@ -24,9 +25,25 @@ class Gamescene:
     def __init__(self, tela):
         self.tela = tela 
         self.hud = Hud()
+
+
         #cria o hud e reeutilizar ele em outras salas
         self.player = Player(0, 0)
         self.player.tem_espada = False 
+
+
+
+
+
+        #fogueiras
+        self.fogueiras_ativas = set() #guarda as posiçoes das fogueiras ativas
+        self.fogueiras = []
+
+        #inimigos
+        self.salas_visitadas = set() #salas que ja foram carregadas inimigos nao respwanams
+        self.bosses_derrotados = set() #guarda os bosses que ja foram derrotados
+        
+
         #carrega a sala
         self._dir_entrada = None
         self._carregar_sala("calabouço_1")
@@ -71,6 +88,22 @@ class Gamescene:
                         item="espada"
                     ))
 
+        #ajusta as fogueiras nas salas
+
+        self.fogueiras = []
+        for linha_idx, linha in enumerate(Salas[nome_sala]):
+            for col_idx, tile in enumerate(linha):
+                if tile == 9:
+                    self.fogueiras.append(Fogueira(
+                        col_idx * Tile_size,
+                        linha_idx * Tile_size,
+                        col_idx, linha_idx,
+                        callback_descanso=self._descansar_fogueira
+                    ))
+
+        for fogueira in self.fogueiras:
+            if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
+                fogueira.ativa = True
 
 
 
@@ -96,52 +129,30 @@ class Gamescene:
         #resetar o time do cooldown ao trocar de sala
         self._cooldown_transiçao = 30
 
-        #tipos dos inimigos
-        _tipos_inimigos = {
-            "skeleton" : Skeleton,
-            "globin" : Globin,
-            "mushroom" : Mushroom,
-            "flying_eye": FlyingEye,
-            "esqueleto_boss": EsqueletoBoss,
 
-        }
 
         #criar os inimigos na sala
-        self.inimigos = []
-        self.boss_atual = None          #referencia do boss para passa para o hud, para criar a barra de vida
-        self.parede_boss = []           #lista de rects da parede que some apos a derrota do boss
+        if nome_sala not in self.salas_visitadas:
+            self.salas_visitadas.add(nome_sala)
+            self._spwanar_inimigos(nome_sala)
+        else:
+            self.inimigos = []
+            self.boss_atual = None          #referencia do boss para passa para o hud, para criar a barra de vida
+    
+    
+         #lista de rects da parede que some apos a derrota do boss
         
-        for dados in Inimigos_por_sala.get(nome_sala, []):
-            tipo = dados[0]
-            classe = _tipos_inimigos.get(tipo)
-            if not classe:
-                continue
-
-
-            if tipo == "esqueleto_boss":
-                _, col_in, lin_in = dados       # só 3 valores, sem patrulha
-                x = col_in * Tile_size
-                y = lin_in * Tile_size
-                boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
-                self.inimigos.append(boss)
-                self.boss_atual = boss
-
-            else:
-                _, col_in, lin_in, pat_esq, pat_dir = dados
-                x = col_in * Tile_size
-                y = lin_in * Tile_size
-                self.inimigos.append(classe(x, y, pat_esq, pat_dir))
-
         #montar os rects da parede do boss
         self.parede_boss = []
-        for linha_idx, linha in enumerate(Salas[nome_sala]):
-            for col_idx, tile in enumerate(linha):
-                if tile == 8:
-                    self.parede_boss.append(pygame.Rect(
-                        col_idx * Tile_size,
-                        linha_idx * Tile_size,
-                        Tile_size, Tile_size
-                    ))
+        if self.sala_atual not in self.bosses_derrotados:
+            for linha_idx, linha in enumerate(Salas[nome_sala]):
+                for col_idx, tile in enumerate(linha):
+                    if tile == 8:
+                        self.parede_boss.append(pygame.Rect(
+                            col_idx * Tile_size,
+                            linha_idx * Tile_size,
+                            Tile_size, Tile_size
+                        ))
 
     
     #ATUALIZAR  
@@ -182,6 +193,9 @@ class Gamescene:
         teclas = pygame.key.get_pressed()
         for bau in self.baus:
             bau.atualizar(self.player, teclas, self.mapa, self.hud)
+
+        for fogueira in self.fogueiras:
+            fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -251,6 +265,59 @@ class Gamescene:
         elif opçao == "Sair":
             pygame.quit()
             sys.exit()
+
+
+
+    def _spwanar_inimigos(self, nome_sala):
+        #tipos dos inimigos
+        _tipos_inimigos = {
+            "skeleton" : Skeleton,
+            "globin" : Globin,
+            "mushroom" : Mushroom,
+            "flying_eye": FlyingEye,
+            "esqueleto_boss": EsqueletoBoss,
+
+        }
+
+        self.inimigos = []
+        self.boss_atual = None
+
+        for dados in Inimigos_por_sala.get(nome_sala, []):
+            tipo = dados[0]
+            classe = _tipos_inimigos.get(tipo)
+            if not classe:
+                continue
+
+
+            if tipo == "esqueleto_boss":
+                
+                if self.sala_atual in self.bosses_derrotados:
+                    continue #boss ja morreu, nao respwana
+
+                _, col_in, lin_in = dados       # só 3 valores, sem patrulha
+                x = col_in * Tile_size
+                y = lin_in * Tile_size
+                boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
+                self.inimigos.append(boss)
+                self.boss_atual = boss
+
+            else:
+                _, col_in, lin_in, pat_esq, pat_dir = dados
+                x = col_in * Tile_size
+                y = lin_in * Tile_size
+                self.inimigos.append(classe(x, y, pat_esq, pat_dir))
+
+
+
+    def _descansar_fogueira(self):
+        #reseta os inimigos das salas ja visitadas
+        self.salas_visitadas.clear()
+
+        #respwna os inimigos da sala atual
+        self._spwanar_inimigos(self.sala_atual)
+
+
+
 
     def _verificar_combante(self):
         #checa se o player acertou algum inimigo
@@ -337,6 +404,7 @@ class Gamescene:
     def _abrir_parede_boss(self):
         self.parede_boss = []
         self.boss_atual = None
+        self.bosses_derrotados.add(self.sala_atual)
         self.hud.mostra_mensagem("O caminho esta livre")
 
 
@@ -370,7 +438,12 @@ class Gamescene:
 
         for bau in self.baus:
             bau.desenhar(self.tela, self.camera)  
-        
+
+        for fogueira in self.fogueiras:
+            fogueira.desenhar(self.tela, self.camera)
+
+
+
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 

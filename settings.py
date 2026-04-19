@@ -112,7 +112,7 @@ class Espinho(Tile):
         
         pygame.draw.polygon(tela, self.color, pts)
 
-class torcha(Tile):
+class Torcha(Tile):
 
     def __init__(self):
 
@@ -134,36 +134,6 @@ class torcha(Tile):
         pygame.draw.ellipse(tela, (255, 220, 80), (rect.centerx - 4, rect.top + 11, 8, 11 ))
 
 
-class bau(Tile):
-
-    def __init__(self):
-        super().__init__(
-            tile_id=6,
-            solid=False,
-            color= Dourado
-        )
-        self.collected = False
-
-    def on_enter(self, player):
-        #se o player tocar no bau vai dar o item
-        if not self.collected:
-            self.collected = True
-            player.tem_espada = True #sempre vai dar espada por inicio
-
-    def draw(self, tela, rect):
-        if self.collected:
-            return #se o bau for aberto, ele some 
-        pygame.draw.rect(tela, (100, 70, 20), rect, border_radius=4)
-
-        pygame.draw.rect(tela, Dourado, (rect.x, rect.y, rect.width, rect.height // 2), border_radius=4)
-
-        pygame.draw.rect(tela , Dourado , (rect.centerx - 5, rect.y + 8, 10, 10), border_radius=2)
-
-
-
-
-
-
 #Registros = dicionarios de todos os ids/tile
 
 #chave id =bau()
@@ -175,7 +145,8 @@ Registro_ID = {
     4: Espinho(), #espinho
     5: Tile(tile_id=5, solid=True, color=(90, 55, 20)), #porta
     6: None, #bau
-    7: torcha(), #torcha
+    7: Torcha(), #torcha
+    9: None, #fogueira
 
 }
 
@@ -189,3 +160,4 @@ Tile_espinho = 4
 Tile_porta = 5
 Tile_bau = 6
 Tile_torcha = 7
+Tile_fogueira = 9

@@ -322,11 +322,11 @@ class Player(Entity):
     
     #CHECKPOINT (PROVISORIO)
 
-    def defenir_checkpoint(self, nome_sala):
+    def defenir_checkpoint(self, nome_sala,x=None, y=None):
         #salva a posição atual como checkpoint
 
-        self.checkpoint_pos.x = self.rect.x
-        self.checkpoint_pos.y = self.rect.y
+        self.checkpoint_pos.x = x if x is not None else self.rect.x 
+        self.checkpoint_pos.y = y if y is not None else self.rect.y 
         self.checkpoint_sala = nome_sala
 
     def respawnar(self): 

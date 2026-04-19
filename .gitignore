@@ -46,3 +46,5 @@ entities/monsters/__pycache__/skeleton.cpython-313.pyc
 entities/projeteis/__pycache__/__init__.cpython-313.pyc
 entities/projeteis/__pycache__/bomba.cpython-313.pyc
 entities/projeteis/__pycache__/esporo_mushroom.cpython-313.pyc
+entities/objetos/__pycache__/__init__.cpython-314.pyc
+entities/objetos/__pycache__/bau.cpython-314.pyc

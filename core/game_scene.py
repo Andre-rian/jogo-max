@@ -9,6 +9,7 @@ from entities.projeteis.esporo_mushroom import EsporoMushroom
 from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 from entities.projeteis.projetil_boss import ProjetilBoss
 from entities.player import Player
+from entities.objetos.bau import Bau
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
@@ -53,6 +54,26 @@ class Gamescene:
         #monta o tilemap com o grid das salas
         grid = Salas[nome_sala]
         self.mapa = Tilemap(grid)
+
+
+
+
+
+        #ajusta os baus da sala
+        self.baus = []
+        for linha_idx, linha in enumerate(Salas[nome_sala]):
+            for col_idx, tile in enumerate(linha):
+                if tile == 6:
+                    self.baus.append(Bau(
+                        col_idx * Tile_size,
+                        linha_idx * Tile_size,
+                        col_idx, linha_idx,
+                        item="espada"
+                    ))
+
+
+
+
 
        #limpa os projeteis ao trocar de sala
         self.projeteis = []
@@ -158,7 +179,9 @@ class Gamescene:
         self._checar_transiçao()
 
         #atualizar os baus
-        self._checar_bau()
+        teclas = pygame.key.get_pressed()
+        for bau in self.baus:
+            bau.atualizar(self.player, teclas, self.mapa, self.hud)
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -245,21 +268,7 @@ class Gamescene:
     
 
     
-    def _checar_bau(self):
-        #se o player encosta(provisorio) no bau:recebe o item , bau some, hud mostar a mensagem'
-        teclas = pygame.key.get_pressed()
 
-        for rect_bau, col, linha in self.mapa.rects_bau:
-            if self.player.rect.colliderect(rect_bau):
-                #esta perto do bau
-                self.hud.mostra_mensagem("pressione E para abrir") #provisorio
-                
-                   
-            if teclas[pygame.K_e]:
-                self.player.tem_espada = True
-                self.mapa.remover_tile(col, linha)
-                self.hud.mostra_mensagem("espada encontrada")
-                break
 
     
 
@@ -350,11 +359,18 @@ class Gamescene:
         for r in self.parede_boss:
             pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)
 
+
+  
+
         for proj in self.projeteis:
             proj.desenhar(self.tela, self.camera)
 
         self.player.desenhar(self.tela, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)
+
+        for bau in self.baus:
+            bau.desenhar(self.tela, self.camera)  
+        
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 

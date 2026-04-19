@@ -174,7 +174,7 @@ Registro_ID = {
     3: Tile(tile_id=3, solid=False, color=(80, 60, 30)), #escada
     4: Espinho(), #espinho
     5: Tile(tile_id=5, solid=True, color=(90, 55, 20)), #porta
-    6: bau(), #bau
+    6: None, #bau
     7: torcha(), #torcha
 
 }

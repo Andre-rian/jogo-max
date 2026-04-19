@@ -69,7 +69,7 @@ Sala4_Calabouço = [
 ]
 
 Conexoes = {
-    'calabouço_1': {"direita": "calabouço_4", "esquerda": None      },
+    'calabouço_1': {"direita": "calabouço_2", "esquerda": None      },
     'calabouço_2': {"direita": "calabouço_3", "esquerda": "calabouço_1"},
     'calabouço_3': {"direita": "calabouço_4", "esquerda": "calabouço_2"},
     'calabouço_4': {"direita": None,          "esquerda": "calabouço_3"},

@@ -1,6 +1,6 @@
 #==================== PROVISORIO ============================
 
-# 0=vazio, 1=parede, 2=chao, 4=espinho, 5=porta, 6=bau, 7=tocha, 8=parede_boss
+# 0=vazio, 1=parede, 2=chao, 4=espinho, 5=porta, 6=bau, 7=tocha, 8=parede_boss, 9=fogueira
 
 Sala1_Calabouço = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -50,9 +50,25 @@ Sala3_Calabouço = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
-# arena do boss — sala grande, parede_boss (8) bloqueia a saída direita
-# o boss fica no centro/direita, o player entra pela esquerda
+# sala de descanso antes do boss — só tem a fogueira
 Sala4_Calabouço = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0],  # fogueira no centro
+    [5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,5,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
+
+# arena do boss
+Sala5_Calabouço = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -60,19 +76,20 @@ Sala4_Calabouço = [
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
+    [8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
+    [8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
+    [8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
+    [8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8],
     [5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 
 Conexoes = {
-    'calabouço_1': {"direita": "calabouço_2", "esquerda": None      },
+    'calabouço_1': {"direita": "calabouço_2", "esquerda": None        },
     'calabouço_2': {"direita": "calabouço_3", "esquerda": "calabouço_1"},
     'calabouço_3': {"direita": "calabouço_4", "esquerda": "calabouço_2"},
-    'calabouço_4': {"direita": None,          "esquerda": "calabouço_3"},
+    'calabouço_4': {"direita": "calabouço_5", "esquerda": "calabouço_3"},
+    'calabouço_5': {"direita": None,          "esquerda": "calabouço_4"},
 }
 
 spwans = {
@@ -80,6 +97,7 @@ spwans = {
     'calabouço_2': (1, 10),
     'calabouço_3': (2, 10),
     'calabouço_4': (2, 10),
+    'calabouço_5': (2, 10),
 }
 
 Salas = {
@@ -87,6 +105,7 @@ Salas = {
     'calabouço_2': Sala2_Calabouço,
     'calabouço_3': Sala3_Calabouço,
     'calabouço_4': Sala4_Calabouço,
+    'calabouço_5': Sala5_Calabouço,
 }
 
 Inimigos_por_sala = {
@@ -99,7 +118,8 @@ Inimigos_por_sala = {
         ("globin",   5,  10, 100, 300),
         ("mushroom", 12, 10, 350, 550),
     ],
-    'calabouço_4': [
-        ("esqueleto_boss", 14, 9),   # sem patrulha_esq/dir — boss nao patrulha
+    'calabouço_4': [],   # só fogueira, sem inimigos
+    'calabouço_5': [
+        ("esqueleto_boss", 14, 9),
     ],
 }

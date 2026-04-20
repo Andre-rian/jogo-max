@@ -32,7 +32,7 @@ class Gamescene:
         self.player.tem_espada = False 
 
 
-
+        self._save_callback = None 
 
 
         #fogueiras
@@ -59,7 +59,8 @@ class Gamescene:
 
         #menu de pausa
         self.pausado = False
-        self.opçoes_pause = ["Continuar", "Salvar", "Sair"]
+        self._menu_callback = None #sera setado no main
+        self.opçoes_pause = ["Continuar", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
     #CARREGA A SALA 
 
@@ -241,6 +242,22 @@ class Gamescene:
 
 
     def _atualizar_pausa(self, eventos):
+
+
+        pos_mouse = pygame.mouse.get_pos()
+        fonte_opçao = pygame.font.SysFont("Georgia", 30)
+        
+        #houver com mouse
+        for i, opçao in enumerate(self.opçoes_pause):
+            texto = fonte_opçao.render(opçao, True, (255, 255, 255))
+            x = Screen_widht // 2 - texto.get_width() // 2
+            y = 320 + i * 50
+            rect_opçao = pygame.Rect(x - 10, y - 5, texto.get_width() + 20, texto.get_height() + 10)
+            if rect_opçao.collidepoint(pos_mouse):
+                self.opçoes_selecionadas = i
+
+
+
         #navega o menu com as setas e confirma com enter
         for evento in eventos:
             if evento.type == pygame.KEYDOWN:
@@ -254,6 +271,10 @@ class Gamescene:
                 elif evento.key == pygame.K_RETURN:
                     self._confirma_opçao_pausa()
 
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if evento.button == 1: #clique esquerdo
+                    self._confirma_opçao_pausa()
+
 
     def _confirma_opçao_pausa(self):
         opçao = self.opçoes_pause[self.opçoes_selecionadas]
@@ -261,7 +282,12 @@ class Gamescene:
         if opçao == "Continuar":
             self.pausado = False
         elif opçao == "Salvar":
-            self.hud.mostra_mensagem("sistema de saves em breve")
+            if self._save_callback:
+                self._save_callback()
+        elif opçao == "Menu principal":
+            if self._menu_callback:
+                self._menu_callback()
+
         elif opçao == "Sair":
             pygame.quit()
             sys.exit()
@@ -411,6 +437,36 @@ class Gamescene:
     def alternar_pausa(self):
         self.pausado = not self.pausado
         self.opçoes_selecionadas = 0 #reseta ao sair do menu
+    
+    def carregar_save(self, dados):
+        self.fogueiras_ativas = dados["fogueiras_ativas"]
+        self.bosses_derrotados = dados["bosses_derrotados"]
+        self.player.tem_espada = dados["tem_espada"]
+        self.player.defenir_checkpoint(
+            dados["checkpoint_sala"],
+            x=dados["checkpoint_x"],
+            y=dados["checkpoint_y"]
+        )
+        #carrega a sala do checkpoint
+        self._carregar_sala(dados["checkpoint_sala"], posiçao_spwan=(dados["checkpoint_x"] // Tile_size,
+                                                                     dados["checkpoint_y"] // Tile_size))   
+    
+    
+    
+    def salvar(self, save_manager, slot):
+        #verificar se tem inimigo por perto, so pode salvar se nao estiver em combate
+        for inimigo in self.inimigos:
+            if inimigo.vivo:
+                dist = abs(inimigo.rect.centerx - self.player.rect.centerx)
+                if dist < 300:
+                    self.hud.mostra_mensagem("Não é possivel salvar em combate")
+                    return False
+                
+
+        save_manager.salvar(slot, self)
+        self.hud.mostra_mensagem("Jogo salvo")
+        return True
+    
     #DESENHAR   
     
     def desenhar(self):

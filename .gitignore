@@ -49,3 +49,6 @@ entities/projeteis/__pycache__/esporo_mushroom.cpython-313.pyc
 entities/objetos/__pycache__/__init__.cpython-314.pyc
 entities/objetos/__pycache__/bau.cpython-314.pyc
 entities/objetos/__pycache__/fogueira.cpython-314.pyc
+saves.db
+__pycache__/save_manager.cpython-314.pyc
+core/__pycache__/menu.cpython-314.pyc

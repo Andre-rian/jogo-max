@@ -46,6 +46,7 @@ class Fogueira:
                     player.hp = player.hp_max
                     player.stamina = player.stamina_max
                     hud.mostra_mensagem("Descansando")
+                    player.pocao.recarregar()
                     if self._callback_descanso:
                         self._callback_descanso()
 

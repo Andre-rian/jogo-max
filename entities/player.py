@@ -2,6 +2,7 @@ import pygame
 import math
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
+from entities.objetos.poçao import Pocao
 from settings import (
     Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown,
       Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size,
@@ -52,6 +53,9 @@ class Player(Entity):
         self.tem_armadura = False 
 
 
+        #poçoes
+        self.pocao = Pocao()
+
         #checkpoin(inicial)
         self.checkpoint_pos = pygame.Vector2(x, y)
         self.checkpoint_sala = 'calabouço_1' 
@@ -98,6 +102,7 @@ class Player(Entity):
         self._mover_horizontal(teclas)
         self._pular(teclas)
         self._atacar(pos_mouse_mundo)
+        self._usar_pocao(teclas)
         self._atualizar_stamina(teclas)
 
         self.aplicar_gravidade()
@@ -300,6 +305,13 @@ class Player(Entity):
 
         if self.cooldown_ataque > 0:
             self.cooldown_ataque -= 1
+
+    def _usar_pocao(self, teclas):
+        self.pocao.atualizar()
+        if teclas[pygame.K_f]:
+            self.pocao.usar(self)
+
+
 
     #MAQUINA DE ESTADOS 
 

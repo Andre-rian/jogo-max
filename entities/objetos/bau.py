@@ -89,8 +89,9 @@ class Bau:
 
     def _dar_item(self, player, hud):
         if self.item == "espada":
-            player.tem_espada = True
-            hud.mostra_mensagem("Espada encontrada")
+            from entities.objetos.item import EspadaLonga
+            player.equipar(EspadaLonga)
+            hud.mostra_mensagem("Espada Longa encontrada")
 
 
     def desenhar(self, tela, camera):

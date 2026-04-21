@@ -16,6 +16,7 @@ from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
 from entities.monsters.flying_eye import FlyingEye
 from entities.monsters.skeleton_boss import EsqueletoBoss
+from entities.objetos.item import EspadaLonga
 from ui.hud import Hud
 
 
@@ -29,7 +30,6 @@ class Gamescene:
 
         #cria o hud e reeutilizar ele em outras salas
         self.player = Player(0, 0)
-        self.player.tem_espada = False 
 
 
         self._save_callback = None 
@@ -60,7 +60,7 @@ class Gamescene:
         #menu de pausa
         self.pausado = False
         self._menu_callback = None #sera setado no main
-        self.opçoes_pause = ["Continuar", "Salvar", "Menu principal", "Sair"]
+        self.opçoes_pause = ["Continuar", "Iventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
     #CARREGA A SALA 
 
@@ -287,6 +287,9 @@ class Gamescene:
         elif opçao == "Menu principal":
             if self._menu_callback:
                 self._menu_callback()
+        elif opçao == "Iventário":
+             self._iventario_aberto = True
+             self.pausado = False
 
         elif opçao == "Sair":
             pygame.quit()
@@ -441,7 +444,8 @@ class Gamescene:
     def carregar_save(self, dados):
         self.fogueiras_ativas = dados["fogueiras_ativas"]
         self.bosses_derrotados = dados["bosses_derrotados"]
-        self.player.tem_espada = dados["tem_espada"]
+        if dados["tem_espada"]:
+            self.player.equipar(EspadaLonga)
         self.player.defenir_checkpoint(
             dados["checkpoint_sala"],
             x=dados["checkpoint_x"],

@@ -1,5 +1,6 @@
 import pygame
 import math
+from entities.objetos.item import Arma, EspadaLonga
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
 from entities.objetos.poçao import Pocao
@@ -49,8 +50,14 @@ class Player(Entity):
         self.cooldown_ataque = 0
 
         #invetario(bem basico)
-        self.tem_espada = True
-        self.tem_armadura = False 
+        self.iventario = {
+                "mao_direita" : None,   # arma equipada
+                "mao_esquerda": None,   # escudo — futuro
+                "armadura"    : None,   # armadura — futuro
+                "itens"       : [],     # consumíveis no inventário
+                "chaves"      : []      # itens de progressão
+                        }   
+        
 
 
         #poçoes
@@ -74,6 +81,27 @@ class Player(Entity):
                 }
         self._estado_anterior = self.Parado
         self.anim_atual = self.animacoes[self.Parado]
+
+    @property
+    def arma_equipada(self):
+        return self.iventario["mao_direita"]
+    
+    @property
+    def tem_espada(self):
+        #mantem o codigo remendado com fita por enquanto
+        return self.iventario["mao_direita"] is not None
+
+
+    def equipar(self, item):
+        if isinstance(item, Arma):
+            self.iventario["mao_direita"] = item
+
+
+
+
+
+
+
 
     #UPDATE
     def atualizar(self, rects_solidos, camera, pos_mouse_mundo):
@@ -207,7 +235,7 @@ class Player(Entity):
     #ATAQUEEEE -- clique esquerdo do mouse
     def _atacar(self, pos_mouse_mundo):
         #sem espada nao atacar(por enquanto)
-        if not self.tem_espada:
+        if self.arma_equipada is None:
             return
 
         if self.cooldown_ataque > 0:
@@ -349,7 +377,7 @@ class Player(Entity):
         self.vivo = True
         self.vel = pygame.Vector2(0,0)
         self.estado = self.Parado
-        self.em_dahs = False 
+        
         self.atacando = False
 
 

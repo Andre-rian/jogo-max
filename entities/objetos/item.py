@@ -15,7 +15,7 @@ class Arma(Item):
         self.dano = dano
         self.escalonamento = escalonamento #se a arma é pesada ou argil
 
-        self.requesitos = {
+        self.requisitos = {
             "força" : req_força,
             "destreza" : req_destreza
         }
@@ -46,11 +46,11 @@ class Chave(Item):
 
 
 EspadaLonga = Arma(
-    nome= "Espada Longa",
-    descriçao= "Espada padrão dos cavaleiros do reino."
+    nome    = "Espada Longa",
+    descriçao   = "Espada padrão dos cavaleiros do reino."
                 "Equilibrada e confiavel, serve bem para qualquer combatente",
-    dano= 25,
-    escalonamento= "agil",
-    req_força= 8,
-    req_destreza= 10
+    dano    = 25,
+    escalonamento   = "agil",
+    req_força   = 8,
+    req_destreza    = 10
 )

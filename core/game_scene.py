@@ -1,6 +1,7 @@
 import pygame
 import sys
 from settings import *
+from core.inventario import Inventario
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
 from core.camera_player import Camera
@@ -35,6 +36,9 @@ class Gamescene:
         self._save_callback = None 
 
 
+        #inventario
+        self.inventario = Inventario(self.tela)
+
         #fogueiras
         self.fogueiras_ativas = set() #guarda as posiçoes das fogueiras ativas
         self.fogueiras = []
@@ -60,7 +64,7 @@ class Gamescene:
         #menu de pausa
         self.pausado = False
         self._menu_callback = None #sera setado no main
-        self.opçoes_pause = ["Continuar", "Iventário", "Salvar", "Menu principal", "Sair"]
+        self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
     #CARREGA A SALA 
 
@@ -164,9 +168,12 @@ class Gamescene:
 
         if self.pausado:
             self._atualizar_pausa(eventos)
-            return
+            
 
         rects_solidos = self.mapa.rect_solidos + self.parede_boss
+        
+        if self.inventario.aberto:
+            self.inventario.atualizar(eventos, self.player)
 
         #atuallizar o checar_morte
         self._checar_morte()
@@ -287,8 +294,8 @@ class Gamescene:
         elif opçao == "Menu principal":
             if self._menu_callback:
                 self._menu_callback()
-        elif opçao == "Iventário":
-             self._iventario_aberto = True
+        elif opçao == "Inventário":
+             self.inventario.abrir()
              self.pausado = False
 
         elif opçao == "Sair":
@@ -503,8 +510,12 @@ class Gamescene:
             fogueira.desenhar(self.tela, self.camera)
 
 
+        
 
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
+
+        self.inventario.desenhar(self.player)
+
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 
         #tela de morte - desenhada por cima de tudo

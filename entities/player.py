@@ -50,7 +50,7 @@ class Player(Entity):
         self.cooldown_ataque = 0
 
         #invetario(bem basico)
-        self.iventario = {
+        self.inventario = {
                 "mao_direita" : None,   # arma equipada
                 "mao_esquerda": None,   # escudo — futuro
                 "armadura"    : None,   # armadura — futuro
@@ -84,17 +84,17 @@ class Player(Entity):
 
     @property
     def arma_equipada(self):
-        return self.iventario["mao_direita"]
+        return self.inventario["mao_direita"]
     
     @property
     def tem_espada(self):
         #mantem o codigo remendado com fita por enquanto
-        return self.iventario["mao_direita"] is not None
+        return self.inventario["mao_direita"] is not None
 
 
     def equipar(self, item):
         if isinstance(item, Arma):
-            self.iventario["mao_direita"] = item
+            self.inventario["mao_direita"] = item
 
 
 

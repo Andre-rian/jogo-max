@@ -14,6 +14,11 @@ class Pocao:
         self._curando = False       #flag para usamos na sprite futuramente
         self._timer_cura = 0
 
+
+        self.nome = "Poção de Vida"
+        self.descricao = "Um frasco com líquido curativo. Recupera boa parte da vitalidade do combatente"
+        self.tipo      = "consumivel"
+
     def atualizar(self):
         if self._colldown > 0:
             self._colldown -= 1

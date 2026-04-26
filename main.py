@@ -12,7 +12,6 @@ class Jogo:
         self.Criar_janela()
         self.clock = pygame.time.Clock()
         self.save_manager = Savemaneger()
-
         self.estado = "menu" #menu do jogo
         self.slot_atual = None
         self.scene = None
@@ -71,7 +70,11 @@ class Jogo:
                     if evento.key == pygame.K_F11:
                         self._Mudar_telacheia()
                     if evento.key == pygame.K_ESCAPE and self.estado == "jogo" and self.scene:
-                        self.scene.alternar_pausa()
+                        if self.scene.inventario.aberto:
+                            self.scene.inventario.fechar()
+                        else:
+
+                            self.scene.alternar_pausa()
 
 
             self.tela.fill(Preto)

@@ -1,6 +1,7 @@
 import pygame
 import sys
 from settings import *
+from core.inventario import Inventario
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
 from core.camera_player import Camera
@@ -16,6 +17,7 @@ from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
 from entities.monsters.flying_eye import FlyingEye
 from entities.monsters.skeleton_boss import EsqueletoBoss
+from entities.objetos.item import EspadaLonga
 from ui.hud import Hud
 
 
@@ -29,11 +31,13 @@ class Gamescene:
 
         #cria o hud e reeutilizar ele em outras salas
         self.player = Player(0, 0)
-        self.player.tem_espada = False 
 
 
         self._save_callback = None 
 
+
+        #inventario
+        self.inventario = Inventario(self.tela)
 
         #fogueiras
         self.fogueiras_ativas = set() #guarda as posiçoes das fogueiras ativas
@@ -60,7 +64,7 @@ class Gamescene:
         #menu de pausa
         self.pausado = False
         self._menu_callback = None #sera setado no main
-        self.opçoes_pause = ["Continuar", "Salvar", "Menu principal", "Sair"]
+        self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
     #CARREGA A SALA 
 
@@ -164,9 +168,12 @@ class Gamescene:
 
         if self.pausado:
             self._atualizar_pausa(eventos)
-            return
+            
 
         rects_solidos = self.mapa.rect_solidos + self.parede_boss
+        
+        if self.inventario.aberto:
+            self.inventario.atualizar(eventos, self.player)
 
         #atuallizar o checar_morte
         self._checar_morte()
@@ -287,6 +294,9 @@ class Gamescene:
         elif opçao == "Menu principal":
             if self._menu_callback:
                 self._menu_callback()
+        elif opçao == "Inventário":
+             self.inventario.abrir()
+             self.pausado = False
 
         elif opçao == "Sair":
             pygame.quit()
@@ -441,7 +451,8 @@ class Gamescene:
     def carregar_save(self, dados):
         self.fogueiras_ativas = dados["fogueiras_ativas"]
         self.bosses_derrotados = dados["bosses_derrotados"]
-        self.player.tem_espada = dados["tem_espada"]
+        if dados["tem_espada"]:
+            self.player.equipar(EspadaLonga)
         self.player.defenir_checkpoint(
             dados["checkpoint_sala"],
             x=dados["checkpoint_x"],
@@ -499,8 +510,12 @@ class Gamescene:
             fogueira.desenhar(self.tela, self.camera)
 
 
+        
 
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
+
+        self.inventario.desenhar(self.player)
+
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 
         #tela de morte - desenhada por cima de tudo

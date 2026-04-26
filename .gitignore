@@ -55,3 +55,11 @@ core/__pycache__/menu.cpython-314.pyc
 entities/objetos/__pycache__/poçao.cpython-314.pyc
 entities/objetos/__pycache__/item.cpython-314.pyc
 core/__pycache__/inventario.cpython-314.pyc
+entities/projeteis/__pycache__/projetil_boss.cpython-313.pyc
+__pycache__/save_manager.cpython-313.pyc
+core/__pycache__/menu.cpython-313.pyc
+entities/monsters/__pycache__/skeleton_boss.cpython-313.pyc
+entities/objetos/__pycache__/__init__.cpython-313.pyc
+entities/objetos/__pycache__/bau.cpython-313.pyc
+entities/objetos/__pycache__/fogueira.cpython-313.pyc
+entities/objetos/__pycache__/poçao.cpython-313.pyc

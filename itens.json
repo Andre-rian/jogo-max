@@ -1,0 +1,19 @@
+{
+    "1": {
+        "nome" : "Espada Longa",
+        "Tipo" : "arma",
+        "dano" : 25,
+        "escalonamento" : "agil",
+        "req_forca" : 8,
+        "req_destreza": 10,
+        "descricao": "Espada padrão dos cavaleiros do reino. Equilibrada e confiável, serve bem a qualquer combatente."
+    },
+
+    "2": {
+        "nome" : "Poção de vida",
+        "tipo" : "consumivel",
+        "efeito" : "cura",
+        "cargas_max": 3,
+        "descricao" : "Um frasco com um liquido curativo. Recupera boa parte da vitalidade do combatente"
+    }
+}

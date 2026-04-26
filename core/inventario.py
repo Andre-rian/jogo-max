@@ -1,5 +1,6 @@
 import pygame
 from settings import Screen_widht, Screen_height, Dourado, Branco, Preto
+from entities.objetos.item import get_item
 
 
 class Inventario:
@@ -44,27 +45,25 @@ class Inventario:
 
     #retorna a lista de itens da aba atual
     def _itens_da_aba(self, player):
-        if self.aba_atual == 0:
+        
+        if self.aba_atual == 0:     #equipamentos
             itens = []
-            if player.inventario["mao_direita"]:
-                itens.append(player.inventario["mao_direita"])
+            for slots in ["mao_direita", "mao_esquerda", "armadura"]:
+                id_ = player.inventario[slots]
+                if id_:
+                    itens.append(get_item(id_))
 
-            if player.inventario["mao_esquerda"]:
-                itens.append(player.inventarui["mao_esquerda"])
-
-            if player.inventario["armadura"]:
-                itens.append(player.inventario["armadura"])
             return itens
         
         elif self.aba_atual == 1: #itens
-            itens = list(player.inventario["itens"])
+            itens = [get_item(id_) for id_ in player.inventario["itens"]]
             if player.pocao:
                 itens.insert(0, player.pocao)
             return itens
 
 
         elif self.aba_atual == 2: #chaves
-            return list(player.inventario["chaves"])
+            return [get_item(id_) for id_ in player.inventario["chaves"]]
 
         return []
 

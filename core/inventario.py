@@ -1,5 +1,6 @@
 import pygame
 from settings import Screen_widht, Screen_height, Dourado, Branco, Preto
+from entities.objetos.item import get_item
 
 
 class Inventario:
@@ -44,27 +45,28 @@ class Inventario:
 
     #retorna a lista de itens da aba atual
     def _itens_da_aba(self, player):
-        if self.aba_atual == 0:
+        
+        if self.aba_atual == 0:     #equipamentos
             itens = []
-            if player.inventario["mao_direita"]:
-                itens.append(player.inventario["mao_direita"])
+            for slots in ["mao_direita", "mao_esquerda", "armadura"]:
+                id_ = player.inventario[slots]
+                if id_:
+                    item = get_item(id_)
+                    #so adicionar na lista se for equipavel
+                    if item and item.tipo in ["arma", "armadura"]:
+                        itens.append(item)
 
-            if player.inventario["mao_esquerda"]:
-                itens.append(player.inventarui["mao_esquerda"])
-
-            if player.inventario["armadura"]:
-                itens.append(player.inventario["armadura"])
             return itens
         
         elif self.aba_atual == 1: #itens
-            itens = list(player.inventario["itens"])
+            itens = [get_item(id_) for id_ in player.inventario["itens"]]
             if player.pocao:
                 itens.insert(0, player.pocao)
             return itens
 
 
         elif self.aba_atual == 2: #chaves
-            return list(player.inventario["chaves"])
+            return [get_item(id_) for id_ in player.inventario["chaves"]]
 
         return []
 
@@ -226,15 +228,23 @@ class Inventario:
         titulo = self.fonte_normal.render("Equipado", True, Dourado)
         self.tela.blit(titulo, (x, y))
 
+       
+
         slots = [
-            ("Mão Dir", player.inventario["mao_direita"]),
-            ("Mão Esq", player.inventario["mao_esquerda"]),
-            ("Armadura", player.inventario["armadura"]),
+            ("Mão Dir", "mao_direita"),
+            ("Mão Esq", "mao_esquerda"),
+            ("Armadura", "armadura"),
         ]
 
-        for i, (label, item) in enumerate(slots):
+        for i, (label, chave) in enumerate(slots):
             sy = y + 30 + i * 70
 
+
+            item_id = player.inventario.get(chave)
+
+            item = get_item(item_id) if item_id is not None else None
+
+            
             #fundo do slot
             pygame.draw.rect(self.tela, (35, 28, 18),
                              (x, sy, largura, 58), border_radius=4)
@@ -245,21 +255,23 @@ class Inventario:
             lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
             self.tela.blit(lbl, (x + 6, sy + 4))
 
+
             #item ou vazio
             if item:
+
                 nome = self.fonte_normal.render(item.nome, True, Branco)
                 self.tela.blit(nome, (x + 6, sy + 22))
+                
                 if hasattr(item, "dano"):
                     dano = self.fonte_pequena.render(f"Dano: {item.dano}",
                                                      True, (180, 160, 100))
                     self.tela.blit(dano, (x + 6, sy + 40))
 
-                else:
-                    vazio = self.fonte_pequena.render("- Vazio -")
+            else:
+                vazio = self.fonte_pequena.render("- Vazio -", True, Branco)
+                self.tela.blit(vazio, (x + 6, sy + 28))
 
-                    self.tela.blit(vazio, (x + 6, sy + 28))
-
-
+ 
     #grid de itens
     def _desenhar_grid(self, player, x, y, largura):
         itens = self._itens_da_aba(player)
@@ -384,6 +396,7 @@ class Inventario:
                     linha_y += 18
 
             elif hasattr(item, "cargas"):
+                
                 stats = [
                     ("Cargas",  f"{item.cargas} / {item.cargas_max}"),
                 ]

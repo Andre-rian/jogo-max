@@ -451,8 +451,15 @@ class Gamescene:
     def carregar_save(self, dados):
         self.fogueiras_ativas = dados["fogueiras_ativas"]
         self.bosses_derrotados = dados["bosses_derrotados"]
-        if dados["tem_espada"]:
-            self.player.equipar(EspadaLonga)
+        if "inventario" in dados:
+            self.player.inventario = dados["inventario"]
+            
+            #reequipar a arma se tiver
+            if self.player.inventario["mao_direita"]:
+                pass
+        
+        
+
         self.player.defenir_checkpoint(
             dados["checkpoint_sala"],
             x=dados["checkpoint_x"],

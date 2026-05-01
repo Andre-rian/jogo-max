@@ -22,6 +22,7 @@ class Savemaneger:
                               fogueiras_ativas  TEXT,
                               bosses_derrotados TEXT,
                               tem_espada        INTEGER,
+                              inventario        TEXT,
                               data_hora         TEXT
                                                                     )
                             """)
@@ -38,13 +39,14 @@ class Savemaneger:
         fogueiras = json.dumps(list(game_scene.fogueiras_ativas))
         bosses = json.dumps(list(game_scene.bosses_derrotados))
         data_hora = datetime.now().strftime("%d/%m/%Y %H:%M")
+        inventario = json.dumps(game_scene.player.inventario)
 
 
         self._conexao.execute("""
         INSERT OR REPLACE INTO saves
                               (slot, checkpoint_sala, checkpoint_x, checkpoint_y,
-                              fogueiras_ativas, bosses_derrotados, tem_espada, data_hora)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                              fogueiras_ativas, bosses_derrotados, tem_espada, inventario,  data_hora)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                               (
                                   slot,
                                   game_scene.sala_atual,
@@ -53,6 +55,7 @@ class Savemaneger:
                                   fogueiras,
                                   bosses,
                                   int(game_scene.player.tem_espada),
+                                  inventario,
                                   data_hora
 
                               ))
@@ -76,7 +79,8 @@ class Savemaneger:
             "fogueiras_ativas"  : set(map(tuple, json.loads(row[4]))),
             "bosses_derrotados" : set(json.loads(row[5])),
             "tem_espada"        : bool(row[6]),
-            "data_hora"         : row[7],
+            "inventario"        : json.loads(row[7]),
+            "data_hora"         : row[8],
         }
 
 

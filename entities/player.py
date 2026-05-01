@@ -1,6 +1,6 @@
 import pygame
 import math
-from entities.objetos.item import Arma, EspadaLonga
+from entities.objetos.item import Arma, get_item
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
 from entities.objetos.poçao import Pocao
@@ -54,8 +54,9 @@ class Player(Entity):
                 "mao_direita" : None,   # arma equipada
                 "mao_esquerda": None,   # escudo — futuro
                 "armadura"    : None,   # armadura — futuro
-                "itens"       : [],     # consumíveis no inventário
-                "chaves"      : []      # itens de progressão
+                "itens"       : [],     # consumíveis no inventário               -lista de ids
+                "chaves"      : [],      # itens de progressão                    -lista de ids  
+                "materiais"   : []      # materias de fabricação/ upgrades        -lista de ids
                         }   
         
 
@@ -82,20 +83,23 @@ class Player(Entity):
         self._estado_anterior = self.Parado
         self.anim_atual = self.animacoes[self.Parado]
 
+    def equipar(self, item):
+        
+        if isinstance(item, Arma):
+            self.inventario["mao_direita"] = item.id
+            print(f"Equipado: {item.nome} ID: {item.id}" )
+
+
+
     @property
     def arma_equipada(self):
-        return self.inventario["mao_direita"]
+        id_ = self.inventario["mao_direita"]
+        return get_item(id_) if id_ else None
     
     @property
     def tem_espada(self):
         #mantem o codigo remendado com fita por enquanto
         return self.inventario["mao_direita"] is not None
-
-
-    def equipar(self, item):
-        if isinstance(item, Arma):
-            self.inventario["mao_direita"] = item
-
 
 
 

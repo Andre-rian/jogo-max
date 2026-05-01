@@ -1,23 +1,33 @@
+import json
+import os
+
+
+#carrega o banco de itens
+_caminho = os.path.join(os.path.dirname(__file__), "..", "..", "itens.json")
+with open(_caminho, encoding="utf-8") as f:
+    _banco = json.load(f)
 
 class Item:
     #classe bas para todos os itens do jogo
 
-    def __init__(self, nome, descriçao, tipo):
-        self.nome = nome
-        self.descricao = descriçao
-        self.tipo = tipo    #fala se é arma, consumivel, armadura, chave e ect
+    def __init__(self, id_, dados):
+        
+        self.id = id_
+        self.nome = dados["nome"]
+        self.descricao = dados["descricao"]
+        self.tipo = dados["tipo"]    #fala se é arma, consumivel, armadura, chave e ect
 
 
 class Arma(Item):
-    def __init__(self, nome, descriçao, dano, escalonamento, req_força=0, req_destreza=0):
-        super().__init__(nome, descriçao, tipo="arma")
+    def __init__(self, id_, dados):
+        super().__init__(id_, dados)
 
-        self.dano = dano
-        self.escalonamento = escalonamento #se a arma é pesada ou argil
+        self.dano = dados["dano"]
+        self.escalonamento = dados["escalonamento"] #se a arma é pesada ou argil
 
         self.requisitos = {
-            "força" : req_força,
-            "destreza" : req_destreza
+            "força" : dados["req_forca"],
+            "destreza" : dados["req_destreza"]
         }
 
     def pode_equipar(self, stats_player):
@@ -27,30 +37,55 @@ class Arma(Item):
 
 class Consumivel(Item):
 
-    def __init__(self, nome, descriçao, efeito, quantidade=1):
-        super().__init__(nome, descriçao, tipo="consumivel")
+    def __init__(self, id_, dados):
+        super().__init__(id_, dados) 
 
-        self.efeito = efeito
-        self.quantidade = quantidade
+        self.efeito = dados["efeito"]
+        self.quantidade = dados["quantidade"]
+        self.cargas_max = dados["cargas_max"]
+        self.cargas = self.cargas_max
 
 
 class Chave(Item):
 
-    def __init__(self, nome, descriçao):
-        super().__init__(nome, descriçao, tipo="chave")
+    def __init__(self, id_, dados):
+        super().__init__(id_, dados)
+
+
+class Material(Item):
+    def __init__(self, id_, dados):
+        super().__init__(id_, dados)
+        self.quantidade = dados.get("quantidade", 1)
 
 
 
+# Registro - mapea os ids dos objetos
+_fabricas = {
+    "arma" : Arma,
+    "consumivel" : Consumivel,
+    "chave" : Chave,
+    "material" : Material,
+}
 
-#itens do jogo, por enquanto vai ficar aq
+Registro_Itens = {}
+for id_str, dados in _banco.items():
+    id_ = int(id_str)
+    fabrica = _fabricas.get(dados["tipo"])
+    if fabrica:
+        Registro_Itens[id_] = fabrica(id_, dados)
 
 
-EspadaLonga = Arma(
-    nome    = "Espada Longa",
-    descriçao   = "Espada padrão dos cavaleiros do reino."
-                "Equilibrada e confiavel, serve bem para qualquer combatente",
-    dano    = 25,
-    escalonamento   = "agil",
-    req_força   = 8,
-    req_destreza    = 10
-)
+
+def get_item(id):
+    #retorna uma nova istancia de itens pelo o id
+    dados = _banco.get(str(id))
+    if not dados:
+        return None
+    
+    fabrica = _fabricas.get(dados["tipo"])
+    return fabrica(int(id), dados) if fabrica else None
+
+
+
+#atalhos pra quebra galho
+EspadaLonga = Registro_Itens[1]

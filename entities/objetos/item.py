@@ -14,7 +14,7 @@ class Item:
         
         self.id = id_
         self.nome = dados["nome"]
-        self.descricao = dados["descriçao"]
+        self.descricao = dados["descricao"]
         self.tipo = dados["tipo"]    #fala se é arma, consumivel, armadura, chave e ect
 
 
@@ -26,7 +26,7 @@ class Arma(Item):
         self.escalonamento = dados["escalonamento"] #se a arma é pesada ou argil
 
         self.requisitos = {
-            "força" : dados["req_força"],
+            "força" : dados["req_forca"],
             "destreza" : dados["req_destreza"]
         }
 
@@ -42,6 +42,7 @@ class Consumivel(Item):
 
         self.efeito = dados["efeito"]
         self.quantidade = dados["quantidade"]
+        self.cargas_max = dados["cargas_max"]
         self.cargas = self.cargas_max
 
 
@@ -77,11 +78,12 @@ for id_str, dados in _banco.items():
 
 def get_item(id):
     #retorna uma nova istancia de itens pelo o id
-    dados = _banco.get(str(id_))
+    dados = _banco.get(str(id))
     if not dados:
         return None
+    
     fabrica = _fabricas.get(dados["tipo"])
-    return fabrica(int(id_), dados) if fabrica else None
+    return fabrica(int(id), dados) if fabrica else None
 
 
 

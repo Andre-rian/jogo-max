@@ -87,6 +87,7 @@ class Player(Entity):
         
         if isinstance(item, Arma):
             self.inventario["mao_direita"] = item.id
+            print(f"Equipado: {item.nome} ID: {item.id}" )
 
 
 

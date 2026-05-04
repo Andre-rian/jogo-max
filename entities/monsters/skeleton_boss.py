@@ -104,7 +104,7 @@ class EsqueletoBoss(Entity):
                 self.anim_atual = self.animaçoes[self.Morto]
                 self.anim_atual.resetar()
                 if self._callback_morte:
-                    self._callback_morte()
+                    self._callback_morte(self.rect.centerx, self.rect.bottom)
             
             
             if not self.anim_atual.terminou:
@@ -381,7 +381,7 @@ class EsqueletoBoss(Entity):
             self.anim_atual = self.animaçoes[self.Morto]
             self.anim_atual.resetar()
             if self._callback_morte:
-                self._callback_morte()
+                self._callback_morte(self.rect.centerx, self.rect.bottom)
 
         if self.vivo:
             self._em_hit = True

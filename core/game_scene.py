@@ -3,7 +3,7 @@ import sys
 from settings import *
 from core.inventario import Inventario
 from world.tile_map import Tilemap
-from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
+from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
 from core.camera_player import Camera
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
@@ -11,13 +11,13 @@ from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 from entities.projeteis.projetil_boss import ProjetilBoss
 from entities.player import Player
 from entities.objetos.bau import Bau
+
 from entities.objetos.fogueira import Fogueira
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
 from entities.monsters.flying_eye import FlyingEye
 from entities.monsters.skeleton_boss import EsqueletoBoss
-from entities.objetos.item import EspadaLonga
 from ui.hud import Hud
 
 
@@ -38,6 +38,12 @@ class Gamescene:
 
         #inventario
         self.inventario = Inventario(self.tela)
+
+
+        #drops
+        self.drops_por_sala = {} #nome_sala: [drops]
+
+        self.inventario.callback_descartar = self._descartar_item
 
         #fogueiras
         self.fogueiras_ativas = set() #guarda as posiçoes das fogueiras ativas
@@ -60,6 +66,9 @@ class Gamescene:
 
         #projeteis  
         self.projeteis = []
+
+
+
 
         #menu de pausa
         self.pausado = False
@@ -90,7 +99,7 @@ class Gamescene:
                         col_idx * Tile_size,
                         linha_idx * Tile_size,
                         col_idx, linha_idx,
-                        item="espada"
+                        id_item=1 #espada longa
                     ))
 
         #ajusta as fogueiras nas salas
@@ -111,6 +120,14 @@ class Gamescene:
                 fogueira.ativa = True
 
 
+        self.drops = self.drops_por_sala.get(nome_sala, [])
+
+        #drop fixos da sala
+        from entities.objetos.drop import Drop
+        from world.rooms import Drops_fixos
+        
+        for dados in Drops_fixos.get(nome_sala, []):
+            id_item, col_drop, lin_drop = dados 
 
 
        #limpa os projeteis ao trocar de sala
@@ -201,6 +218,10 @@ class Gamescene:
         teclas = pygame.key.get_pressed()
         for bau in self.baus:
             bau.atualizar(self.player, teclas, self.mapa, self.hud)
+
+        for drop in self.drops:
+            drop.atualizar(self.player, teclas, self.hud)
+        
 
         for fogueira in self.fogueiras:
             fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
@@ -341,7 +362,31 @@ class Gamescene:
                 _, col_in, lin_in, pat_esq, pat_dir = dados
                 x = col_in * Tile_size
                 y = lin_in * Tile_size
-                self.inimigos.append(classe(x, y, pat_esq, pat_dir))
+                inimigo = classe(x, y, pat_esq, pat_dir)
+
+                tabela = Drops_inimigos.get(tipo, [])
+                if tabela:
+                    def _fazer_callback(drops, sala):
+                        def _callback(ix, iy):
+                            import random
+                            from entities.objetos.drop import Drop
+                            print(f"callback morte chamado em {ix}, {iy}")
+                            for chance, id_item in drops:
+                                if random.random() < chance:
+                                    print(f"dropando id_item={id_item}, drops={drops}")
+                                    drop = Drop(ix, iy, id_item)
+                                    if sala not in self.drops_por_sala:
+                                        self.drops_por_sala[sala] = []
+
+                                    self.drops_por_sala[sala].append(drop)
+                                    
+                                    self.drops = self.drops_por_sala[self.sala_atual]
+                        return _callback
+                    
+                    inimigo.callback_morte = _fazer_callback(tabela, self.sala_atual)
+                
+                self.inimigos.append(inimigo) 
+
 
 
 
@@ -437,12 +482,36 @@ class Gamescene:
                 break 
     
 
-    def _abrir_parede_boss(self):
+    def _abrir_parede_boss(self, x, y):
         self.parede_boss = []
         self.boss_atual = None
         self.bosses_derrotados.add(self.sala_atual)
         self.hud.mostra_mensagem("O caminho esta livre")
 
+
+        from entities.objetos.drop import Drop
+        
+        drop = Drop(x, y, id_item=3)
+
+        if self.sala_atual not in self.drops_por_sala:
+            self.drops_por_sala[self.sala_atual] = []
+
+        self.drops_por_sala[self.sala_atual].append(drop)
+        self.drops = self.drops_por_sala[self.sala_atual]
+
+
+    def _descartar_item(self, id_item):
+        from entities.objetos.drop import Drop
+        
+        drop = Drop(self.player.rect.centerx, self.player.rect.bottom, id_item)
+
+        if self.sala_atual not in self.drops_por_sala:
+            self.drops_por_sala[self.sala_atual] = []
+
+        self.drops_por_sala[self.sala_atual].append(drop)
+        self.drops = self.drops_por_sala[self.sala_atual]
+        
+        self.drops.append(drop)
 
     def alternar_pausa(self):
         self.pausado = not self.pausado
@@ -512,6 +581,9 @@ class Gamescene:
 
         for bau in self.baus:
             bau.desenhar(self.tela, self.camera)  
+
+        for drop in self.drops:
+            drop.desenhar(self.tela, self.camera)
 
         for fogueira in self.fogueiras:
             fogueira.desenhar(self.tela, self.camera)

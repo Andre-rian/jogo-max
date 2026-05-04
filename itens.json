@@ -2,6 +2,7 @@
     "1": {
         "nome" : "Espada Longa",
         "tipo" : "arma",
+        "icone" : "espada",
         "dano" : 25,
         "escalonamento" : "agil",
         "req_forca" : 8,
@@ -12,9 +13,40 @@
     "2": {
         "nome" : "Poção de vida",
         "tipo" : "consumivel",
+        "icone" : "pocao",
         "efeito" : "cura",
         "cargas_max": 3,
         "quantidade": 3,
         "descricao" : "Um frasco com um liquido curativo. Recupera boa parte da vitalidade do combatente"
+    },
+
+    "3": {
+        "nome" : "Machado de Guerra",
+        "tipo" : "arma",
+        "icone" : "machado",
+        "dano" : 40,
+        "escalonamento" : "forca",
+        "req_forca" : 15,
+        "req_destreza": 5,
+        "descricao" : "Machado pesado. Lento e de curto alcance, mas capaz de abrir armaduras inteiras com um golpe. Muito utilizado pelos os antigos carcereios do reino"
+    },
+
+    "4": {
+    "nome": "Raiz Amarga",
+    "tipo": "consumivel",
+    "icone" : "raiz",
+    "efeito": "stamina",
+    "duracao": 180,
+    "valor": 2.0,
+    "quantidade": 1,
+    "descricao": "Uma raiz amarga encontrada nas entranhas do calabouço. Acelera a recuperação de fôlego por um tempo."
+    },
+
+    "5": {
+    "nome": "Umbrita",
+    "tipo": "material",
+    "icone": "mineral",
+    "descricao": "Pedras escuras impregnadas por ecos fracos."
     }
 }
+

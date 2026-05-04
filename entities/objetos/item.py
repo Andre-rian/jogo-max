@@ -16,6 +16,7 @@ class Item:
         self.nome = dados["nome"]
         self.descricao = dados["descricao"]
         self.tipo = dados["tipo"]    #fala se é arma, consumivel, armadura, chave e ect
+        self.icone = dados.get("icone", "generico")     #icones dos itens no inventario
 
 
 class Arma(Item):
@@ -42,10 +43,24 @@ class Consumivel(Item):
 
         self.efeito = dados["efeito"]
         self.quantidade = dados["quantidade"]
-        self.cargas_max = dados["cargas_max"]
-        self.cargas = self.cargas_max
+        self.cargas_max = dados.get("cargas_max", None)
+        self.cargas = self.cargas_max if self.cargas_max else None
+        self.duracao = dados.get("duracao", 0)
+        self.valor = dados.get("valor", 1.0)
 
+    def usar(self, player, inventario_dict):
+        if self.efeito == "stamina":
+            player.buff_stamina_duracao = self.duracao
+            player.buff_stamina_valor = self.valor
 
+        #diminui a quantidade no inventario
+        id_ = self.id
+        if id_ in inventario_dict["itens"]:
+            inventario_dict["itens"][id_] -= 1
+            if inventario_dict["itens"][id_] <= 0:
+                inventario_dict["itens"].pop(id_)
+
+        return True
 class Chave(Item):
 
     def __init__(self, id_, dados):
@@ -89,3 +104,4 @@ def get_item(id):
 
 #atalhos pra quebra galho
 EspadaLonga = Registro_Itens[1]
+MachadadoDeGuerra = Registro_Itens[3] 

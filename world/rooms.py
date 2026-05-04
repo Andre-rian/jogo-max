@@ -123,3 +123,15 @@ Inimigos_por_sala = {
         ("esqueleto_boss", 14, 9),
     ],
 }
+Drops_inimigos = {
+        "globin"    : [(1.0, 4)],   # 100% por enquanto, id_item 4 = Raiz Amarga
+        "skeleton"  : [],
+        "mushroom"  : [],
+        "flying_eye": [],
+}
+
+Drops_fixos = {
+    "calabouço_4": [
+        (5, 10, 5),  # id_item=5, col=10, linha=5 — ajusta a posição depois
+    ],
+}

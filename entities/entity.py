@@ -28,6 +28,8 @@ class Entity(pygame.sprite.Sprite):
         self.stamina_delay = 0 #o contador espara pra recarrega
 
 
+        self.callback_morte = None #setado por quem  spwana o inimigo
+
         #frames de invencibilidade apos ser hitado
         self.invencivel = False
         self.timer_invenc = 0
@@ -86,6 +88,8 @@ class Entity(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.hp = 0
             self.vivo = False
+            if self.callback_morte:
+                self.callback_morte(self.rect.centerx, self.rect.bottom)
         else:
             #ativar os frames de invencibilidade
             self.invencivel = True

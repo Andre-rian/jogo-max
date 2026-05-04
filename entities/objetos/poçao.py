@@ -13,6 +13,7 @@ class Pocao:
         self._colldown = 0
         self._curando = False       #flag para usamos na sprite futuramente
         self._timer_cura = 0
+        self.icone = "pocao"
 
 
         self.nome = "Poção de Vida"

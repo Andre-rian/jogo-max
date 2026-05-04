@@ -142,6 +142,20 @@ class Hud:
                 aviso = self.fonte_pequena.render("...", True, (80, 160, 80))
                 tela.blit(aviso, (bar_x + 2, st_y - 14))
 
+        # simbolo de buff de stamina
+        if player.buff_stamina_duracao > 0:
+            # fundo do icone
+            bx = bar_x
+            by = st_y + st_h + 4
+            pygame.draw.circle(tela, (20, 50, 30), (bx + 8, by + 8), 8)
+            pygame.draw.circle(tela, (50, 180, 80), (bx + 8, by + 8), 8, 2)
+            
+            # simbolo de raio dentro do circulo
+            pygame.draw.line(tela, (50, 200, 80),
+                             (bx + 10, by + 2), (bx + 6, by + 8), 2)
+            pygame.draw.line(tela, (50, 200, 80),
+                             (bx + 6, by + 8), (bx + 10, by + 14), 2)
+        
 
     def _desenhar_slot_pocao(self, tela, player):
         if not hasattr(player, "pocao"):

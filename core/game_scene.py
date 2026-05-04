@@ -129,6 +129,13 @@ class Gamescene:
         for dados in Drops_fixos.get(nome_sala, []):
             id_item, col_drop, lin_drop = dados 
 
+            #chave unica para cada item fixo
+            chave = (nome_sala, col_drop, lin_drop)
+            if chave not in self.drops_fixos_coletados:
+                if not nome_sala in self.drops_por_sala:
+                    self.drops_por_sala[nome_sala] = []
+                
+
 
        #limpa os projeteis ao trocar de sala
         self.projeteis = []

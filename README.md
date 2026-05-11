@@ -1,7 +1,7 @@
 # jogo-max
 jogo do projeto da materia p.o.o
 
-nome do jogo: knight tales (provisorio)
+nome do jogo: Profane Echo
 
 o estilo do jogo sera um aventura e plataforma, o genero pode ser chamado tambem de metroidvania
 

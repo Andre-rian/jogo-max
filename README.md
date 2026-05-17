@@ -15,7 +15,7 @@ O personagem é um cavaleiro habilidoso que foi capturado por esse reino e apris
 o player se movimento para esquedar ou direita, podendo pular e dar dash para esquivar de ataques, pode ataca com sua espada.
 possuindo os atributos de vida e stamina
 
-os inimigos serao squeletos dos mortos no calabouço, guardas do castelos, lobos, e o inimigo final o rei do castelo
+os inimigos serao esqueletos dos mortos no calabouço, guardas do castelos, lobos, e o inimigo final o rei do castelo
 
 o comportamento deles irao varia alguns com mais vida que ficam parados, outros mais rapidos que perseguem o player e ect
 se colidir com o inimigo sua vida ira diminui
@@ -34,8 +34,63 @@ o jogo começa no calabouço, e para passar de fase tera que chegar no local esp
 regras nao tem muito oq citar os limites do mapa serão as parede que nao tera como passar
 
 
-sobre a organização dos arquivos nao tem muito oq colocar ja que o projeto ainda nao saiu do papel, junto com isso a separação de responsabilidade 
+sobre a organização dos arquivos tenho a parte dessa fase inicial do projeto
 
+jogo-max/
+├── main.py
+├── settings.py
+├── itens.json
+├── saves.db
+├── save_manager.py
+├── core/
+│   ├── __init__.py
+│   ├── camera_player.py
+│   ├── game_scene.py
+│   ├── animated_sprite.py
+│   └── inventario.py
+├── entities/
+│   ├── __init__.py
+│   ├── entity.py
+│   ├── player.py
+│   └── monsters/
+│       ├── __init__.py
+│       ├── skeleton.py
+│       ├── globin.py
+│       ├── mushroom.py
+│       ├── flying_eye.py
+│       └── skeleton_boss.py
+│   └── projeteis/
+│       ├── __init__.py
+│       ├── projetil.py
+│       ├── bomba.py
+│       ├── esporo_mushroom.py
+│       ├── projetil_flying_eye.py
+│       └── projetil_boss.py
+│   └── objetos/
+│       ├── __init__.py
+│       ├── item.py
+│       ├── bau.py
+│       ├── fogueira.py
+│       ├── pocao.py
+│       └── drop.py
+├── world/
+│   ├── __init__.py
+│   ├── tile_map.py
+│   └── rooms.py
+├── ui/
+│   ├── __init__.py
+│   └── hud.py
+└── assets/
+    ├── sprites/
+    │   ├── player/knight/
+    │   ├── enemies/monsters/
+    │   │   ├── skeleton/
+    │   │   ├── esqueletos/
+    │   │   ├── goblin/
+    │   │   ├── mushroom/
+    │   │   └── flying_eye/
+    │   └── objetos/baus/
+    └── tileset/calabouço/
 
 o minimo que queremos entrega na primeira versão seria a parte inicial da fase 1(calabouço)
 o minino para o jogo rodar seria as bibliotecas

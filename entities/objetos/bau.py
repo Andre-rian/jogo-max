@@ -1,7 +1,9 @@
 import pygame
 from settings import Tile_size
+from entities.objetos.item import get_item
 
 class Bau:
+
 
     Frame_w = 48
     Frame_h = 32
@@ -9,14 +11,15 @@ class Bau:
     Velocidade = 6 #frames de delay entre cada animação
 
 
-    def __init__(self, x, y, col, linha, item="espada"):
+    def __init__(self, x, y, col, linha, id_item=1):
         #col e linha do grid
         
         self.col = col
         self.linha = linha
-        self.item = item
+        self.id_item = id_item 
+        self.item = get_item(id_item)
 
-        
+        self.callback_aberto = None
 
         self.rect = pygame.Rect(x  , y - 22, Tile_size * 1.2, Tile_size * 2)
 
@@ -66,10 +69,11 @@ class Bau:
             hud.mostra_mensagem("pressione E para abrir")
 
             #player pressinou a tecla
-            if teclas[pygame.K_e] and not self._anim_tocando:
+            if teclas[pygame.K_e] and not self._anim_tocando and player.cooldown_interaçao <= 0:
                 self._anim_tocando = True
                 self._frame_idx = 0
                 self._contador = 0
+                self.cooldown_interaçao = 30
 
         #tocar a animação antes de abrir
         if self._anim_tocando:
@@ -88,11 +92,11 @@ class Bau:
                     mapa.remover_tile(self.col, self.linha)
 
     def _dar_item(self, player, hud):
-        if self.item == "espada":
-            from entities.objetos.item import EspadaLonga
-            player.equipar(EspadaLonga)
-            hud.mostra_mensagem("Espada Longa encontrada")
-
+            
+        player.adicionar_ao_inventario(self.item)
+        hud.mostrar_item_coletado(self.item)
+        if self.callback_aberto:
+            self.callback_aberto(self.col, self.linha)
 
     def desenhar(self, tela, camera):
         if not self.ativo:

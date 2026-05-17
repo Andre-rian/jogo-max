@@ -15,15 +15,16 @@ class Savemaneger:
     def _criar_tabela(self):
 
         self._conexao.execute(""" CREATE TABLE IF NOT EXISTS saves (
-                              slot  INTEGER PRIMARY KEY,
-                              checkpoint_sala   TEXT,
-                              checkpoint_x      INTEGER,
-                              checkpoint_y      INTEGER,
-                              fogueiras_ativas  TEXT,
-                              bosses_derrotados TEXT,
-                              tem_espada        INTEGER,
-                              inventario        TEXT,
-                              data_hora         TEXT
+                              slot                      INTEGER PRIMARY KEY,
+                              checkpoint_sala           TEXT,
+                              checkpoint_x              INTEGER,
+                              checkpoint_y              INTEGER,
+                              fogueiras_ativas          TEXT,
+                              bosses_derrotados         TEXT,
+                              inventario                TEXT,
+                              drops_fixos_coletados     TEXT,
+                              baus_abertos              TEXT,
+                              data_hora                 TEXT
                                                                     )
                             """)
         
@@ -39,14 +40,17 @@ class Savemaneger:
         fogueiras = json.dumps(list(game_scene.fogueiras_ativas))
         bosses = json.dumps(list(game_scene.bosses_derrotados))
         data_hora = datetime.now().strftime("%d/%m/%Y %H:%M")
+        baus_abertos = json.dumps([list(b) for b in game_scene.baus_abertos])
+        drops_fixos = json.dumps(list(game_scene.drops_fixos_coletados))
+        
         inventario = json.dumps(game_scene.player.inventario)
 
 
         self._conexao.execute("""
         INSERT OR REPLACE INTO saves
                               (slot, checkpoint_sala, checkpoint_x, checkpoint_y,
-                              fogueiras_ativas, bosses_derrotados, tem_espada, inventario,  data_hora)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                              fogueiras_ativas, bosses_derrotados,  inventario, drops_fixos_coletados, baus_abertos, data_hora)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                               (
                                   slot,
                                   game_scene.sala_atual,
@@ -54,8 +58,9 @@ class Savemaneger:
                                   int(game_scene.player.rect.y),
                                   fogueiras,
                                   bosses,
-                                  int(game_scene.player.tem_espada),
                                   inventario,
+                                  drops_fixos,
+                                  baus_abertos,
                                   data_hora
 
                               ))
@@ -71,16 +76,19 @@ class Savemaneger:
         if row is None:
             return None
         
+        
+
         return {
-            "slot"              : row[0],
-            "checkpoint_sala"   : row[1],
-            "checkpoint_x"      : row[2],
-            "checkpoint_y"      : row[3],
-            "fogueiras_ativas"  : set(map(tuple, json.loads(row[4]))),
-            "bosses_derrotados" : set(json.loads(row[5])),
-            "tem_espada"        : bool(row[6]),
-            "inventario"        : json.loads(row[7]),
-            "data_hora"         : row[8],
+            "slot"                  : row[0],
+            "checkpoint_sala"       : row[1],
+            "checkpoint_x"          : row[2],
+            "checkpoint_y"          : row[3],
+            "fogueiras_ativas"      : set(map(tuple, json.loads(row[4]))),
+            "bosses_derrotados"     : set(json.loads(row[5])),
+            "inventario"            : json.loads(row[6]),
+            "drops_fixos_coletados" : set(map(tuple, json.loads(row[7]))),
+            "baus_abertos"          : set(map(tuple, json.loads(row[8]))),
+            "data_hora"             : row[9]
         }
 
 

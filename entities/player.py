@@ -1,6 +1,6 @@
 import pygame
 import math
-from entities.objetos.item import Arma, get_item
+from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
 from entities.objetos.poçao import Pocao
@@ -28,6 +28,13 @@ class Player(Entity):
         
         self.estado = self.Parado
 
+
+        #stamina
+        self.buff_stamina_duracao = 0
+        self.buff_stamina_valor = 1.0
+
+
+
         #Dash
         self.em_dahs = False
         self.timer_dash = 0
@@ -49,17 +56,24 @@ class Player(Entity):
         self.timer_ataque = 0
         self.cooldown_ataque = 0
 
+
+        #interaçao (evita pressionar E em multiplos objetos ao mesmo tempo)
+        self.cooldown_interaçao = 0
+
         #invetario(bem basico)
         self.inventario = {
                 "mao_direita" : None,   # arma equipada
                 "mao_esquerda": None,   # escudo — futuro
                 "armadura"    : None,   # armadura — futuro
-                "itens"       : [],     # consumíveis no inventário               -lista de ids
+                "equipamentos": [],     #parte do inventario que fica os equipaveis 
+                "itens"       : {},     # consumíveis no inventário               -dicionario da lista de ids
                 "chaves"      : [],      # itens de progressão                    -lista de ids  
-                "materiais"   : []      # materias de fabricação/ upgrades        -lista de ids
+                "materiais"   : {}      # materias de fabricação/ upgrades        -dict da lista de ids
                         }   
         
 
+        #sistema do inventario/ simbolo nos itens novos
+        self.itens_novos = set() #id dos itens que o player nao interagiu no inventario
 
         #poçoes
         self.pocao = Pocao()
@@ -97,13 +111,49 @@ class Player(Entity):
         return get_item(id_) if id_ else None
     
     @property
-    def tem_espada(self):
+    def tem_arma_equipada(self):
         #mantem o codigo remendado com fita por enquanto
         return self.inventario["mao_direita"] is not None
 
 
+    def adicionar_ao_inventario(self, item):
+        if isinstance(item, Arma):
 
+            self.inventario["equipamentos"].append(item.id)
+            self.itens_novos.add(item.id)
+        
+        
+        elif isinstance(item, Consumivel):
 
+            id_ = str(item.id)
+
+            if id_ in self.inventario["itens"]:
+                self.inventario["itens"][id_] += 1
+                
+            else:    
+                self.inventario["itens"][id_] = 1
+            
+            self.itens_novos.add(item.id)
+        
+        
+        elif isinstance(item, Chave):
+            self.inventario["chaves"].append(item.id)
+            self.itens_novos.add(item.id)
+        
+        
+        elif isinstance(item, Material):
+            id_ = str(item.id)
+
+            print(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
+            
+            if id_ in self.inventario["materiais"]:
+                
+                self.inventario["materiais"][id_] += 1
+
+            else:
+                self.inventario["materiais"][id_] = 1
+                
+            self.itens_novos.add(item.id)
 
 
 
@@ -297,11 +347,16 @@ class Player(Entity):
                 self.stamina_delay -= 1
             else:
                 #recarrega gradualmente
+                velocidade = Stamina_recarga * self.buff_stamina_valor if self.buff_stamina_duracao > 0 else Stamina_recarga
                 self.stamina = min(
                     self.stamina_max,
-                    self.stamina + Stamina_recarga
+                    self.stamina + velocidade
                 )
-        
+
+
+        #decrementa o buff da stamina
+        if self.buff_stamina_duracao > 0:
+            self.buff_stamina_duracao -= 1
 
     #verificar se tem stamina
 
@@ -337,6 +392,10 @@ class Player(Entity):
 
         if self.cooldown_ataque > 0:
             self.cooldown_ataque -= 1
+
+        #cooldown de interações 
+        if self.cooldown_interaçao > 0:
+            self.cooldown_interaçao -= 1
 
     def _usar_pocao(self, teclas):
         self.pocao.atualizar()

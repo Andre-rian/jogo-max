@@ -16,8 +16,13 @@ class Inventario:
 
 
         #abas de navegaçao
-        self.abas = ["Equipamentos", "Itens", "Chaves"]
+        self.abas = ["Equipamentos", "Itens", "Chaves", "materias"]
         self.aba_atual = 0
+
+
+        #menu ações
+        self.menu_contexto = None # NOne - fechado, senao iria guarda o item e a posição 
+        self.callback_descartar = None 
 
         #grid de itens
         self.slot_selecionado = 0
@@ -56,19 +61,43 @@ class Inventario:
                     if item and item.tipo in ["arma", "armadura"]:
                         itens.append(item)
 
+            for id_ in player.inventario["equipamentos"]:
+                item = get_item(id_)
+                if item:
+                    itens.append(item)
             return itens
         
         elif self.aba_atual == 1: #itens
-            itens = [get_item(id_) for id_ in player.inventario["itens"]]
+            itens = []
+
             if player.pocao:
                 itens.insert(0, player.pocao)
+            
+            for id_, quantidade in player.inventario["itens"].items():
+                item = get_item(int(id_))
+
+                if item:
+
+                    item.quantidade = quantidade #atualiza a quantidade real de itens
+                    itens.append(item)
+
             return itens
 
 
         elif self.aba_atual == 2: #chaves
             return [get_item(id_) for id_ in player.inventario["chaves"]]
 
+        elif self.aba_atual == 3: #materias
+            itens = []
+            for id_, quantidade in player.inventario["materiais"].items():
+                item  = get_item(int(id_))
+                if item:
+                    item.quantidade = quantidade
+                    itens.append(item)
+            return itens
+        
         return []
+
 
 
     #atualizar
@@ -107,6 +136,10 @@ class Inventario:
             if rect_slot.collidepoint(pos_mouse):
                 self.slot_selecionado = i
 
+                item = itens[i]
+                if hasattr(item, "id"):
+                    player.itens_novos.discard(item.id)
+
         
 
 
@@ -114,6 +147,9 @@ class Inventario:
             if evento.type == pygame.KEYDOWN:
 
                 if evento.key == pygame.K_ESCAPE:
+                    if self.menu_contexto: #verificar se o menu de contexto esta aberto
+                        self.menu_contexto = None
+                        return
                     self.fechar()
                     return
 
@@ -154,7 +190,137 @@ class Inventario:
                         self.slot_selecionado = 0
                         break
 
-    
+                
+                if self.menu_contexto:
+                    mx = self.menu_contexto["x"]
+                    my = self.menu_contexto["y"]
+                    opcoes = self.menu_contexto["opcoes"]
+                    opcao_h = 28
+                    menu_w = 110
+
+                    clicou_opcao = False
+                    for i, opcao in enumerate(opcoes):
+                        oy = my + 4 + i * opcao_h
+                        rect_opcao = pygame.Rect(mx, oy, menu_w, opcao_h)
+                        if rect_opcao.collidepoint(pos_mouse):
+                            clicou_opcao = True
+                            self._executar_opcao(opcao, self.menu_contexto["item"], player)
+                            self.menu_contexto = None
+                            break
+
+                    if not clicou_opcao:
+                        self.menu_contexto = None #clicou fora do menu - fecha ele
+                    return
+                
+                
+            
+                #clique nos slots do grids
+                itens = self._itens_da_aba(player)
+                col1_x = px + 180
+                slot_size = 60
+                gap = 8
+                for i, item in enumerate(itens):
+                    col = i % self.slots_por_linha
+                    lin = i // self.slots_por_linha
+                    sx = col1_x + 10 + col * (slot_size + gap)
+                    sy = py + 10 + lin * (slot_size + gap)
+                    rect_slot = pygame.Rect(sx, sy, slot_size, slot_size)
+                    if rect_slot.collidepoint(pos_mouse):
+                        self.slot_selecionado = i
+
+                        #define as opçoes seguindo o tipo dos itens
+                        from entities.objetos.item import Arma, Consumivel
+
+                        if isinstance(item, Arma):
+                            #checa se o item esta equipado 
+                                slots_equipados = [
+                                        player.inventario["mao_direita"],
+                                        player.inventario["mao_esquerda"],
+                                        player.inventario["armadura"]]
+                                
+                                if hasattr(item, "id") and item.id in [s for s in slots_equipados if s is not None]:    
+                                
+                                    opcoes = ["Desequipar"]
+                                else:
+                                    opcoes = ["Equipar", "Descartar"]
+
+                        elif isinstance(item, Consumivel) or hasattr(item, "cargas"):
+                            opcoes = ["Usar", "Descartar"]
+                        
+                        else:
+                            opcoes = ["Descartar"]
+
+                        self.menu_contexto = {
+                            "item": item,
+                            "x": sx + slot_size + 4, #fica aparecendo ao lado direito do slot
+                            "y": sy,
+                            "opcoes" : opcoes
+                        }
+                        break
+
+    def _tentar_equipar(self, item, player):
+        from entities.objetos.item import Arma
+        if isinstance(item, Arma):
+            
+            #se tem algo equipado na mao, subistutuio e retorna ele para o inventario
+            id_atual = player.inventario["mao_direita"]
+            if id_atual is not None:
+                player.inventario["equipamentos"].append(id_atual)
+            
+            
+            #remove da lista de itens e coloca na mao direita
+            if item.id in player.inventario["equipamentos"]:
+                player.inventario["equipamentos"].remove(item.id)
+            player.inventario["mao_direita"] = item.id
+            player.itens_novos.discard(item.id)
+
+
+    def _executar_opcao(self, opcao, item , player):
+        from entities.objetos.item import Arma, Consumivel
+
+        if opcao == "Equipar":
+            self._tentar_equipar(item, player)
+
+        
+        elif opcao == "Usar":
+            
+            if isinstance(item, Consumivel):
+                item.usar(player, player.inventario)
+
+        elif opcao == "Descartar" and self.callback_descartar:
+            #checar se esta equipado e desequipar primeiro
+            if player.inventario["mao_direita"] == item.id:
+                player.inventario["mao_direita"] = None
+
+            elif player.inventario["mao_esquerda"] == item.id:
+                player.inventario["mao_esquerda"] = None
+
+            elif player.inventario["armadura"] == item.id:
+                player.inventario["armadura"] = None
+
+
+
+
+            #remove do inventario
+            for lista in ["equipamentos", "chaves"]:
+                if item.id in player.inventario[lista]:
+                    player.inventario[lista].remove(item.id)
+                    break
+                
+                if item.id in player.inventario["itens"]:
+                    player.inventario["itens"].pop(item.id)
+
+                if item.id in player.inventario["materiais"]:
+                    player.inventario["materiais"].pop(item.id)
+
+
+            self.callback_descartar(item.id)
+
+        elif opcao == "Desequipar":
+            if isinstance(item, Arma):
+                if player.inventario["mao_direita"] == item.id:
+                    player.inventario["mao_direita"] = None
+                    player.inventario["equipamentos"].append(item.id)
 
     def desenhar(self, player):
         if not self.aberto:
@@ -222,7 +388,56 @@ class Inventario:
         self.tela.blit(inst, (px + pw // 2 - inst.get_width() // 2,
                               py + ph - 20))
            
+        #menu do contexto/ açoes para os itens
+        if self.menu_contexto:
+            self._desenhar_menu_contexto()
+    
+    
+    def _desenhar_menu_contexto(self):
+        if not self.menu_contexto:
+            return
+        
+        mx = self.menu_contexto["x"]
+        my = self.menu_contexto["y"]
+        opcoes = self.menu_contexto["opcoes"]
 
+        opcao_h = 28
+        menu_w = 110
+        menu_h = len(opcoes) * opcao_h + 8
+
+
+        #fundo do menu
+        pygame.draw.rect(self.tela, (25, 20, 12),
+                         (mx, my, menu_w, menu_h), border_radius=4)
+        
+
+        pygame.draw.rect(self.tela, Dourado,
+                         (mx, my, menu_w, menu_h), 1, border_radius=4)
+
+        pos_mouse = pygame.mouse.get_pos()
+
+        for i, opcao in enumerate(opcoes):
+            oy = my + 4 + i * opcao_h
+            rect_opcao = pygame.Rect(mx, oy, menu_w, opcao_h)
+
+            #hover
+            if rect_opcao.collidepoint(pos_mouse):
+                pygame.draw.rect(self.tela, (50, 40, 25), rect_opcao, border_radius=3)
+
+            txt = self.fonte_normal.render(opcao, True, Branco)
+            self.tela.blit(txt, (mx + 10, oy + 6))   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     #slots equipados
     def _desenhar_slots_equipados(self, player, x, y, largura):
         titulo = self.fonte_normal.render("Equipado", True, Dourado)
@@ -235,6 +450,8 @@ class Inventario:
             ("Mão Esq", "mao_esquerda"),
             ("Armadura", "armadura"),
         ]
+
+
 
         for i, (label, chave) in enumerate(slots):
             sy = y + 30 + i * 70
@@ -290,6 +507,15 @@ class Inventario:
             cor_borda = Dourado if selecionado else (80, 60, 35)
             cor_fundo = (50, 40, 25) if selecionado else (30, 24, 15)
 
+            #checar se o item esta equipado
+            slots_equipados = [
+                player.inventario["mao_direita"],
+                player.inventario["mao_esquerda"],
+                player.inventario["armadura"]
+            ]
+
+            esta_equipado = hasattr(item, "id") and item.id in [s for s in slots_equipados if s is not None]
+
 
             pygame.draw.rect(self.tela, cor_fundo,
                              (sx, sy, slot_size, slot_size), border_radius=4)
@@ -301,33 +527,17 @@ class Inventario:
             cx = sx + slot_size // 2
             cy = sy + slot_size // 2
 
-            if hasattr(item, "dano"): #arma
-                pygame.draw.line(self.tela, (200, 180, 100),
-                                 (cx - 14, cy + 14), (cx + 14, cy - 14), 3)
+            self._desenhar_icone(item, cx, cy, sx, sy, slot_size)\
+
+            if esta_equipado:
+                pygame.draw.circle(self.tela, Dourado,
+                                   (sx + slot_size - 8, sy + 8), 5)
+                pygame.draw.circle(self.tela, (20, 15, 10),
+                                   (sx + slot_size - 8, sy + 8), 3)
                 
-                pygame.draw.line(self.tela, (160, 140, 80),
-                                 (cx - 8, cy - 14), (cx + 8, cy - 14), 2)
-                
-            elif hasattr(item, "cargas"): #poçoes/ consumiveis
-                pygame.draw.ellipse(self.tela, (220, 160, 30),
-                                    (cx - 10, cy - 5, 20, 18))
-                
-                pygame.draw.rect(self.tela, (180, 140, 60),
-                                 (cx - 4 , cy - 14, 8, 10), border_radius=2)
-                
-                #cargas
-                cargas_txt = self.fonte_pequena.render(
-                    str(item.cargas), True, Branco)
-                self.tela.blit(cargas_txt,
-                               (sx + slot_size - 16, sy + slot_size - 18))
-                
-            
-            else:
-                #chave/ outras coisas
-                pygame.draw.circle(self.tela, Dourado, (cx, cy), 12, 2)
-                pygame.draw.line(self.tela, Dourado,
-                                 (cx, cy - 8), (cx, cy + 8), 2)
-                
+            if hasattr(item, "id") and item.id in player.itens_novos:
+                txt = self.fonte_pequena.render("!", True, (255, 80, 80))
+                self.tela.blit(txt, (sx + slot_size - 10, sy + 4))
 
 
         if not itens:
@@ -336,6 +546,76 @@ class Inventario:
                                  y + 80))
             
     
+
+    def _desenhar_icone(self, item, cx, cy, sx, sy, slot_size):
+        if item.icone == "espada":
+            # lamina longa apontando para baixo
+            pygame.draw.polygon(self.tela, (200, 190, 150), [
+                (cx,      cy + 22),  # ponta
+                (cx - 3,  cy - 4),   # base esquerda
+                (cx + 3,  cy - 4),   # base direita
+            ])
+            # detalhe central da lamina
+            pygame.draw.line(self.tela, (160, 150, 110),
+                             (cx, cy + 22), (cx, cy - 4), 1)
+            # guarda longa
+            pygame.draw.line(self.tela, (180, 150, 60),
+                             (cx - 12, cy - 5), (cx + 12, cy - 5), 3)
+            # ponta da guarda esquerda
+            pygame.draw.circle(self.tela, (160, 130, 50),
+                               (cx - 12, cy - 5), 2)
+            # ponta da guarda direita
+            pygame.draw.circle(self.tela, (160, 130, 50),
+                               (cx + 12, cy - 5), 2)
+            # cabo
+            pygame.draw.line(self.tela, (120, 80, 40),
+                             (cx, cy - 5), (cx, cy - 16), 4)
+            # punho redondo
+            pygame.draw.circle(self.tela, (150, 110, 60),
+                               (cx, cy - 18), 4)
+            pygame.draw.circle(self.tela, (180, 140, 80),
+                               (cx, cy - 18), 4, 1)
+            
+        elif item.icone == "machado":
+            # cabo
+            pygame.draw.line(self.tela, (160, 120, 60),
+                             (cx + 8, cy + 14), (cx - 6, cy - 10), 3)
+            # lamina
+            pygame.draw.polygon(self.tela, (200, 180, 100), [
+                (cx - 6, cy - 10),
+                (cx - 16, cy - 4),
+                (cx - 8, cy + 6),
+            ])
+
+        elif item.icone == "pocao":
+            pygame.draw.ellipse(self.tela, (220, 160, 30),
+                                (cx - 10, cy - 5, 20, 18))
+            pygame.draw.rect(self.tela, (180, 140, 60),
+                             (cx - 4, cy - 14, 8, 10), border_radius=2)
+            cargas_txt = self.fonte_pequena.render(
+                str(item.cargas if item.cargas is not None else item.quantidade),
+                True, Branco)
+            self.tela.blit(cargas_txt, (sx + slot_size - 16, sy + slot_size - 18))
+
+        elif item.icone == "raiz":
+            # haste
+            pygame.draw.line(self.tela, (100, 160, 80),
+                             (cx, cy + 12), (cx, cy - 4), 2)
+            # folhas
+            pygame.draw.ellipse(self.tela, (80, 180, 60),
+                                (cx - 10, cy - 12, 12, 8))
+            pygame.draw.ellipse(self.tela, (80, 180, 60),
+                                (cx - 2, cy - 16, 12, 8))
+            cargas_txt = self.fonte_pequena.render(
+                str(item.quantidade), True, Branco)
+            self.tela.blit(cargas_txt, (sx + slot_size - 16, sy + slot_size - 18))
+
+        else:  # generico
+            pygame.draw.circle(self.tela, Dourado, (cx, cy), 12, 2)
+            pygame.draw.line(self.tela, Dourado,
+                             (cx, cy - 8), (cx, cy + 8), 2)
+
+
 
     #desenhar a DESCRRIÇAO e o status do player
     def _desenhar_detalhes(self, player, x, y, largura):
@@ -395,7 +675,7 @@ class Inventario:
                                          linha_y))
                     linha_y += 18
 
-            elif hasattr(item, "cargas"):
+            elif hasattr(item, "cargas_max") and item.cargas_max is not None:
                 
                 stats = [
                     ("Cargas",  f"{item.cargas} / {item.cargas_max}"),
@@ -407,7 +687,19 @@ class Inventario:
                     self.tela.blit(val, (x + largura - val.get_width() - 10,
                                          linha_y))
                     linha_y += 18
+            
+            elif hasattr(item, "quantidade") and item.quantidade is not None:
+                stats = [
+                    ("Quantidade", str(item.quantidade)),
 
+                ]
+                for label, valor in stats:
+                    lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
+                    val = self.fonte_pequena.render(valor, True, Branco)
+                    
+                    self.tela.blit(lbl, (x, linha_y))
+                    self.tela.blit(val, (x + largura - val.get_width() - 10, linha_y))
+                    linha_y += 18
 
         #stats do player
         #linha separadora

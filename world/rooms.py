@@ -132,6 +132,6 @@ Drops_inimigos = {
 
 Drops_fixos = {
     "calabouço_4": [
-        (5, 10, 5),  # id_item=5, col=10, linha=5 — ajusta a posição depois
+        (5, 5, 10.7),  # id_item=5, col=5, linha=5 — ajusta a posição depois
     ],
 }

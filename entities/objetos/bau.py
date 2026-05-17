@@ -19,7 +19,7 @@ class Bau:
         self.id_item = id_item 
         self.item = get_item(id_item)
 
-        
+        self.callback_aberto = None
 
         self.rect = pygame.Rect(x  , y - 22, Tile_size * 1.2, Tile_size * 2)
 
@@ -92,9 +92,11 @@ class Bau:
                     mapa.remover_tile(self.col, self.linha)
 
     def _dar_item(self, player, hud):
-            player.adicionar_ao_inventario(self.item)
-            hud.mostra_mensagem(f"{self.item.nome} coletado")
-
+            
+        player.adicionar_ao_inventario(self.item)
+        hud.mostrar_item_coletado(self.item)
+        if self.callback_aberto:
+            self.callback_aberto(self.col, self.linha)
 
     def desenhar(self, tela, camera):
         if not self.ativo:

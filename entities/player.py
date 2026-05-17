@@ -125,7 +125,7 @@ class Player(Entity):
         
         elif isinstance(item, Consumivel):
 
-            id_ = item.id
+            id_ = str(item.id)
 
             if id_ in self.inventario["itens"]:
                 self.inventario["itens"][id_] += 1
@@ -133,7 +133,7 @@ class Player(Entity):
             else:    
                 self.inventario["itens"][id_] = 1
             
-            self.itens_novos.add(id_)
+            self.itens_novos.add(item.id)
         
         
         elif isinstance(item, Chave):
@@ -142,14 +142,18 @@ class Player(Entity):
         
         
         elif isinstance(item, Material):
-            id_ = item.id
+            id_ = str(item.id)
+
+            print(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
+            
             if id_ in self.inventario["materiais"]:
+                
                 self.inventario["materiais"][id_] += 1
 
             else:
                 self.inventario["materiais"][id_] = 1
                 
-            self.itens_novos.add(id_)
+            self.itens_novos.add(item.id)
 
 
 

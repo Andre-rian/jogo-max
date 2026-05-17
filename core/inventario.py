@@ -74,7 +74,7 @@ class Inventario:
                 itens.insert(0, player.pocao)
             
             for id_, quantidade in player.inventario["itens"].items():
-                item = get_item(id_)
+                item = get_item(int(id_))
 
                 if item:
 
@@ -87,7 +87,17 @@ class Inventario:
         elif self.aba_atual == 2: #chaves
             return [get_item(id_) for id_ in player.inventario["chaves"]]
 
+        elif self.aba_atual == 3: #materias
+            itens = []
+            for id_, quantidade in player.inventario["materiais"].items():
+                item  = get_item(int(id_))
+                if item:
+                    item.quantidade = quantidade
+                    itens.append(item)
+            return itens
+        
         return []
+
 
 
     #atualizar

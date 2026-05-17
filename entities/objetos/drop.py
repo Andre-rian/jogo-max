@@ -10,6 +10,7 @@ class Drop:
     def __init__(self, x, y, id_item):
         self.id_item = id_item
         self.item = get_item(id_item)
+        print(f"Drop criado: id_item={id_item}, item={self.item}")
         self.ativo = True
 
         #rect para centralizar o ponto do drop
@@ -19,6 +20,9 @@ class Drop:
 
         self._timer = 0
 
+        self.chave_fixa = None 
+        self.callback_coletado = None 
+
 
     def atualizar(self, player, teclas, hud):
         if not self.ativo:
@@ -27,15 +31,21 @@ class Drop:
         self._timer += 1
 
         dist = abs(player.rect.centerx - self.rect.centerx)
+        quantidade = player.inventario["materiais"].get(str(self.item.id),
+                                                        player.inventario["itens"].get(str(self.item.id), 1))
         if dist < self.Alcance_coleta:
             hud.mostra_mensagem(f"E -- Pegar {self.item.nome}")
 
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
-                print(f"coletando {self.item.nome}, ativo={self.ativo}")
                 player.adicionar_ao_inventario(self.item)
-                hud.mostra_mensagem(f" {self.item.nome} coletado!")
+
+                
+                
                 self.ativo = False
                 player.cooldown_interaçao = 30
+                if self.callback_coletado:
+                    self.callback_coletado(self.chave_fixa)
+                hud.mostrar_item_coletado(self.item, quantidade)
 
     def desenhar(self, tela, camera):
         if not self.ativo:

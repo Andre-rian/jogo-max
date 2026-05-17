@@ -19,9 +19,19 @@ class Fogueira:
         self._frame = 0  #contador geral para a animação
 
 
+        self._timer_descanso = 0
+
+
     def atualizar(self, player, teclas, hud, sala_atual, fogueiras_ativas):
 
         self._frame += 1
+
+        if self._timer_descanso > 0:
+            self._timer_descanso -= 1
+            hud.mostra_mensagem("Descansando...")
+            return
+        
+
 
         dist = abs(player.rect.centerx - self.rect.centerx)
 
@@ -30,10 +40,12 @@ class Fogueira:
                 hud.mostra_mensagem("pressione E para descansar")
 
 
-                if teclas[pygame.K_e]:
+                if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                     self.ativa = True
                     fogueiras_ativas.add((self.col, self.linha)) #registra a fogueira como ativa
                     player.defenir_checkpoint(sala_atual, x=self.rect.x, y=self.rect.y)
+                    player.cooldown_interaçao = 60
+                    self._timer_descanso = 120
                     hud.mostra_mensagem("Ponto de descanso ativado")
 
                     player.hp = player.hp_max
@@ -42,11 +54,13 @@ class Fogueira:
             else:
                 #fogueira ja ativida, pode descansar se sair da sala\
                 hud.mostra_mensagem("pressione E para descansar")
-                if teclas[pygame.K_e]:
+                if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                     player.hp = player.hp_max
                     player.stamina = player.stamina_max
-                    hud.mostra_mensagem("Descansando")
                     player.pocao.recarregar()
+                    player.cooldown_interaçao = 60
+                    self._timer_descanso = 120
+                    hud.mostra_mensagem("Descansando")
                     if self._callback_descanso:
                         self._callback_descanso()
 

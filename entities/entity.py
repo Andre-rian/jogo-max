@@ -27,6 +27,9 @@ class Entity(pygame.sprite.Sprite):
         self.stamina = Stamina_max
         self.stamina_delay = 0 #o contador espara pra recarrega
 
+        #ecos profanos
+        self.ecos_drop = 0
+
 
         self.callback_morte = None #setado por quem  spwana o inimigo
 

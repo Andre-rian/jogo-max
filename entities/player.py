@@ -75,6 +75,11 @@ class Player(Entity):
         #sistema do inventario/ simbolo nos itens novos
         self.itens_novos = set() #id dos itens que o player nao interagiu no inventario
 
+        #ecos profanos 
+        self.ecos = 0
+        self.ecos_perdidos = 0  #guarda os ecos perdidos quando o player morrre
+
+
         #poçoes
         self.pocao = Pocao()
 
@@ -431,16 +436,18 @@ class Player(Entity):
         self.checkpoint_pos.x = x if x is not None else self.rect.x 
         self.checkpoint_pos.y = y if y is not None else self.rect.y 
         self.checkpoint_sala = nome_sala
+        print(f"checkpoint definido: sala={nome_sala}, x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
 
     def respawnar(self): 
         #voltar para o ultimo checkpoint com o hp cheio
+
         self.rect.x = int(self.checkpoint_pos.x)
         self.rect.y = int(self.checkpoint_pos.y)
         self.hp = self.hp_max
         self.vivo = True
         self.vel = pygame.Vector2(0,0)
         self.estado = self.Parado
-        
+        print(f"respawnando em: x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
         self.atacando = False
 
 

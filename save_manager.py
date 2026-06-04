@@ -24,6 +24,8 @@ class Savemaneger:
                               inventario                TEXT,
                               drops_fixos_coletados     TEXT,
                               baus_abertos              TEXT,
+                              ecos                      INTEGER,
+                              drop_eco                  TEXT,
                               data_hora                 TEXT
                                                                     )
                             """)
@@ -42,6 +44,21 @@ class Savemaneger:
         data_hora = datetime.now().strftime("%d/%m/%Y %H:%M")
         baus_abertos = json.dumps([list(b) for b in game_scene.baus_abertos])
         drops_fixos = json.dumps(list(game_scene.drops_fixos_coletados))
+        ecos = game_scene.player.ecos
+
+        #searializaçao dos ecos caso exista
+        drop_eco_data = None
+        for sala, drop in game_scene.drops_ecos_por_sala.items():
+            if drop.ativo:
+                drop_eco_data = json.dumps({
+                    "sala": sala,
+                    "x": drop.x,
+                    "y": drop.y,
+                    "quantidade": drop.quantidade
+                })
+                break
+        if drop_eco_data is None:
+            drop_eco_data = json.dumps(None)
         
         inventario = json.dumps(game_scene.player.inventario)
 
@@ -49,8 +66,8 @@ class Savemaneger:
         self._conexao.execute("""
         INSERT OR REPLACE INTO saves
                               (slot, checkpoint_sala, checkpoint_x, checkpoint_y,
-                              fogueiras_ativas, bosses_derrotados,  inventario, drops_fixos_coletados, baus_abertos, data_hora)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                              fogueiras_ativas, bosses_derrotados,  inventario, drops_fixos_coletados, baus_abertos, ecos, drop_eco, data_hora)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                               (
                                   slot,
                                   game_scene.sala_atual,
@@ -61,6 +78,8 @@ class Savemaneger:
                                   inventario,
                                   drops_fixos,
                                   baus_abertos,
+                                  ecos,
+                                  drop_eco_data,
                                   data_hora
 
                               ))
@@ -88,7 +107,9 @@ class Savemaneger:
             "inventario"            : json.loads(row[6]),
             "drops_fixos_coletados" : set(map(tuple, json.loads(row[7]))),
             "baus_abertos"          : set(map(tuple, json.loads(row[8]))),
-            "data_hora"             : row[9]
+            "ecos"                  : row[9],
+            "drop_eco"              : json.loads(row[10]),
+            "data_hora"             : row[11]
         }
 
 

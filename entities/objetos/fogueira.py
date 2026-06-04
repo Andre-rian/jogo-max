@@ -43,7 +43,7 @@ class Fogueira:
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                     self.ativa = True
                     fogueiras_ativas.add((self.col, self.linha)) #registra a fogueira como ativa
-                    player.defenir_checkpoint(sala_atual, x=self.rect.x, y=self.rect.y)
+                    player.defenir_checkpoint(sala_atual, x=self.rect.centerx, y=self.rect.centery)
                     player.cooldown_interaçao = 60
                     self._timer_descanso = 120
                     hud.mostra_mensagem("Ponto de descanso ativado")

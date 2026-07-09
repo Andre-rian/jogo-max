@@ -23,6 +23,7 @@ class Mushroom(Entity):
     Cooldown_forte_max = 200  # cooldown extra do attack2
     Cooldown_esporo_max = 400 # cooldown longo do attack3
 
+
     def __init__(self, x, y, patrulha_esq, patrulha_dir):
         super().__init__(x, y, largura=36, altura=60, hp_max=80)
 
@@ -59,6 +60,8 @@ class Mushroom(Entity):
         self.anim_atual = self.animacoes[self.Patrulha]
         self._em_hit = False
         self._timer_hit = 0
+
+        self.ecos_drop = 25
 
     def atualizar(self, rects_solidos, player):
         if not self.vivo:

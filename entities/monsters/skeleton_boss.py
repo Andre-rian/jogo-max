@@ -84,6 +84,8 @@ class EsqueletoBoss(Entity):
         self._em_hit = False
         self._timer_hit = 0
 
+        self.ecos_drop = 150
+
 
     #propriedades para o hud
     @property

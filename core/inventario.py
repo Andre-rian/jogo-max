@@ -534,7 +534,13 @@ class Inventario:
                                    (sx + slot_size - 8, sy + 8), 5)
                 pygame.draw.circle(self.tela, (20, 15, 10),
                                    (sx + slot_size - 8, sy + 8), 3)
-                
+
+            #aviso de requisitos de status nao cumprido
+            from entities.objetos.item import Arma
+            if isinstance(item, Arma) and not item.pode_equipar(player):
+                txt = self.fonte_pequena.render("❗", True, (255, 60, 60))
+                self.tela.blit(txt, (sx + 4, sy + 4))
+
             if hasattr(item, "id") and item.id in player.itens_novos:
                 txt = self.fonte_pequena.render("!", True, (255, 80, 80))
                 self.tela.blit(txt, (sx + slot_size - 10, sy + 4))
@@ -660,10 +666,19 @@ class Inventario:
             linha_y += 8 
 
             if hasattr(item, "dano"):
+                #mostra o string do escalonamento
+                escalonamento_txt = " / ".join(
+                    f"{atr.capitalize()} {grau}"
+                    for atr, grau in item.escalonamento.items()
+                )
+                
+
+                
+                
                 stats = [
                     ("Dano",          str(item.dano)),
-                    ("Escalonamento", item.escalonamento.capitalize()),
-                    ("Req. Força",    str(item.requisitos["força"])),
+                    ("Escalonamento", escalonamento_txt,),
+                    ("Req. Força",    str(item.requisitos["forca"])),
                     ("Req. Destreza", str(item.requisitos["destreza"])),
                 ]
 
@@ -714,11 +729,11 @@ class Inventario:
 
         #parte dos status que só vem no futuro
         stats_player = [
-            ("HP",      f"{player.hp} / {player.hp_max}"),
-            ("Stamina", f"{int(player.stamina)} / {player.stamina_max}"),
-            ("Nível",   "1"),        # futuro
-            ("Força",   "10"),       # futuro
-            ("Destreza","10"),       # futuro
+            ("Nível",   str(player.nivel)),
+            ("Vigor",      str(player.vigor)),
+            ("Resistencia", str(player.resistencia)),        
+            ("Força",   str(player.forca)),       
+            ("Destreza",str(player.destreza)),       
         ]
         for label, valor in stats_player:
             lbl = self.fonte_pequena.render(label, True, (120, 100, 60))

@@ -1,25 +1,35 @@
 import pygame
 import sys
+
 from settings import *
+
 from core.inventario import Inventario
+
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
+
 from core.camera_player import Camera
+
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
 from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 from entities.projeteis.projetil_boss import ProjetilBoss
+
 from entities.player import Player
 from entities.objetos.bau import Bau
+from entities.objetos.drop_eco import DropEco
 
 from entities.objetos.fogueira import Fogueira
+from core.menu_fogueira import MenuFogueira
+
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
 from entities.monsters.flying_eye import FlyingEye
 from entities.monsters.skeleton_boss import EsqueletoBoss
-from ui.hud import Hud
 
+from ui.hud import Hud
+from ui.particulas import ParticulaEco
 
 class Gamescene:
     #centraliza toda a logica do jogo, mapa, inimigo e etc, para alivar e organiza o arquivo main.py
@@ -40,10 +50,15 @@ class Gamescene:
         self.inventario = Inventario(self.tela)
 
 
+        #menu da fogueira
+        self.menu_fogueira = MenuFogueira(self.tela, self.player, callback_descansar=self._descansar_fogueira, callback_fechar=self._fechar_menu_fogueira)
+
+
         #baus
         self.baus_abertos = set()
 
-
+        #particulas do eco
+        self.particulas_ecos = []
 
         #drops
         self.drops_por_sala = {} #nome_sala: [drops]
@@ -51,6 +66,8 @@ class Gamescene:
         self.drops_fixos_coletados = set() #chaves (nome_sala, linha) dos drops fixos ja coletados
 
         self.inventario.callback_descartar = self._descartar_item
+
+        self.drops_ecos_por_sala = {}
 
         #fogueiras
         self.fogueiras_ativas = set() #guarda as posiçoes das fogueiras ativas
@@ -82,9 +99,11 @@ class Gamescene:
         self._menu_callback = None #sera setado no main
         self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
+    
+    
     #CARREGA A SALA 
 
-    def _carregar_sala(self, nome_sala, posiçao_spwan= None):
+    def _carregar_sala(self, nome_sala, posiçao_spwan=None, respawnando=False ):
         #carrega um novo mapa e reposiciona o player
 
         self.sala_atual = nome_sala
@@ -121,19 +140,29 @@ class Gamescene:
         for linha_idx, linha in enumerate(Salas[nome_sala]):
             for col_idx, tile in enumerate(linha):
                 if tile == 9:
-                    self.fogueiras.append(Fogueira(
+                    fogueira = Fogueira(
                         col_idx * Tile_size,
                         linha_idx * Tile_size,
                         col_idx, linha_idx,
                         callback_descanso=self._descansar_fogueira
-                    ))
+                    )
+                    fogueira._callback_abrir_menu = self._abrir_menu_fogueira
+                    print(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
+                    self.fogueiras.append(fogueira)
 
         for fogueira in self.fogueiras:
             if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
                 fogueira.ativa = True
+                for fogueira in self.fogueiras:
+                    if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
+                        fogueira.ativa = True
+        
 
 
         self.drops = self.drops_por_sala.get(nome_sala, [])
+
+
+
 
         #drop fixos da sala
         from entities.objetos.drop import Drop
@@ -150,7 +179,7 @@ class Gamescene:
 
                 #evita duplica se a sala ja foi carregada antes
                 ja_existe = any(
-                    d.rect_centerx == col_drop * Tile_size and
+                    d.rect.centerx == col_drop * Tile_size and
                     d.rect.centery == lin_drop * Tile_size
                     for d in self.drops_por_sala[nome_sala]
                 )
@@ -167,20 +196,30 @@ class Gamescene:
        #limpa os projeteis ao trocar de sala
         self.projeteis = []
 
+        #ecos que ficam no chao ao morrer
+        drop_eco = self.drops_ecos_por_sala.get(nome_sala)
+        self.drops_ecos = [drop_eco] if drop_eco and drop_eco.ativo else []
+
+
+
+
+
+
+
         #ajuste da camera para o mapa novo
         self.largura_mapa = len(grid[0]) * Tile_size
         self.altura_mapa = len(grid) * Tile_size
         self.camera = Camera(self.largura_mapa, self.altura_mapa)
 
         #posiçao do spwan
-        if posiçao_spwan is None:
-            col, linha = spwans[nome_sala]
-        else:
-            col, linha = posiçao_spwan
-
-        self.player.rect.x = col * Tile_size
-        self.player.rect.y = linha * Tile_size
-        self.player.vel.xy = (0, 0) #isso zerar a velocida ao trocar de sala
+        if not respawnando:
+            if posiçao_spwan is None:
+                col, linha = spwans[nome_sala]
+            else:
+                col, linha = posiçao_spwan
+            self.player.rect.x = col * Tile_size
+            self.player.rect.y = linha * Tile_size
+            self.player.vel.xy = (0, 0)
 
         #resetar o time do cooldown ao trocar de sala
         self._cooldown_transiçao = 30
@@ -223,6 +262,11 @@ class Gamescene:
         pos_mouse = pygame.mouse.get_pos()
         pos_mouse_mundo = self.camera.mouse_para_mundo(pos_mouse)
 
+        if self.menu_fogueira.aberto:
+            self.menu_fogueira.atualizar(eventos)
+            return
+
+
         if self.pausado:
             self._atualizar_pausa(eventos)
             
@@ -261,10 +305,15 @@ class Gamescene:
 
         for drop in self.drops:
             drop.atualizar(self.player, teclas, self.hud)
+
+        for drop in self.drops_ecos:
+            drop.atualizar(self.player, teclas, self.hud)
+        self.drops_ecos = [d for d in self.drops_ecos if d.ativo]
         
 
         for fogueira in self.fogueiras:
             fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
+
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -301,6 +350,20 @@ class Gamescene:
                         self.inimigos_morto_por_sala[self.sala_atual] = []
 
                     self.inimigos_morto_por_sala[self.sala_atual].append(in_._indice_spawn)
+
+                if in_.ecos_drop > 0:
+                    self.player.ecos += in_.ecos_drop
+                    #spwanar as particulas 
+                    for _ in range(in_.ecos_drop // 3): #quantidade propocional aos ecos
+                        self.particulas_ecos.append(ParticulaEco(in_.rect.centerx, in_.rect.centery))
+
+        player_cx = self.player.rect.centerx
+        player_cy = self.player.rect.centery
+        
+        for p in self.particulas_ecos:
+            p.atualizar(player_cx, player_cy)
+        
+        self.particulas_ecos = [p for p in self.particulas_ecos if p.ativo]
         self.inimigos = vivos
         
         
@@ -452,7 +515,15 @@ class Gamescene:
         #respwna os inimigos da sala atual
         self._spwanar_inimigos(self.sala_atual)
 
+    def _fechar_menu_fogueira(self):
+        self.menu_fogueira.aberto = False
+        self.pausado = False
 
+
+    def _abrir_menu_fogueira(self):
+        print("abrindo menu fogueira")
+        self.menu_fogueira.abrir()
+        
 
 
     def _verificar_combante(self):
@@ -467,7 +538,7 @@ class Gamescene:
             
             if rect_ataque.colliderect(inimigo.rect):
                 direçao = 1 if self.player.olhando_dir else -1
-                inimigo.receber_hit(ataque_dano, direçao)
+                inimigo.receber_hit(self.player.calcular_dano(), direçao)
     
 
     def _registrar_bau_aberto(self, col, linha):
@@ -485,13 +556,28 @@ class Gamescene:
             self.morrendo = True
             self.timer_morto = self.duraçao_morte
 
+
+            #cria o drop dos ecos no lugar da morte
+            if self.player.ecos > 0:
+                #remove se ja haver um 
+                self.drops_ecos_por_sala.clear()
+                #criar um novo
+
+                drop = DropEco(self.player.rect.centerx, self.player.rect.bottom, self.player.ecos)
+                self.drops_ecos_por_sala[self.sala_atual] = drop
+                self.drops_ecos = [drop]
+                self.player.ecos_perdidos = self.player.ecos
+                self.player.ecos = 0
+
         if self.morrendo:
             self.timer_morto -= 1
             if self.timer_morto <= 0:
                 #respwana  no lugar do checkpoint, que ainda vai ser aprimorado
-                self._carregar_sala(self.player.checkpoint_sala)
+                
                 self.player.respawnar()
-                self.player.defenir_checkpoint(self.player.checkpoint_sala)
+                self._carregar_sala(self.player.checkpoint_sala, respawnando=True)
+                
+
                 self.morrendo = False
 
     #verificar passagem
@@ -579,6 +665,14 @@ class Gamescene:
         self.bosses_derrotados = dados["bosses_derrotados"]
         self.drops_fixos_coletados= dados.get("drops_fixos_coletados", set())
         self.baus_abertos = dados.get("baus_abertos", set())
+        self.player.ecos = dados.get("ecos", 0)
+        
+        drop_eco_data = dados.get("drop_eco")
+
+        if drop_eco_data:
+            from entities.objetos.drop_eco import DropEco
+            drop = DropEco(drop_eco_data["x"], drop_eco_data["y"], drop_eco_data["quantidade"])
+            self.drops_ecos_por_sala[drop_eco_data["sala"]] = drop
 
         if "inventario" in dados:
             self.player.inventario = dados["inventario"]
@@ -595,8 +689,8 @@ class Gamescene:
             y=dados["checkpoint_y"]
         )
         #carrega a sala do checkpoint
-        self._carregar_sala(dados["checkpoint_sala"], posiçao_spwan=(dados["checkpoint_x"] // Tile_size,
-                                                                     dados["checkpoint_y"] // Tile_size))   
+        self._carregar_sala(dados["checkpoint_sala"], respawnando=True)
+        self.player.respawnar()   
     
     
     
@@ -636,6 +730,9 @@ class Gamescene:
         for proj in self.projeteis:
             proj.desenhar(self.tela, self.camera)
 
+        for p in self.particulas_ecos:
+            p.desenhar(self.tela, self.camera)
+
         self.player.desenhar(self.tela, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)
 
@@ -645,10 +742,14 @@ class Gamescene:
         for drop in self.drops:
             drop.desenhar(self.tela, self.camera)
 
+        for drop in self.drops_ecos:
+            drop.desenhar(self.tela, self.camera)
+
         for fogueira in self.fogueiras:
             fogueira.desenhar(self.tela, self.camera)
 
-
+        if self.menu_fogueira.aberto:
+            self.menu_fogueira.desenhar()
         
 
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)

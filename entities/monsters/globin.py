@@ -35,6 +35,8 @@ class Globin(Entity):
         self._frame = 0
         self.timer_knockback = 0
         self.cooldown_bomba = 0
+
+        self.ecos_drop = 15
       
 
         self.vel.x = self.Vel_patrulha

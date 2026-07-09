@@ -4,7 +4,10 @@
         "tipo" : "arma",
         "icone" : "espada",
         "dano" : 25,
-        "escalonamento" : "agil",
+        "escalonamento" : {
+            "forca": "C",
+            "destreza": "C"
+        },
         "req_forca" : 8,
         "req_destreza": 10,
         "descricao": "Espada padrão dos cavaleiros do reino. Equilibrada e confiável, serve bem a qualquer combatente."
@@ -25,7 +28,10 @@
         "tipo" : "arma",
         "icone" : "machado",
         "dano" : 40,
-        "escalonamento" : "forca",
+        "escalonamento" : {
+            "forca": "B",
+            "destreza": "C"
+        },
         "req_forca" : 15,
         "req_destreza": 5,
         "descricao" : "Machado pesado. Lento e de curto alcance, mas capaz de abrir armaduras inteiras com um golpe. Muito utilizado pelos os antigos carcereios do reino"

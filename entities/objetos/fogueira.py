@@ -13,6 +13,7 @@ class Fogueira:
 
         self._callback_descanso = callback_descanso
 
+        self._callback_abrir_menu = None
 
 
         self.ativa = False
@@ -41,29 +42,23 @@ class Fogueira:
 
 
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
+                    print(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
                     self.ativa = True
                     fogueiras_ativas.add((self.col, self.linha)) #registra a fogueira como ativa
-                    player.defenir_checkpoint(sala_atual, x=self.rect.x, y=self.rect.y)
+                    player.defenir_checkpoint(sala_atual, x=self.rect.centerx, y=self.rect.centery)
                     player.cooldown_interaçao = 60
                     self._timer_descanso = 120
-                    hud.mostra_mensagem("Ponto de descanso ativado")
-
-                    player.hp = player.hp_max
-                    player.stamina = player.stamina_max
+                    if self._callback_abrir_menu:
+                        self._callback_abrir_menu()
 
             else:
                 #fogueira ja ativida, pode descansar se sair da sala\
-                hud.mostra_mensagem("pressione E para descansar")
+                
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
-                    player.hp = player.hp_max
-                    player.stamina = player.stamina_max
-                    player.pocao.recarregar()
+                    print(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
                     player.cooldown_interaçao = 60
-                    self._timer_descanso = 120
-                    hud.mostra_mensagem("Descansando")
-                    if self._callback_descanso:
-                        self._callback_descanso()
-
+                    if self._callback_abrir_menu:
+                        self._callback_abrir_menu()
 
     def _ativar(self, player, hud):
         self.ativa = True

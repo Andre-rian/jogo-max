@@ -1,5 +1,5 @@
 import pygame 
-from settings import Gravidade, Max_Fall_Speed, Stamina_max
+from settings import Gravidade, Max_Fall_Speed
 
 class Entity(pygame.sprite.Sprite):
 
@@ -23,9 +23,12 @@ class Entity(pygame.sprite.Sprite):
         self.vivo = True
  
         #stamina
-        self.stamina_max = Stamina_max
-        self.stamina = Stamina_max
+        self.stamina_max = 0
+        self.stamina = 0
         self.stamina_delay = 0 #o contador espara pra recarrega
+
+        #ecos profanos
+        self.ecos_drop = 0
 
 
         self.callback_morte = None #setado por quem  spwana o inimigo

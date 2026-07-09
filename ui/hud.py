@@ -21,6 +21,8 @@ class Hud:
         self._notif_duracao = 210 #3.5 segundos de duracao
 
 
+        #ecos
+        self._frame_hud = 0
 
 
 
@@ -68,6 +70,7 @@ class Hud:
         self._desenhar_mensagem(tela)
         self._desenhar_notificacao_item(tela)
         self._desenhar_debug(tela, player)
+        self._desenhar_ecos(tela, player)
         if boss_atual:
             self._desenhar_barra_boss(tela, boss_atual)
 
@@ -184,6 +187,56 @@ class Hud:
 
         else:
             pygame.draw.circle(tela, cor_arma, (cx, cy), 12, 2)
+
+
+
+
+    #ecos
+    def _desenhar_ecos(self, tela, player):
+        self._frame_hud += 1
+
+        #posiçao no canto inferior direito
+        x = Screen_widht - 220
+        y = Screen_height - 60
+
+        #simbolo do eco
+
+        cx = x + 20
+        cy = y + 16
+
+
+        #pulsaçao do nucleo
+        pulso = abs((self._frame_hud % 90) - 45) / 45 
+        raio_nucleo = int(8 + pulso * 2)
+
+        #nucleo escuro 
+        pygame.draw.circle(tela, (15, 5, 25), (cx, cy), raio_nucleo)
+        pygame.draw.circle(tela, (80, 40, 120), (cx, cy), raio_nucleo, 1)
+
+
+        #3 fragementos em rotaçáo
+        import math
+        frangmentos = [
+            (self._frame_hud * 0.03, 14, (100, 60, 180)), # o mais lento
+            (self._frame_hud * 0.05 + 2.1, 12, (140, 80, 220)), #medio
+            (self._frame_hud * 0.04 + 4.2, 13, (160, 100, 255)), #o mais RAPIDOO
+
+
+        ]
+
+
+        for angulo, dist, cor in frangmentos:
+            fx = int(cx + math.cos(angulo) * dist)
+            fy = int(cy + math.sin(angulo) * dist)
+            pygame.draw.circle(tela, cor, (fx, fy), 3)
+
+
+        #numero dos ecos
+        cor_ecos = (180, 140, 255)
+        txt = self.fonte_media.render(str(player.ecos), True, cor_ecos)
+        tela.blit(txt, (cx + 26, cy - txt.get_height() // 2))
+
+
 
 
 
@@ -430,5 +483,5 @@ class Hud:
         for i, linha in enumerate(linhas):
             txt = self.fonte_pequena.render(linha, True, (140, 140, 140))
             tela.blit(txt, (Screen_widht - 240,
-                            Screen_height - 128 + i * 18))     
+                            Screen_height - 400 + i * 18))     
         

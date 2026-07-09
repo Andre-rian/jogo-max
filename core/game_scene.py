@@ -20,6 +20,7 @@ from entities.objetos.bau import Bau
 from entities.objetos.drop_eco import DropEco
 
 from entities.objetos.fogueira import Fogueira
+from core.menu_fogueira import MenuFogueira
 
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
@@ -47,6 +48,10 @@ class Gamescene:
 
         #inventario
         self.inventario = Inventario(self.tela)
+
+
+        #menu da fogueira
+        self.menu_fogueira = MenuFogueira(self.tela, self.player, callback_descansar=self._descansar_fogueira, callback_fechar=self._fechar_menu_fogueira)
 
 
         #baus
@@ -135,16 +140,23 @@ class Gamescene:
         for linha_idx, linha in enumerate(Salas[nome_sala]):
             for col_idx, tile in enumerate(linha):
                 if tile == 9:
-                    self.fogueiras.append(Fogueira(
+                    fogueira = Fogueira(
                         col_idx * Tile_size,
                         linha_idx * Tile_size,
                         col_idx, linha_idx,
                         callback_descanso=self._descansar_fogueira
-                    ))
+                    )
+                    fogueira._callback_abrir_menu = self._abrir_menu_fogueira
+                    print(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
+                    self.fogueiras.append(fogueira)
 
         for fogueira in self.fogueiras:
             if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
                 fogueira.ativa = True
+                for fogueira in self.fogueiras:
+                    if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
+                        fogueira.ativa = True
+        
 
 
         self.drops = self.drops_por_sala.get(nome_sala, [])
@@ -250,6 +262,11 @@ class Gamescene:
         pos_mouse = pygame.mouse.get_pos()
         pos_mouse_mundo = self.camera.mouse_para_mundo(pos_mouse)
 
+        if self.menu_fogueira.aberto:
+            self.menu_fogueira.atualizar(eventos)
+            return
+
+
         if self.pausado:
             self._atualizar_pausa(eventos)
             
@@ -296,6 +313,7 @@ class Gamescene:
 
         for fogueira in self.fogueiras:
             fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
+
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -497,7 +515,15 @@ class Gamescene:
         #respwna os inimigos da sala atual
         self._spwanar_inimigos(self.sala_atual)
 
+    def _fechar_menu_fogueira(self):
+        self.menu_fogueira.aberto = False
+        self.pausado = False
 
+
+    def _abrir_menu_fogueira(self):
+        print("abrindo menu fogueira")
+        self.menu_fogueira.abrir()
+        
 
 
     def _verificar_combante(self):
@@ -512,7 +538,7 @@ class Gamescene:
             
             if rect_ataque.colliderect(inimigo.rect):
                 direçao = 1 if self.player.olhando_dir else -1
-                inimigo.receber_hit(ataque_dano, direçao)
+                inimigo.receber_hit(self.player.calcular_dano(), direçao)
     
 
     def _registrar_bau_aberto(self, col, linha):
@@ -722,7 +748,8 @@ class Gamescene:
         for fogueira in self.fogueiras:
             fogueira.desenhar(self.tela, self.camera)
 
-
+        if self.menu_fogueira.aberto:
+            self.menu_fogueira.desenhar()
         
 
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)

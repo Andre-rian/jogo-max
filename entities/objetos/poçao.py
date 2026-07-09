@@ -1,5 +1,5 @@
 import pygame
-from settings import vida_max_player
+
 
 Cura_percentual = 0.40 #cura 40% do hp maximo'
 Cargas_inicias = 3

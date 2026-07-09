@@ -4,11 +4,7 @@ from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
 from entities.objetos.poçao import Pocao
-from settings import (
-    Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown,
-      Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size,
-      Stamina_pulo, Stamina_dash, Stamina_ataque, Stamina_recarga, Stamina_delay
-)
+from settings import Dourado, Tile_size
 
 class Player(Entity):
 
@@ -21,9 +17,52 @@ class Player(Entity):
     Atacando = "atacando"
     Morto = "morto"
 
-    def __init__(self, x, y):
-        super().__init__(x, y, largura=32, altura=66, hp_max=vida_max_player)
+    #status base
+    HP_BASE = 50
+    STAMINA_BASE = 30
+    VIGOR_INICIAL = 10
+    RESISTENCIA_INICIAL = 10
+    FORCA_INICIAL = 10
+    DESTREZA_INICIAL = 9
+    HP_INICIAL = 10
+    HP_POR_VIGOR = 15
+    STAMINA_POR_RES = 10
 
+    #fisica
+    Speed         = 4
+    Pulo          = -14
+    Dash_speed    = 14
+    Dash_duration = 12
+    Dash_cooldown = 45
+    Double_tap    = 18
+
+    # combate
+    Ataque_range    = 70
+    Ataque_cooldown = 30
+    Knockback       = 8
+
+    # stamina
+    Stamina_pulo    = 20
+    Stamina_dash    = 30
+    Stamina_ataque  = 10
+    Stamina_recarga = 0.4
+    Stamina_delay   = 30
+
+    def __init__(self, x, y):
+        hp_inicial = self.HP_BASE + (self.VIGOR_INICIAL * self.HP_POR_VIGOR)
+        super().__init__(x, y, largura=32, altura=66, hp_max=hp_inicial)
+
+        
+        
+        
+        #stamina
+        self.stamina_max = self.STAMINA_BASE + (self.RESISTENCIA_INICIAL * self.STAMINA_POR_RES)
+        self.stamina = self.stamina_max        
+        
+        #graus de escalonamento
+        self._graus = {"S": 1.0, "A": 0.8, "B": 0.6, "C": 0.4, "D": 0.2}
+        
+        
         #estado atual da maquina de estado 
         
         self.estado = self.Parado
@@ -78,6 +117,14 @@ class Player(Entity):
         #ecos profanos 
         self.ecos = 0
         self.ecos_perdidos = 0  #guarda os ecos perdidos quando o player morrre
+
+        #atributos
+        self.nivel = 1
+        self.vigor = self.VIGOR_INICIAL
+        self.resistencia = self.RESISTENCIA_INICIAL
+        self.forca = self.FORCA_INICIAL
+        self.destreza = self.DESTREZA_INICIAL
+
 
 
         #poçoes
@@ -233,7 +280,7 @@ class Player(Entity):
             intervalo = self._frame_atual - self._ultimo_toque["esquerda"]
             #intervalo > 1 evitar detectar o mesmo toque duas vezes
             
-            if 1 < intervalo <= Double_tap_window and self.cooldown_dash == 0:
+            if 1 < intervalo <= self.Double_tap and self.cooldown_dash == 0:
                 self._iniciar_dash(-1)
                 
             self._ultimo_toque["esquerda"] = self._frame_atual
@@ -242,36 +289,36 @@ class Player(Entity):
             intervalo = self._frame_atual - self._ultimo_toque["direita"]
             #intervalo > 1 evitar detectar o mesmo toque duas vezes
             
-            if 1 < intervalo <= Double_tap_window and self.cooldown_dash == 0:
+            if 1 < intervalo <= self.Double_tap and self.cooldown_dash == 0:
                 self._iniciar_dash(1)
                 
             self._ultimo_toque["direita"] = self._frame_atual
     
     def _iniciar_dash(self, direçao):
-        if not self._tem_stamina(Stamina_dash):
+        if not self._tem_stamina(self.Stamina_dash):
             return #sem stamina = sem dash
         self.em_dahs = True
         self.direçao_dash = direçao
-        self.timer_dash = Dash_duration
-        self.cooldown_dash = Dash_cooldown
+        self.timer_dash = self.Dash_duration
+        self.cooldown_dash = self.Dash_cooldown
         self.vel.y = 0 #cancela a gravidade no dash
         self.olhando_dir = direçao > 0
-        self._gastar_stamina(Stamina_dash)
+        self._gastar_stamina(self.Stamina_dash)
     
     #MOVIMENTO HORIZONTAL
 
     def _mover_horizontal(self, teclas):
         if self.em_dahs:
             #durante o dash a velocidade é fixa
-            self.vel.x = Dash_speed * self.direçao_dash
+            self.vel.x = self.Dash_speed * self.direçao_dash
             return
         
         if teclas[pygame.K_d]:
-            self.vel.x = Speed_player
+            self.vel.x = self.Speed
             self.olhando_dir = True
         
         elif teclas[pygame.K_a]:
-            self.vel.x = -Speed_player
+            self.vel.x = -self.Speed
             self.olhando_dir = False
         else:
             #friçao - desacerela gradualmente ao soltar a tecla
@@ -285,11 +332,11 @@ class Player(Entity):
             #so pular se tiver no chao
             return
         if teclas[pygame.K_SPACE] and self.no_chao:
-            if not self._tem_stamina(Stamina_pulo):
+            if not self._tem_stamina(self.Stamina_pulo):
                 return #sem stamina nao pula
-            self.vel.y = player_pulo
+            self.vel.y = self.Pulo
             self.no_chao = False
-            self._gastar_stamina(Stamina_pulo)
+            self._gastar_stamina(self.Stamina_pulo)
 
     #ATAQUEEEE -- clique esquerdo do mouse
     def _atacar(self, pos_mouse_mundo):
@@ -300,14 +347,14 @@ class Player(Entity):
         if self.cooldown_ataque > 0:
             return
         
-        if not self._tem_stamina(Stamina_ataque):
+        if not self._tem_stamina(self.Stamina_ataque):
             return #sem stamina = sem ataque
         
         if pygame.mouse.get_pressed()[0]:   #botao esquerdo
             self.atacando = True
-            self.timer_ataque = ataque_cooldown // 2
-            self.cooldown_ataque = ataque_cooldown
-            self._gastar_stamina(Stamina_ataque)
+            self.timer_ataque = self.Ataque_cooldown // 2
+            self.cooldown_ataque = self.Ataque_cooldown
+            self._gastar_stamina(self.Stamina_ataque)
 
             #atualizar a direçao com base no mouse
             dx = pos_mouse_mundo.x - self.rect.centerx
@@ -323,18 +370,53 @@ class Player(Entity):
             return pygame.Rect(
                 self.rect.right, 
                 self.rect.centery - 16,
-                ataque_range, 
+                self.Ataque_range, 
                 32
             )
         
         else:
             return pygame.Rect(
-                self.rect.left - ataque_range,
+                self.rect.left - self.Ataque_range,
                 self.rect.centery - 16,
-                ataque_range,
+                self.Ataque_range,
                 32
             )
+    
+    def calcular_dano(self):
+        arma = self.arma_equipada
+        if not arma:
+            return 5 #soquinho
         
+        dano = arma.dano
+
+        #penalidade se nao bate os requisitos da arma
+        if not arma.pode_equipar(self):
+            return int(dano * 0.4)
+        
+
+        #bonus do escalonamento
+        for atributo, grau in arma.escalonamento.items():
+            multiplicador = self._graus[grau]
+
+            if atributo == "forca":
+                dano += int(self.forca * multiplicador)
+
+            elif atributo == "destreza":
+                dano += int(self.destreza * multiplicador)
+        return dano
+
+
+
+
+
+
+
+
+
+
+
+
+
     #recarrega stamina
     def _atualizar_stamina(self, teclas):
         #mundaça na stamina como prometido, agora ela so nao recupera se o player esta fazendo uma "ação pesada"
@@ -345,14 +427,14 @@ class Player(Entity):
         
         if em_acao_pesada or not self.no_chao:
             #reseta o delay enquanto esta em açao
-            self.stamina_delay = Stamina_delay
+            self.stamina_delay = self.Stamina_delay
         else:
             #recupera normalmente a stamina
             if self.stamina_delay > 0:
                 self.stamina_delay -= 1
             else:
                 #recarrega gradualmente
-                velocidade = Stamina_recarga * self.buff_stamina_valor if self.buff_stamina_duracao > 0 else Stamina_recarga
+                velocidade = self.Stamina_recarga * self.buff_stamina_valor if self.buff_stamina_duracao > 0 else self.Stamina_recarga
                 self.stamina = min(
                     self.stamina_max,
                     self.stamina + velocidade

@@ -71,6 +71,8 @@ class Jogo:
                     if evento.key == pygame.K_ESCAPE and self.estado == "jogo" and self.scene:
                         if self.scene.inventario.aberto:
                             self.scene.inventario.fechar()
+                        elif self.scene.menu_fogueira.aberto:
+                            pass
                         else:
 
                             self.scene.alternar_pausa()

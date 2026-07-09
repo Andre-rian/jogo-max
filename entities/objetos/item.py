@@ -27,13 +27,17 @@ class Arma(Item):
         self.escalonamento = dados["escalonamento"] #se a arma é pesada ou argil
 
         self.requisitos = {
-            "força" : dados["req_forca"],
+            "forca" : dados["req_forca"],
             "destreza" : dados["req_destreza"]
         }
 
-    def pode_equipar(self, stats_player):
-        #por enquanto que nao existe o status, sempre ira rertona True
-        return True
+    def pode_equipar(self, player):
+       
+        return (player.forca >= self.requisitos["forca"] and 
+                player.destreza >= self.requisitos["destreza"])
+    
+    def cumpre_requisitos(self, player):
+        return self.pode_equipar(player)
     
 
 class Consumivel(Item):

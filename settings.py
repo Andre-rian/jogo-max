@@ -34,25 +34,12 @@ Double_tap_window = 18
 
 #combante
 
-vida_max_player = 100
-
-ataque_dano = 25
 
 ataque_range = 70
 
 ataque_cooldown = 30
 
 inimigo_knockback = 8
-
-#stamina
-
-
-Stamina_max = 100
-Stamina_pulo = 20 #gastar ao pular
-Stamina_dash = 30 #gastar ao dar dash
-Stamina_ataque = 10
-Stamina_recarga = 0.4 #stamina recuperada por frame parado
-Stamina_delay =  30 #frames de espera até começa a recarrega 
 
 
 #cores 

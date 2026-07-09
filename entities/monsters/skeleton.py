@@ -54,6 +54,7 @@ class Skeleton(Entity):
         self._em_hit = False #flag para animação de hit
         self._timer_hit = 0
         
+        self.ecos_drop = 20
         
         #update/ atualizar do inimigo
 

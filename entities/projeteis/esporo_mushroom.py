@@ -19,11 +19,11 @@ class EsporoMushroom(Projetil):
         Mush = "assets/sprites/enemies/monsters/mushroom/"
         self.anim = AnimatedSprite(
             Mush + "Projectile_sprite.png",
-              frame_width=50,
-              frame_height=50,
-              velocidade=4,
-              escala=1,
-                n_frames=8)
+            frame_width=50,
+            frame_height=50,
+            velocidade=4,
+            escala=1,
+            n_frames=8)
         
     def atualizar(self, rects_solidos, player):
         if not self.ativo:
@@ -50,32 +50,21 @@ class EsporoMushroom(Projetil):
                     # interpolação para suavizar a mudança de direção, fazendo o raio ser mais rapido, porem menos preciso
                     self.vel.x += (alvo_x - self.vel.x) * self.Raio_curva
                     self.vel.y += (alvo_y - self.vel.y) * self.Raio_curva
+            #move o esporo
+            self.rect.x += int(self.vel.x)
+            self.rect.y += int(self.vel.y)
 
-        #move o esporo
-        self.rect.x += int(self.vel.x)
-        self.rect.y += int(self.vel.y)
 
-        #colisao com as paredes
-        for tile in rects_solidos:
-            if self.rect.colliderect(tile):
+            #colisao com as paredes
+            for tile in rects_solidos:
+                if self.rect.colliderect(tile):
+                    self.ativo = False
+                    return
+                
+            #colisao com o player
+            if player.vivo and self.rect.colliderect(player.rect):
+                player.receber_dano(self.dano, frames_invenc=15)
                 self.ativo = False
                 return
-                
-        #colisao com o player
-        if player.vivo and self.rect.colliderect(player.rect):
-            player.receber_dano(self.dano, frames_invenc=15)
-            self.ativo = False
-            return
-        self.anim.atualizar()
-
-    def desenhar(self, tela, camera):
-        if not self.ativo:
-            return
-
-        sr = camera.aplicar(self.rect)
-        sprite_w = self.anim.largura
-        sprite_h = self.anim.altura
-        offset_x = sr.centerx - sprite_w // 2
-        offset_y = sr.centery - sprite_h // 2
-        self.anim.desenhar(tela, offset_x, offset_y)    
+            self.anim.atualizar()
         

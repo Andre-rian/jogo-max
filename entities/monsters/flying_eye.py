@@ -62,6 +62,8 @@ class FlyingEye(Entity):
         self._em_hit = False
         self._timer_hit = 0
 
+        self.ecos_drop = 15
+
 
     def atualizar(self, rects_solidos, player):
         if not self.vivo:

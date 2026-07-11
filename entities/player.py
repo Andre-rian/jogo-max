@@ -1,12 +1,10 @@
 import pygame
 import math
+from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
-from settings import (
-    Speed_player, player_pulo, vida_max_player, Dash_speed, Dash_duration, Dash_cooldown,
-      Double_tap_window, ataque_dano, ataque_range, ataque_cooldown, Dourado, Tile_size,
-      Stamina_pulo, Stamina_dash, Stamina_ataque, Stamina_recarga, Stamina_delay
-)
+from entities.objetos.poçao import Pocao
+from settings import Dourado, Tile_size
 
 class Player(Entity):
 
@@ -19,12 +17,62 @@ class Player(Entity):
     Atacando = "atacando"
     Morto = "morto"
 
-    def __init__(self, x, y):
-        super().__init__(x, y, largura=32, altura=66, hp_max=vida_max_player)
+    #status base
+    HP_BASE = 50
+    STAMINA_BASE = 30
+    VIGOR_INICIAL = 10
+    RESISTENCIA_INICIAL = 10
+    FORCA_INICIAL = 10
+    DESTREZA_INICIAL = 9
+    HP_INICIAL = 10
+    HP_POR_VIGOR = 15
+    STAMINA_POR_RES = 10
 
+    #fisica
+    Speed         = 4
+    Pulo          = -14
+    Dash_speed    = 14
+    Dash_duration = 12
+    Dash_cooldown = 45
+    Double_tap    = 18
+
+    # combate
+    Ataque_range    = 70
+    Ataque_cooldown = 30
+    Knockback       = 8
+
+    # stamina
+    Stamina_pulo    = 20
+    Stamina_dash    = 30
+    Stamina_ataque  = 10
+    Stamina_recarga = 0.4
+    Stamina_delay   = 30
+
+    def __init__(self, x, y):
+        hp_inicial = self.HP_BASE + (self.VIGOR_INICIAL * self.HP_POR_VIGOR)
+        super().__init__(x, y, largura=32, altura=66, hp_max=hp_inicial)
+
+        
+        
+        
+        #stamina
+        self.stamina_max = self.STAMINA_BASE + (self.RESISTENCIA_INICIAL * self.STAMINA_POR_RES)
+        self.stamina = self.stamina_max        
+        
+        #graus de escalonamento
+        self._graus = {"S": 1.0, "A": 0.8, "B": 0.6, "C": 0.4, "D": 0.2}
+        
+        
         #estado atual da maquina de estado 
         
         self.estado = self.Parado
+
+
+        #stamina
+        self.buff_stamina_duracao = 0
+        self.buff_stamina_valor = 1.0
+
+
 
         #Dash
         self.em_dahs = False
@@ -47,10 +95,40 @@ class Player(Entity):
         self.timer_ataque = 0
         self.cooldown_ataque = 0
 
-        #invetario(bem basico)
-        self.tem_espada = True
-        self.tem_armadura = False 
 
+        #interaçao (evita pressionar E em multiplos objetos ao mesmo tempo)
+        self.cooldown_interaçao = 0
+
+        #invetario(bem basico)
+        self.inventario = {
+                "mao_direita" : None,   # arma equipada
+                "mao_esquerda": None,   # escudo — futuro
+                "armadura"    : None,   # armadura — futuro
+                "equipamentos": [],     #parte do inventario que fica os equipaveis 
+                "itens"       : {},     # consumíveis no inventário               -dicionario da lista de ids
+                "chaves"      : [],      # itens de progressão                    -lista de ids  
+                "materiais"   : {}      # materias de fabricação/ upgrades        -dict da lista de ids
+                        }   
+        
+
+        #sistema do inventario/ simbolo nos itens novos
+        self.itens_novos = set() #id dos itens que o player nao interagiu no inventario
+
+        #ecos profanos 
+        self.ecos = 0
+        self.ecos_perdidos = 0  #guarda os ecos perdidos quando o player morrre
+
+        #atributos
+        self.nivel = 1
+        self.vigor = self.VIGOR_INICIAL
+        self.resistencia = self.RESISTENCIA_INICIAL
+        self.forca = self.FORCA_INICIAL
+        self.destreza = self.DESTREZA_INICIAL
+
+
+
+        #poçoes
+        self.pocao = Pocao()
 
         #checkpoin(inicial)
         self.checkpoint_pos = pygame.Vector2(x, y)
@@ -70,6 +148,66 @@ class Player(Entity):
                 }
         self._estado_anterior = self.Parado
         self.anim_atual = self.animacoes[self.Parado]
+
+    def equipar(self, item):
+        
+        if isinstance(item, Arma):
+            self.inventario["mao_direita"] = item.id
+            print(f"Equipado: {item.nome} ID: {item.id}" )
+
+
+
+    @property
+    def arma_equipada(self):
+        id_ = self.inventario["mao_direita"]
+        return get_item(id_) if id_ else None
+    
+    @property
+    def tem_arma_equipada(self):
+        #mantem o codigo remendado com fita por enquanto
+        return self.inventario["mao_direita"] is not None
+
+
+    def adicionar_ao_inventario(self, item):
+        if isinstance(item, Arma):
+
+            self.inventario["equipamentos"].append(item.id)
+            self.itens_novos.add(item.id)
+        
+        
+        elif isinstance(item, Consumivel):
+
+            id_ = str(item.id)
+
+            if id_ in self.inventario["itens"]:
+                self.inventario["itens"][id_] += 1
+                
+            else:    
+                self.inventario["itens"][id_] = 1
+            
+            self.itens_novos.add(item.id)
+        
+        
+        elif isinstance(item, Chave):
+            self.inventario["chaves"].append(item.id)
+            self.itens_novos.add(item.id)
+        
+        
+        elif isinstance(item, Material):
+            id_ = str(item.id)
+
+            print(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
+            
+            if id_ in self.inventario["materiais"]:
+                
+                self.inventario["materiais"][id_] += 1
+
+            else:
+                self.inventario["materiais"][id_] = 1
+                
+            self.itens_novos.add(item.id)
+
+
 
     #UPDATE
     def atualizar(self, rects_solidos, camera, pos_mouse_mundo):
@@ -98,6 +236,7 @@ class Player(Entity):
         self._mover_horizontal(teclas)
         self._pular(teclas)
         self._atacar(pos_mouse_mundo)
+        self._usar_pocao(teclas)
         self._atualizar_stamina(teclas)
 
         self.aplicar_gravidade()
@@ -141,7 +280,7 @@ class Player(Entity):
             intervalo = self._frame_atual - self._ultimo_toque["esquerda"]
             #intervalo > 1 evitar detectar o mesmo toque duas vezes
             
-            if 1 < intervalo <= Double_tap_window and self.cooldown_dash == 0:
+            if 1 < intervalo <= self.Double_tap and self.cooldown_dash == 0:
                 self._iniciar_dash(-1)
                 
             self._ultimo_toque["esquerda"] = self._frame_atual
@@ -150,36 +289,36 @@ class Player(Entity):
             intervalo = self._frame_atual - self._ultimo_toque["direita"]
             #intervalo > 1 evitar detectar o mesmo toque duas vezes
             
-            if 1 < intervalo <= Double_tap_window and self.cooldown_dash == 0:
+            if 1 < intervalo <= self.Double_tap and self.cooldown_dash == 0:
                 self._iniciar_dash(1)
                 
             self._ultimo_toque["direita"] = self._frame_atual
     
     def _iniciar_dash(self, direçao):
-        if not self._tem_stamina(Stamina_dash):
+        if not self._tem_stamina(self.Stamina_dash):
             return #sem stamina = sem dash
         self.em_dahs = True
         self.direçao_dash = direçao
-        self.timer_dash = Dash_duration
-        self.cooldown_dash = Dash_cooldown
+        self.timer_dash = self.Dash_duration
+        self.cooldown_dash = self.Dash_cooldown
         self.vel.y = 0 #cancela a gravidade no dash
         self.olhando_dir = direçao > 0
-        self._gastar_stamina(Stamina_dash)
+        self._gastar_stamina(self.Stamina_dash)
     
     #MOVIMENTO HORIZONTAL
 
     def _mover_horizontal(self, teclas):
         if self.em_dahs:
             #durante o dash a velocidade é fixa
-            self.vel.x = Dash_speed * self.direçao_dash
+            self.vel.x = self.Dash_speed * self.direçao_dash
             return
         
         if teclas[pygame.K_d]:
-            self.vel.x = Speed_player
+            self.vel.x = self.Speed
             self.olhando_dir = True
         
         elif teclas[pygame.K_a]:
-            self.vel.x = -Speed_player
+            self.vel.x = -self.Speed
             self.olhando_dir = False
         else:
             #friçao - desacerela gradualmente ao soltar a tecla
@@ -193,29 +332,29 @@ class Player(Entity):
             #so pular se tiver no chao
             return
         if teclas[pygame.K_SPACE] and self.no_chao:
-            if not self._tem_stamina(Stamina_pulo):
+            if not self._tem_stamina(self.Stamina_pulo):
                 return #sem stamina nao pula
-            self.vel.y = player_pulo
+            self.vel.y = self.Pulo
             self.no_chao = False
-            self._gastar_stamina(Stamina_pulo)
+            self._gastar_stamina(self.Stamina_pulo)
 
     #ATAQUEEEE -- clique esquerdo do mouse
     def _atacar(self, pos_mouse_mundo):
         #sem espada nao atacar(por enquanto)
-        if not self.tem_espada:
+        if self.arma_equipada is None:
             return
 
         if self.cooldown_ataque > 0:
             return
         
-        if not self._tem_stamina(Stamina_ataque):
+        if not self._tem_stamina(self.Stamina_ataque):
             return #sem stamina = sem ataque
         
         if pygame.mouse.get_pressed()[0]:   #botao esquerdo
             self.atacando = True
-            self.timer_ataque = ataque_cooldown // 2
-            self.cooldown_ataque = ataque_cooldown
-            self._gastar_stamina(Stamina_ataque)
+            self.timer_ataque = self.Ataque_cooldown // 2
+            self.cooldown_ataque = self.Ataque_cooldown
+            self._gastar_stamina(self.Stamina_ataque)
 
             #atualizar a direçao com base no mouse
             dx = pos_mouse_mundo.x - self.rect.centerx
@@ -231,18 +370,53 @@ class Player(Entity):
             return pygame.Rect(
                 self.rect.right, 
                 self.rect.centery - 16,
-                ataque_range, 
+                self.Ataque_range, 
                 32
             )
         
         else:
             return pygame.Rect(
-                self.rect.left - ataque_range,
+                self.rect.left - self.Ataque_range,
                 self.rect.centery - 16,
-                ataque_range,
+                self.Ataque_range,
                 32
             )
+    
+    def calcular_dano(self):
+        arma = self.arma_equipada
+        if not arma:
+            return 5 #soquinho
         
+        dano = arma.dano
+
+        #penalidade se nao bate os requisitos da arma
+        if not arma.pode_equipar(self):
+            return int(dano * 0.4)
+        
+
+        #bonus do escalonamento
+        for atributo, grau in arma.escalonamento.items():
+            multiplicador = self._graus[grau]
+
+            if atributo == "forca":
+                dano += int(self.forca * multiplicador)
+
+            elif atributo == "destreza":
+                dano += int(self.destreza * multiplicador)
+        return dano
+
+
+
+
+
+
+
+
+
+
+
+
+
     #recarrega stamina
     def _atualizar_stamina(self, teclas):
         #mundaça na stamina como prometido, agora ela so nao recupera se o player esta fazendo uma "ação pesada"
@@ -253,18 +427,23 @@ class Player(Entity):
         
         if em_acao_pesada or not self.no_chao:
             #reseta o delay enquanto esta em açao
-            self.stamina_delay = Stamina_delay
+            self.stamina_delay = self.Stamina_delay
         else:
             #recupera normalmente a stamina
             if self.stamina_delay > 0:
                 self.stamina_delay -= 1
             else:
                 #recarrega gradualmente
+                velocidade = self.Stamina_recarga * self.buff_stamina_valor if self.buff_stamina_duracao > 0 else self.Stamina_recarga
                 self.stamina = min(
                     self.stamina_max,
-                    self.stamina + Stamina_recarga
+                    self.stamina + velocidade
                 )
-        
+
+
+        #decrementa o buff da stamina
+        if self.buff_stamina_duracao > 0:
+            self.buff_stamina_duracao -= 1
 
     #verificar se tem stamina
 
@@ -301,6 +480,17 @@ class Player(Entity):
         if self.cooldown_ataque > 0:
             self.cooldown_ataque -= 1
 
+        #cooldown de interações 
+        if self.cooldown_interaçao > 0:
+            self.cooldown_interaçao -= 1
+
+    def _usar_pocao(self, teclas):
+        self.pocao.atualizar()
+        if teclas[pygame.K_f]:
+            self.pocao.usar(self)
+
+
+
     #MAQUINA DE ESTADOS 
 
     def _atualizar_estado(self):
@@ -322,22 +512,24 @@ class Player(Entity):
     
     #CHECKPOINT (PROVISORIO)
 
-    def defenir_checkpoint(self, nome_sala):
+    def defenir_checkpoint(self, nome_sala,x=None, y=None):
         #salva a posição atual como checkpoint
 
-        self.checkpoint_pos.x = self.rect.x
-        self.checkpoint_pos.y = self.rect.y
+        self.checkpoint_pos.x = x if x is not None else self.rect.x 
+        self.checkpoint_pos.y = y if y is not None else self.rect.y 
         self.checkpoint_sala = nome_sala
+        print(f"checkpoint definido: sala={nome_sala}, x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
 
     def respawnar(self): 
         #voltar para o ultimo checkpoint com o hp cheio
+
         self.rect.x = int(self.checkpoint_pos.x)
         self.rect.y = int(self.checkpoint_pos.y)
         self.hp = self.hp_max
         self.vivo = True
         self.vel = pygame.Vector2(0,0)
         self.estado = self.Parado
-        self.em_dahs = False 
+        print(f"respawnando em: x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
         self.atacando = False
 
 

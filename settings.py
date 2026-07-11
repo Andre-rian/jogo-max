@@ -34,25 +34,12 @@ Double_tap_window = 18
 
 #combante
 
-vida_max_player = 100
-
-ataque_dano = 25
 
 ataque_range = 70
 
 ataque_cooldown = 30
 
 inimigo_knockback = 8
-
-#stamina
-
-
-Stamina_max = 100
-Stamina_pulo = 20 #gastar ao pular
-Stamina_dash = 30 #gastar ao dar dash
-Stamina_ataque = 10
-Stamina_recarga = 0.4 #stamina recuperada por frame parado
-Stamina_delay =  30 #frames de espera até começa a recarrega 
 
 
 #cores 
@@ -112,7 +99,7 @@ class Espinho(Tile):
         
         pygame.draw.polygon(tela, self.color, pts)
 
-class torcha(Tile):
+class Torcha(Tile):
 
     def __init__(self):
 
@@ -134,36 +121,6 @@ class torcha(Tile):
         pygame.draw.ellipse(tela, (255, 220, 80), (rect.centerx - 4, rect.top + 11, 8, 11 ))
 
 
-class bau(Tile):
-
-    def __init__(self):
-        super().__init__(
-            tile_id=6,
-            solid=False,
-            color= Dourado
-        )
-        self.collected = False
-
-    def on_enter(self, player):
-        #se o player tocar no bau vai dar o item
-        if not self.collected:
-            self.collected = True
-            player.tem_espada = True #sempre vai dar espada por inicio
-
-    def draw(self, tela, rect):
-        if self.collected:
-            return #se o bau for aberto, ele some 
-        pygame.draw.rect(tela, (100, 70, 20), rect, border_radius=4)
-
-        pygame.draw.rect(tela, Dourado, (rect.x, rect.y, rect.width, rect.height // 2), border_radius=4)
-
-        pygame.draw.rect(tela , Dourado , (rect.centerx - 5, rect.y + 8, 10, 10), border_radius=2)
-
-
-
-
-
-
 #Registros = dicionarios de todos os ids/tile
 
 #chave id =bau()
@@ -174,8 +131,9 @@ Registro_ID = {
     3: Tile(tile_id=3, solid=False, color=(80, 60, 30)), #escada
     4: Espinho(), #espinho
     5: Tile(tile_id=5, solid=True, color=(90, 55, 20)), #porta
-    6: bau(), #bau
-    7: torcha(), #torcha
+    6: None, #bau
+    7: Torcha(), #torcha
+    9: None, #fogueira
 
 }
 
@@ -189,3 +147,4 @@ Tile_espinho = 4
 Tile_porta = 5
 Tile_bau = 6
 Tile_torcha = 7
+Tile_fogueira = 9

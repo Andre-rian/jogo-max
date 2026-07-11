@@ -1,21 +1,35 @@
 import pygame
 import sys
+
 from settings import *
+
+from core.inventario import Inventario
+
 from world.tile_map import Tilemap
-from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes
+from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
+
 from core.camera_player import Camera
+
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
 from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 from entities.projeteis.projetil_boss import ProjetilBoss
+
 from entities.player import Player
+from entities.objetos.bau import Bau
+from entities.objetos.drop_eco import DropEco
+
+from entities.objetos.fogueira import Fogueira
+from core.menu_fogueira import MenuFogueira
+
 from entities.monsters.skeleton import Skeleton
 from entities.monsters.globin import Globin
 from entities.monsters.mushroom import Mushroom
 from entities.monsters.flying_eye import FlyingEye
 from entities.monsters.skeleton_boss import EsqueletoBoss
-from ui.hud import Hud
 
+from ui.hud import Hud
+from ui.particulas import ParticulaEco
 
 class Gamescene:
     #centraliza toda a logica do jogo, mapa, inimigo e etc, para alivar e organiza o arquivo main.py
@@ -23,9 +37,47 @@ class Gamescene:
     def __init__(self, tela):
         self.tela = tela 
         self.hud = Hud()
+
+
         #cria o hud e reeutilizar ele em outras salas
         self.player = Player(0, 0)
-        self.player.tem_espada = False 
+
+
+        self._save_callback = None 
+
+
+        #inventario
+        self.inventario = Inventario(self.tela)
+
+
+        #menu da fogueira
+        self.menu_fogueira = MenuFogueira(self.tela, self.player, callback_descansar=self._descansar_fogueira, callback_fechar=self._fechar_menu_fogueira)
+
+
+        #baus
+        self.baus_abertos = set()
+
+        #particulas do eco
+        self.particulas_ecos = []
+
+        #drops
+        self.drops_por_sala = {} #nome_sala: [drops]
+
+        self.drops_fixos_coletados = set() #chaves (nome_sala, linha) dos drops fixos ja coletados
+
+        self.inventario.callback_descartar = self._descartar_item
+
+        self.drops_ecos_por_sala = {}
+
+        #fogueiras
+        self.fogueiras_ativas = set() #guarda as posiçoes das fogueiras ativas
+        self.fogueiras = []
+
+        #inimigos
+        self.inimigos_morto_por_sala = {} #salas que ja foram carregadas inimigos nao respwanams
+        self.bosses_derrotados = set() #guarda os bosses que ja foram derrotados
+        
+
         #carrega a sala
         self._dir_entrada = None
         self._carregar_sala("calabouço_1")
@@ -39,23 +91,120 @@ class Gamescene:
         #projeteis  
         self.projeteis = []
 
+
+
+
         #menu de pausa
         self.pausado = False
-        self.opçoes_pause = ["Continuar", "Salvar", "Sair"]
+        self._menu_callback = None #sera setado no main
+        self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
+    
+    
     #CARREGA A SALA 
 
-    def _carregar_sala(self, nome_sala, posiçao_spwan= None):
+    def _carregar_sala(self, nome_sala, posiçao_spwan=None, respawnando=False ):
         #carrega um novo mapa e reposiciona o player
 
         self.sala_atual = nome_sala
 
         #monta o tilemap com o grid das salas
-        grid = Salas[nome_sala]
+        grid = [linha[:] for linha in Salas[nome_sala]]     #copia do grid, por causa do bugs do bau
+        
         self.mapa = Tilemap(grid)
+
+
+
+
+
+        #ajusta os baus da sala
+        self.baus = []
+        for linha_idx, linha in enumerate(Salas[nome_sala]):
+            for col_idx, tile in enumerate(linha):
+                if tile == 6:
+                    if (col_idx, linha_idx) in self.baus_abertos:
+                        continue
+                    
+                    bau = Bau(
+                        col_idx * Tile_size,
+                        linha_idx * Tile_size,
+                        col_idx, linha_idx,
+                        id_item=1
+                    )
+                    bau.callback_aberto = self._registrar_bau_aberto
+                    self.baus.append(bau)
+
+        #ajusta as fogueiras nas salas
+
+        self.fogueiras = []
+        for linha_idx, linha in enumerate(Salas[nome_sala]):
+            for col_idx, tile in enumerate(linha):
+                if tile == 9:
+                    fogueira = Fogueira(
+                        col_idx * Tile_size,
+                        linha_idx * Tile_size,
+                        col_idx, linha_idx,
+                        callback_descanso=self._descansar_fogueira
+                    )
+                    fogueira._callback_abrir_menu = self._abrir_menu_fogueira
+                    print(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
+                    self.fogueiras.append(fogueira)
+
+        for fogueira in self.fogueiras:
+            if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
+                fogueira.ativa = True
+                for fogueira in self.fogueiras:
+                    if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
+                        fogueira.ativa = True
+        
+
+
+        self.drops = self.drops_por_sala.get(nome_sala, [])
+
+
+
+
+        #drop fixos da sala
+        from entities.objetos.drop import Drop
+        from world.rooms import Drops_fixos
+        
+        for dados in Drops_fixos.get(nome_sala, []):
+            id_item, col_drop, lin_drop = dados 
+
+            #chave unica para cada item fixo
+            chave = (nome_sala, col_drop, lin_drop)
+            if chave not in self.drops_fixos_coletados:
+                if not nome_sala in self.drops_por_sala:
+                    self.drops_por_sala[nome_sala] = []
+
+                #evita duplica se a sala ja foi carregada antes
+                ja_existe = any(
+                    d.rect.centerx == col_drop * Tile_size and
+                    d.rect.centery == lin_drop * Tile_size
+                    for d in self.drops_por_sala[nome_sala]
+                )
+
+                if not ja_existe:
+                    drop = Drop(col_drop * Tile_size, lin_drop * Tile_size, id_item)
+                    drop.chave_fixa = chave #marca o drop como fixo 
+                    drop.callback_coletado = self._registrar_drop_fixo_coletado
+                    self.drops_por_sala[nome_sala].append(drop)
+                
+                self.drops = self.drops_por_sala.get(nome_sala, [])
+
 
        #limpa os projeteis ao trocar de sala
         self.projeteis = []
+
+        #ecos que ficam no chao ao morrer
+        drop_eco = self.drops_ecos_por_sala.get(nome_sala)
+        self.drops_ecos = [drop_eco] if drop_eco and drop_eco.ativo else []
+
+
+
+
+
+
 
         #ajuste da camera para o mapa novo
         self.largura_mapa = len(grid[0]) * Tile_size
@@ -63,77 +212,69 @@ class Gamescene:
         self.camera = Camera(self.largura_mapa, self.altura_mapa)
 
         #posiçao do spwan
-        if posiçao_spwan is None:
-            col, linha = spwans[nome_sala]
-        else:
-            col, linha = posiçao_spwan
-
-        self.player.rect.x = col * Tile_size
-        self.player.rect.y = linha * Tile_size
-        self.player.vel.xy = (0, 0) #isso zerar a velocida ao trocar de sala
+        if not respawnando:
+            if posiçao_spwan is None:
+                col, linha = spwans[nome_sala]
+            else:
+                col, linha = posiçao_spwan
+            self.player.rect.x = col * Tile_size
+            self.player.rect.y = linha * Tile_size
+            self.player.vel.xy = (0, 0)
 
         #resetar o time do cooldown ao trocar de sala
         self._cooldown_transiçao = 30
 
-        #tipos dos inimigos
-        _tipos_inimigos = {
-            "skeleton" : Skeleton,
-            "globin" : Globin,
-            "mushroom" : Mushroom,
-            "flying_eye": FlyingEye,
-            "esqueleto_boss": EsqueletoBoss,
 
-        }
 
-        #criar os inimigos na sala
-        self.inimigos = []
-        self.boss_atual = None          #referencia do boss para passa para o hud, para criar a barra de vida
-        self.parede_boss = []           #lista de rects da parede que some apos a derrota do boss
+        self._spwanar_inimigos(nome_sala)
+    
+    
+         #lista de rects da parede que some apos a derrota do boss
         
-        for dados in Inimigos_por_sala.get(nome_sala, []):
-            tipo = dados[0]
-            classe = _tipos_inimigos.get(tipo)
-            if not classe:
-                continue
-
-
-            if tipo == "esqueleto_boss":
-                _, col_in, lin_in = dados       # só 3 valores, sem patrulha
-                x = col_in * Tile_size
-                y = lin_in * Tile_size
-                boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
-                self.inimigos.append(boss)
-                self.boss_atual = boss
-
-            else:
-                _, col_in, lin_in, pat_esq, pat_dir = dados
-                x = col_in * Tile_size
-                y = lin_in * Tile_size
-                self.inimigos.append(classe(x, y, pat_esq, pat_dir))
-
         #montar os rects da parede do boss
         self.parede_boss = []
-        for linha_idx, linha in enumerate(Salas[nome_sala]):
-            for col_idx, tile in enumerate(linha):
-                if tile == 8:
-                    self.parede_boss.append(pygame.Rect(
-                        col_idx * Tile_size,
-                        linha_idx * Tile_size,
-                        Tile_size, Tile_size
-                    ))
+        if self.sala_atual not in self.bosses_derrotados:
+            for linha_idx, linha in enumerate(Salas[nome_sala]):
+                for col_idx, tile in enumerate(linha):
+                    if tile == 8:
+                        self.parede_boss.append(pygame.Rect(
+                            col_idx * Tile_size,
+                            linha_idx * Tile_size,
+                            Tile_size, Tile_size
+                        ))
 
-    
+    def _registrar_drop_fixo_coletado(self, chave):
+        if chave:
+            self.drops_fixos_coletados.add(chave)
+
+
+
+
+
+
+
+
+
+
     #ATUALIZAR  
     def atualizar(self, eventos): 
         teclas = pygame.key.get_pressed()
         pos_mouse = pygame.mouse.get_pos()
         pos_mouse_mundo = self.camera.mouse_para_mundo(pos_mouse)
 
-        if self.pausado:
-            self._atualizar_pausa(eventos)
+        if self.menu_fogueira.aberto:
+            self.menu_fogueira.atualizar(eventos)
             return
 
+
+        if self.pausado:
+            self._atualizar_pausa(eventos)
+            
+
         rects_solidos = self.mapa.rect_solidos + self.parede_boss
+        
+        if self.inventario.aberto:
+            self.inventario.atualizar(eventos, self.player)
 
         #atuallizar o checar_morte
         self._checar_morte()
@@ -158,7 +299,21 @@ class Gamescene:
         self._checar_transiçao()
 
         #atualizar os baus
-        self._checar_bau()
+        teclas = pygame.key.get_pressed()
+        for bau in self.baus:
+            bau.atualizar(self.player, teclas, self.mapa, self.hud)
+
+        for drop in self.drops:
+            drop.atualizar(self.player, teclas, self.hud)
+
+        for drop in self.drops_ecos:
+            drop.atualizar(self.player, teclas, self.hud)
+        self.drops_ecos = [d for d in self.drops_ecos if d.ativo]
+        
+
+        for fogueira in self.fogueiras:
+            fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
+
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -185,9 +340,33 @@ class Gamescene:
         self._verificar_combante()
 
         #remove os imimigos mortos depois de tudo atualiza
-        self.inimigos = [    in_ for in_ in self.inimigos
-            if in_.vivo or (hasattr(in_, "_timer_morte") and in_._timer_morte > 0)
-            ]
+        vivos = []
+        for in_ in self.inimigos:
+            if in_.vivo or (hasattr(in_, "_timer_morte") and in_._timer_morte > 0):
+                vivos.append(in_)
+            else:
+                if hasattr(in_, "_indice_spawn"):
+                    if self.sala_atual not in self.inimigos_morto_por_sala:
+                        self.inimigos_morto_por_sala[self.sala_atual] = []
+
+                    self.inimigos_morto_por_sala[self.sala_atual].append(in_._indice_spawn)
+
+                if in_.ecos_drop > 0:
+                    self.player.ecos += in_.ecos_drop
+                    #spwanar as particulas 
+                    for _ in range(in_.ecos_drop // 3): #quantidade propocional aos ecos
+                        self.particulas_ecos.append(ParticulaEco(in_.rect.centerx, in_.rect.centery))
+
+        player_cx = self.player.rect.centerx
+        player_cy = self.player.rect.centery
+        
+        for p in self.particulas_ecos:
+            p.atualizar(player_cx, player_cy)
+        
+        self.particulas_ecos = [p for p in self.particulas_ecos if p.ativo]
+        self.inimigos = vivos
+        
+        
         #camera segue o player
         self.camera.atualizar(self.player.rect)
 
@@ -204,6 +383,22 @@ class Gamescene:
 
 
     def _atualizar_pausa(self, eventos):
+
+
+        pos_mouse = pygame.mouse.get_pos()
+        fonte_opçao = pygame.font.SysFont("Georgia", 30)
+        
+        #houver com mouse
+        for i, opçao in enumerate(self.opçoes_pause):
+            texto = fonte_opçao.render(opçao, True, (255, 255, 255))
+            x = Screen_widht // 2 - texto.get_width() // 2
+            y = 320 + i * 50
+            rect_opçao = pygame.Rect(x - 10, y - 5, texto.get_width() + 20, texto.get_height() + 10)
+            if rect_opçao.collidepoint(pos_mouse):
+                self.opçoes_selecionadas = i
+
+
+
         #navega o menu com as setas e confirma com enter
         for evento in eventos:
             if evento.type == pygame.KEYDOWN:
@@ -217,6 +412,10 @@ class Gamescene:
                 elif evento.key == pygame.K_RETURN:
                     self._confirma_opçao_pausa()
 
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if evento.button == 1: #clique esquerdo
+                    self._confirma_opçao_pausa()
+
 
     def _confirma_opçao_pausa(self):
         opçao = self.opçoes_pause[self.opçoes_selecionadas]
@@ -224,10 +423,108 @@ class Gamescene:
         if opçao == "Continuar":
             self.pausado = False
         elif opçao == "Salvar":
-            self.hud.mostra_mensagem("sistema de saves em breve")
+            if self._save_callback:
+                self._save_callback()
+        elif opçao == "Menu principal":
+            if self._menu_callback:
+                self._menu_callback()
+        elif opçao == "Inventário":
+             self.inventario.abrir()
+             self.pausado = False
+
         elif opçao == "Sair":
             pygame.quit()
             sys.exit()
+
+
+
+    def _spwanar_inimigos(self, nome_sala):
+        #tipos dos inimigos
+        _tipos_inimigos = {
+            "skeleton" : Skeleton,
+            "globin" : Globin,
+            "mushroom" : Mushroom,
+            "flying_eye": FlyingEye,
+            "esqueleto_boss": EsqueletoBoss,
+
+        }
+
+        self.inimigos = []
+        self.boss_atual = None
+        mortos = self.inimigos_morto_por_sala.get(nome_sala, [])
+
+        for i, dados in enumerate(Inimigos_por_sala.get(nome_sala, [])):
+            tipo = dados[0]
+            classe = _tipos_inimigos.get(tipo)
+            if not classe:
+                continue
+
+
+            if tipo == "esqueleto_boss":
+                
+                if self.sala_atual in self.bosses_derrotados:
+                    continue #boss ja morreu, nao respwana
+
+                _, col_in, lin_in = dados       # só 3 valores, sem patrulha
+                x = col_in * Tile_size
+                y = lin_in * Tile_size
+                boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
+                boss._indice_spawn = i  #marca o boss com um indice para rastrear se ele morreu
+                self.inimigos.append(boss)
+                self.boss_atual = boss
+
+            else:
+                if i in mortos:
+                    continue
+
+                _, col_in, lin_in, pat_esq, pat_dir = dados
+                x = col_in * Tile_size
+                y = lin_in * Tile_size
+                inimigo = classe(x, y, pat_esq, pat_dir)
+                inimigo._indice_spawn = i  #marca o inimigo com um indice para rastrear se ele morreu
+
+                tabela = Drops_inimigos.get(tipo, [])
+                if tabela:
+                    def _fazer_callback(drops, sala):
+                        def _callback(ix, iy):
+                            import random
+                            from entities.objetos.drop import Drop
+                            for chance, id_item in drops:
+                                if random.random() < chance:
+                                    drop = Drop(ix, iy, id_item)
+                                    if sala not in self.drops_por_sala:
+                                        self.drops_por_sala[sala] = []
+
+                                    self.drops_por_sala[sala].append(drop)
+                                    
+                                    self.drops = self.drops_por_sala[self.sala_atual]
+                        return _callback
+                    
+                    inimigo.callback_morte = _fazer_callback(tabela, self.sala_atual)
+                
+                
+                self.inimigos.append(inimigo) 
+
+
+
+
+    def _descansar_fogueira(self):
+        #reseta os inimigos das salas ja visitadas
+        self.inimigos_morto_por_sala.clear()
+
+        #respwna os inimigos da sala atual
+        self._spwanar_inimigos(self.sala_atual)
+
+    def _fechar_menu_fogueira(self):
+        self.menu_fogueira.aberto = False
+        self.pausado = False
+
+
+    def _abrir_menu_fogueira(self):
+        print("abrindo menu fogueira")
+        self.menu_fogueira.abrir()
+        
+
 
     def _verificar_combante(self):
         #checa se o player acertou algum inimigo
@@ -241,25 +538,13 @@ class Gamescene:
             
             if rect_ataque.colliderect(inimigo.rect):
                 direçao = 1 if self.player.olhando_dir else -1
-                inimigo.receber_hit(ataque_dano, direçao)
+                inimigo.receber_hit(self.player.calcular_dano(), direçao)
     
 
-    
-    def _checar_bau(self):
-        #se o player encosta(provisorio) no bau:recebe o item , bau some, hud mostar a mensagem'
-        teclas = pygame.key.get_pressed()
+    def _registrar_bau_aberto(self, col, linha):
+        self.baus_abertos.add((col, linha))    
 
-        for rect_bau, col, linha in self.mapa.rects_bau:
-            if self.player.rect.colliderect(rect_bau):
-                #esta perto do bau
-                self.hud.mostra_mensagem("pressione E para abrir") #provisorio
-                
-                   
-            if teclas[pygame.K_e]:
-                self.player.tem_espada = True
-                self.mapa.remover_tile(col, linha)
-                self.hud.mostra_mensagem("espada encontrada")
-                break
+
 
     
 
@@ -271,17 +556,32 @@ class Gamescene:
             self.morrendo = True
             self.timer_morto = self.duraçao_morte
 
+
+            #cria o drop dos ecos no lugar da morte
+            if self.player.ecos > 0:
+                #remove se ja haver um 
+                self.drops_ecos_por_sala.clear()
+                #criar um novo
+
+                drop = DropEco(self.player.rect.centerx, self.player.rect.bottom, self.player.ecos)
+                self.drops_ecos_por_sala[self.sala_atual] = drop
+                self.drops_ecos = [drop]
+                self.player.ecos_perdidos = self.player.ecos
+                self.player.ecos = 0
+
         if self.morrendo:
             self.timer_morto -= 1
             if self.timer_morto <= 0:
                 #respwana  no lugar do checkpoint, que ainda vai ser aprimorado
-                self._carregar_sala(self.player.checkpoint_sala)
+                
                 self.player.respawnar()
-                self.player.defenir_checkpoint(self.player.checkpoint_sala)
+                self._carregar_sala(self.player.checkpoint_sala, respawnando=True)
+                
+
                 self.morrendo = False
 
     #verificar passagem
-    def _checar_transiçao(self):
+    def _checar_transiçao(self):    
         #verificar se o player saiu pela borda da sala e carrega a nova, se existir conexao é claro
 
         #proteçao anti bug de teleporte da transiçao de fase
@@ -325,15 +625,89 @@ class Gamescene:
                 break 
     
 
-    def _abrir_parede_boss(self):
+    def _abrir_parede_boss(self, x, y):
         self.parede_boss = []
         self.boss_atual = None
+        self.bosses_derrotados.add(self.sala_atual)
         self.hud.mostra_mensagem("O caminho esta livre")
 
+
+        from entities.objetos.drop import Drop
+        
+        drop = Drop(x, y, id_item=3)
+
+        if self.sala_atual not in self.drops_por_sala:
+            self.drops_por_sala[self.sala_atual] = []
+
+        self.drops_por_sala[self.sala_atual].append(drop)
+        self.drops = self.drops_por_sala[self.sala_atual]
+
+
+    def _descartar_item(self, id_item):
+        from entities.objetos.drop import Drop
+        
+        drop = Drop(self.player.rect.centerx, self.player.rect.bottom, id_item)
+
+        if self.sala_atual not in self.drops_por_sala:
+            self.drops_por_sala[self.sala_atual] = []
+
+        self.drops_por_sala[self.sala_atual].append(drop)
+        self.drops = self.drops_por_sala[self.sala_atual]
+        
+        self.drops.append(drop)
 
     def alternar_pausa(self):
         self.pausado = not self.pausado
         self.opçoes_selecionadas = 0 #reseta ao sair do menu
+    
+    def carregar_save(self, dados):
+        self.fogueiras_ativas = dados["fogueiras_ativas"]
+        self.bosses_derrotados = dados["bosses_derrotados"]
+        self.drops_fixos_coletados= dados.get("drops_fixos_coletados", set())
+        self.baus_abertos = dados.get("baus_abertos", set())
+        self.player.ecos = dados.get("ecos", 0)
+        
+        drop_eco_data = dados.get("drop_eco")
+
+        if drop_eco_data:
+            from entities.objetos.drop_eco import DropEco
+            drop = DropEco(drop_eco_data["x"], drop_eco_data["y"], drop_eco_data["quantidade"])
+            self.drops_ecos_por_sala[drop_eco_data["sala"]] = drop
+
+        if "inventario" in dados:
+            self.player.inventario = dados["inventario"]
+            
+            #reequipar a arma se tiver
+            if self.player.inventario["mao_direita"]:
+                pass
+        
+        
+
+        self.player.defenir_checkpoint(
+            dados["checkpoint_sala"],
+            x=dados["checkpoint_x"],
+            y=dados["checkpoint_y"]
+        )
+        #carrega a sala do checkpoint
+        self._carregar_sala(dados["checkpoint_sala"], respawnando=True)
+        self.player.respawnar()   
+    
+    
+    
+    def salvar(self, save_manager, slot):
+        #verificar se tem inimigo por perto, so pode salvar se nao estiver em combate
+        for inimigo in self.inimigos:
+            if inimigo.vivo:
+                dist = abs(inimigo.rect.centerx - self.player.rect.centerx)
+                if dist < 300:
+                    self.hud.mostra_mensagem("Não é possivel salvar em combate")
+                    return False
+                
+
+        save_manager.salvar(slot, self)
+        self.hud.mostra_mensagem("Jogo salvo")
+        return True
+    
     #DESENHAR   
     
     def desenhar(self):
@@ -350,12 +724,38 @@ class Gamescene:
         for r in self.parede_boss:
             pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)
 
+
+  
+
         for proj in self.projeteis:
             proj.desenhar(self.tela, self.camera)
 
+        for p in self.particulas_ecos:
+            p.desenhar(self.tela, self.camera)
+
         self.player.desenhar(self.tela, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)
+
+        for bau in self.baus:
+            bau.desenhar(self.tela, self.camera)  
+
+        for drop in self.drops:
+            drop.desenhar(self.tela, self.camera)
+
+        for drop in self.drops_ecos:
+            drop.desenhar(self.tela, self.camera)
+
+        for fogueira in self.fogueiras:
+            fogueira.desenhar(self.tela, self.camera)
+
+        if self.menu_fogueira.aberto:
+            self.menu_fogueira.desenhar()
+        
+
         pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
+
+        self.inventario.desenhar(self.player)
+
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 
         #tela de morte - desenhada por cima de tudo

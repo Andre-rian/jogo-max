@@ -7,7 +7,7 @@ Telacheia_normal = False
 Screen_widht = 1280
 Screen_height = 720
 FPS = 60
-Titulo = "Knight tales"
+Titulo = "Profane Echo"
 
 #Titulo
 Tile_size = 32

@@ -38,6 +38,7 @@ class Drop:
 
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 player.adicionar_ao_inventario(self.item)
+                player.iniciar_pegar_item()
 
                 
                 

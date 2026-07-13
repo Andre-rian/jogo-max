@@ -536,7 +536,7 @@ class Gamescene:
             if not inimigo.vivo:
                 continue
             
-            if rect_ataque.colliderect(inimigo.rect):
+            if inimigo.colide_mask_com_rect(rect_ataque):
                 direçao = 1 if self.player.olhando_dir else -1
                 inimigo.receber_hit(self.player.calcular_dano(), direçao)
     
@@ -720,6 +720,22 @@ class Gamescene:
             #debug do ngc do globin
             sr_inimigo = self.camera.aplicar(inimigo.rect)
             pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
+
+            #mostra o mask esta(ngxc azul)
+            if getattr(inimigo, "mask", None) and hasattr(inimigo, "_mask_pos"):
+                mx, my = inimigo._mask_pos
+                pontos = inimigo.mask.outline(2)
+                if pontos:
+                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
+                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
+            
+             #DEBUG: contorno real da mask do player
+            if getattr(self.player, "mask", None) and hasattr(self.player, "_mask_pos"):
+                mx, my = self.player._mask_pos
+                pontos = self.player.mask.outline(2)
+                if pontos:
+                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
+                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
 
         for r in self.parede_boss:
             pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)

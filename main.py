@@ -1,9 +1,30 @@
 import pygame
 import sys
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("jogo.log", mode="w", encoding="utf-8"),
+
+    ],
+    force=True
+)
+
+log = logging.getLogger("main")
+log.debug("Loggin inicializado")    #sanity check
+print("Handlers no root:", logging.getLogger().handlers)    #sanity check-extra
+
+
 from settings import *
 from core.menu import MenuInicial
 from core.game_scene import Gamescene
 from save_manager import Savemaneger
+
+
 
 class Jogo:
     def __init__(self):
@@ -18,6 +39,19 @@ class Jogo:
         self.menu = MenuInicial(self.tela, self.save_manager)
         self.menu.callback_iniciar = self._iniciar_jogo
         
+
+    def _atualizar_visibilidade_mouse(self):
+        if self.estado == "menu":
+            pygame.mouse.set_visible(True)
+            return
+
+        if self.estado == "jogo" and self.scene:
+            menu_aberto = (
+                self.scene.pausado or self.scene.inventario.aberto or self.scene.menu_fogueira.aberto
+            )
+            pygame.mouse.set_visible(menu_aberto)
+        else:
+            pygame.mouse.set_visible(True)
 
     def _iniciar_jogo(self, slot, dados_save):
         self.slot_atual = slot
@@ -69,13 +103,10 @@ class Jogo:
                     if evento.key == pygame.K_F11:
                         self._Mudar_telacheia()
                     if evento.key == pygame.K_ESCAPE and self.estado == "jogo" and self.scene:
-                        if self.scene.inventario.aberto:
-                            self.scene.inventario.fechar()
-                        elif self.scene.menu_fogueira.aberto:
-                            pass
-                        else:
-
+                        if not (self.scene.inventario.aberto or self.scene.menu_fogueira.aberto):
                             self.scene.alternar_pausa()
+
+            self._atualizar_visibilidade_mouse()
 
 
             self.tela.fill(Preto)

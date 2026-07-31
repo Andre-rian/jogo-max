@@ -9,11 +9,21 @@ class Mushroom(InimigoBase):
     Dano_normal = 12
     Dano_forte = 20
     Dano_esporo = 8
+
+    #knockback
+    KB_FORCA_X = 2
+    KB_FORCA_Y = -1
+    KB_FRAMES = 18
+    HITSTUN_FRAMES = 16
+
+
     Vel_patrulha = 1.0
     Vel_perseguir = 2.0
+
     Alcance_detec = 250
     Alcance_ataq_perto = 50
     Alcance_ataq_esporo = 180
+
     Cooldown_ataq = 120
     Cooldown_forte_max = 200
     Cooldown_esporo_max = 400
@@ -46,7 +56,7 @@ class Mushroom(InimigoBase):
     #knockback
 
     def receber_hit(self, dano, direçao_knockback):
-        super().receber_hit(dano, direçao_knockback, forca_x=3, forca_y=-2, frames_kb=20)
+        super().receber_hit(dano, direçao_knockback)
 
     #IA
 

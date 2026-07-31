@@ -15,12 +15,22 @@ class FlyingEye(InimigoBase):
     Dano_mordida = 15
     Dano_dash = 12
     Dano_projetil = 15
+
     Vel_voo = 2.5
     Vel_ataque = 6
+
     Altura_voo = 40
+
     Alcance_detec = 350
     Alcence_perto = 60
     Alcance_medio = 200
+
+    #knockback
+    KB_FORCA_X = 6
+    KB_FORCA_Y = -3
+    KB_FRAMES = 14
+    HITSTUN_FRAMES = 12
+    
     Cooldown_ataque = 150
     Cooldown_projetil_max = 350
 
@@ -218,7 +228,7 @@ class FlyingEye(InimigoBase):
         self.projeteis_spawnar.append(proj)
 
     def receber_hit(self, dano, direçao_knockback):
-        super().receber_hit(dano, direçao_knockback, forca_x=5, forca_y=-3, frames_kb=15)
+        super().receber_hit(dano, direçao_knockback)
         self._fase_ataque = None
 
     def _offset_desenho(self, sr):

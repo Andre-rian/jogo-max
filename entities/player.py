@@ -103,6 +103,7 @@ class Player(Entity):
         self.atacando = False
         self.timer_ataque = 0
         self.cooldown_ataque = 0
+        self._alvos_atingidos = set()  #controla quem ja levou o swing
 
         #controle de combo
         self._segurando_ataque = False
@@ -159,13 +160,13 @@ class Player(Entity):
         # animações
         KNIGHT = "assets/sprites/player/knight/"
         self.animacoes = {
-            self.Parado:   AnimatedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=2),
-            self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=2),
-            self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=2),
-            self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=2),
-            self.Atacando: AnimatedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=2),
-            self.Dash:     AnimatedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=2),
-            self.Morto:    AnimatedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=2),
+            self.Parado:   AnimatedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=2, loop=True),
+            self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=2, loop=True),
+            self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=2, loop=True),
+            self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=2, loop=True),
+            self.Atacando: AnimatedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=2, loop=False),
+            self.Dash:     AnimatedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=2, loop=False),
+            self.Morto:    AnimatedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=2, loop=False),
                 }
         
         self.animacoes_ataque = {
@@ -200,8 +201,8 @@ class Player(Entity):
                 },
                 None: {  # sem arma - soco
                     "normal": {
-                        "parado":    AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=5, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=5, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=2),
+                        "movimento": AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=2),
                     },
                 },
             }
@@ -276,7 +277,7 @@ class Player(Entity):
 
 
     #UPDATE
-    def atualizar(self, rects_solidos, camera, pos_mouse_mundo):
+    def atualizar(self, rects_solidos, camera):
         if not self.vivo:
             self.estado = self.Morto                                
             if self._estado_anterior != self.Morto:   #animação de morte
@@ -301,7 +302,7 @@ class Player(Entity):
         self._verificar_dash(teclas)
         self._mover_horizontal(teclas)
         self._pular(teclas)
-        self._atacar(pos_mouse_mundo)
+        self._atacar(teclas)
         self._usar_pocao(teclas)
         self._atualizar_stamina(teclas)
 
@@ -384,7 +385,7 @@ class Player(Entity):
         
         if self._pegando:
             self.vel.x = 0 #ttrava a movimentaçao durante a animaçao
-        
+            return
         
         if self.em_dahs:
             #durante o dash a velocidade é fixa
@@ -417,11 +418,11 @@ class Player(Entity):
             self._gastar_stamina(self.Stamina_pulo)
 
     #ATAQUEEEE -- clique esquerdo do mouse
-    def _atacar(self, pos_mouse_mundo):
+    def _atacar(self, teclas):
         if self._pegando or self._bebendo:
             return
         
-        pressionado = pygame.mouse.get_pressed()[0]
+        pressionado = teclas[pygame.K_k]
 
         if pressionado and not self._segurando_ataque:
             if self.cooldown_ataque > 0 or not self._tem_stamina(self.Stamina_ataque):
@@ -432,19 +433,20 @@ class Player(Entity):
         elif pressionado and self._segurando_ataque:
             self._timer_hold += 1
             #deixa reajusta a direçao do golpe enquanto carrega
-            dx = pos_mouse_mundo.x - self.rect.centerx
-            self.olhando_dir = dx >= 0
+            # direção do golpe fica travada em olhando_dir (sem mirar) — cima/baixo fica pra quando tiver sprite
+
+            
 
         elif not pressionado and self._segurando_ataque:
             virou_combo = self._timer_hold >= self.Hold_combo_frames
-            self._disparar_ataque(pos_mouse_mundo, combo=virou_combo)
+            self._disparar_ataque(combo=virou_combo)
             self._segurando_ataque = False
             self._timer_hold = 0
 
 
 
 
-    def _disparar_ataque(self, pos_mouse_mundo, combo):
+    def _disparar_ataque(self, combo):
         tipo_arma = self.arma_equipada.icone if self.arma_equipada else None
         set_arma = self.animacoes_ataque.get(tipo_arma, self.animacoes_ataque[None])
 
@@ -460,6 +462,7 @@ class Player(Entity):
 
         self._tier_ataque = tier
         self.atacando = True
+        self._alvos_atingidos = set()   #outro golpe
         self.anim_atual = anim
         self.anim_atual.resetar()
 
@@ -471,8 +474,7 @@ class Player(Entity):
         custo = self.Stamina_combo if tier == "combo" else self.Stamina_ataque
         self._gastar_stamina(custo)
 
-        dx = pos_mouse_mundo.x - self.rect.centerx
-        self.olhando_dir = dx >= 0
+
 
 
 
@@ -640,6 +642,14 @@ class Player(Entity):
     def iniciar_pegar_item(self):
         if self.atacando or self._bebendo or self.em_dahs or self._pegando:
             return
+
+
+        #NOVO: cancela qualquer ataque sendo carregado — sem isso, ele "sobra"
+        #e dispara sozinho assim que a animação de pegar item terminar
+
+        self._segurando_ataque = False
+        self._timer_hold = 0
+
         self._pegando = True
         self.vel.x = 0
         self.anim_atual = self.anim_pegando_item

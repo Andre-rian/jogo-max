@@ -44,6 +44,9 @@ class Hud:
         self._mensagem = texto
         self._timer_mensagem = duracao
 
+    def limpar_mensagem(self):
+        self._timer_mensagem = 0
+
     def flash_pocao(self):
         self._flash_da_pocao = 12
 
@@ -150,7 +153,7 @@ class Hud:
         cor_arma = (int(200 * alpha / 255), int(180 * alpha / 255), int(100 * alpha / 255))
         cor_cabo = (int(130 * alpha / 255), int(100 * alpha / 255), int(60 * alpha / 255))
         cor_verde = (int(80 * alpha / 255), int(180 * alpha / 255), int(60 * alpha / 255))
-        cor_pocao = (int(220 * alpha / 255), int(160 * alpha / 255), int(30 * alpha / 255))
+        cor_pocao = (int(160 * alpha / 255), int(10 * alpha / 255), int(20 * alpha / 255))
         cor_mineral = (int(100 * alpha / 255), int(100 * alpha / 255), int(180 * alpha / 255))
 
         if icone == "espada":
@@ -367,12 +370,12 @@ class Hud:
         cy = slot_y + slot_h // 2
 
         if player.pocao.cargas > 0:
-            cor_liquido = (220, 160, 30)
-            cor_frasco = (180, 140, 60)
+            cor_liquido = (160, 10, 20)
+            cor_frasco = (190, 180, 190)
 
         else:
-            cor_liquido = (60, 50, 30) #vazio - frasco escuro
-            cor_frasco = (80, 70, 50)
+            cor_liquido = (45, 5, 10) #vazio - frasco escuro
+            cor_frasco = (870, 70, 80)
 
 
         #corpo do frasco
@@ -396,13 +399,13 @@ class Hud:
         tela.blit(tecla, (slot_x + 2, slot_y + slot_h - 16))
 
 
-        #cargas bolinhas abaixo do slot de poçoes
-
+        # cargas bolinhas abaixo do slot de poçoes
+        
         for i in range(player.pocao.cargas_max):
-            cor = (220, 180, 60) if i < player.pocao.cargas else (50, 40, 25)
+            cor = (160, 10, 20) if i < player.pocao.cargas else (45, 10, 12)
             pygame.draw.circle(tela, cor,
                                (slot_x + 8 + i * 16, slot_y + slot_h + 10), 5)
-            pygame.draw.circle(tela, (100, 80, 40),
+            pygame.draw.circle(tela, (80, 20, 25),
                                (slot_x + 8 + i * 16, slot_y + slot_h + 10), 5, 1)
 
 

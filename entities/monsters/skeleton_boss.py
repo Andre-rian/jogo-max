@@ -14,6 +14,15 @@ class EsqueletoBoss(InimigoBase):
     Dano_varrido          = 30
     Dano_projetil         = 20
 
+
+    # NOVO — boss é pesado: quase nao é empurrado, flinch curto,
+    # e depois fica ~0.67s imune a novo stagger (mas continua tomando dano normal)
+    KB_FORCA_X = 1
+    KB_FORCA_Y = -1
+    KB_FRAMES = 6
+    HITSTUN_FRAMES = 10
+    IMUNIDADE_STAGGER_FRAMES = 40
+
     Vel_perseguir         = 1.8
 
     Alcance_detec         = 400
@@ -198,8 +207,7 @@ class EsqueletoBoss(InimigoBase):
                     delattr(self, attr)
             self._resetar_para_estado_atual()
 
-    def receber_hit(self, dano, direçao_knockback):
-        super().receber_hit(dano, direçao_knockback, forca_x=3, forca_y=-2, frames_kb=16)
+
 
     def _offset_desenho(self, sr):
         sprite_w = self.anim_atual.largura

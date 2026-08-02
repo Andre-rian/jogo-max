@@ -375,7 +375,7 @@ class Hud:
 
         else:
             cor_liquido = (45, 5, 10) #vazio - frasco escuro
-            cor_frasco = (870, 70, 80)
+            cor_frasco = (87, 70, 80)
 
 
         #corpo do frasco

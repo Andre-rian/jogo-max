@@ -22,6 +22,7 @@ class EsqueletoBoss(InimigoBase):
     KB_FRAMES = 6
     HITSTUN_FRAMES = 10
     IMUNIDADE_STAGGER_FRAMES = 40
+    IMUNE_DURANTE_ATAQUE = True
 
     Vel_perseguir         = 1.8
 

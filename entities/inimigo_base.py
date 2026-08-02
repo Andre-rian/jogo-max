@@ -19,6 +19,7 @@ class InimigoBase(Entity):
     KB_FRAMES = 12
     HITSTUN_FRAMES = 14
     IMUNIDADE_STAGGERS_FRAMES = 0 # SEM hiper armor 
+    IMUNE_DURANTE_ATAQUE = False #se true nao pode ser interrompido no meio do proprio ataqie
 
     def __init__(self, x, y, largura, altura, hp_max, patrulha_esq=None, patrulha_dir=None, callback_morte=None):
         super().__init__(x, y, largura, altura, hp_max)
@@ -47,7 +48,7 @@ class InimigoBase(Entity):
     
 
     def atualizar(self, rects_solidos, player):
-        if not self.vivo:
+        if not self.vivo:   
             return self._atualizar_morte()
 
         self._frame += 1
@@ -55,7 +56,13 @@ class InimigoBase(Entity):
         if self.timer_knockback > 0:
             return self._atualizar_knockback(rects_solidos)
 
+        #trava a ai no hitsun de verdade
+        if self._em_hit:
+            return self._atualizar_hitsun_parado(rects_solidos)
+
+
         resultado_especial = self._estado_especial(rects_solidos, player)
+    
         if resultado_especial is not None:
             return resultado_especial
 
@@ -79,6 +86,19 @@ class InimigoBase(Entity):
 
     def _atualizar_animacao_ataque(self, player):
         raise NotImplementedError("cada inimigo implementa a lógica do(s) golpe(s) aqui")
+
+    def _atualizar_hitsun_parado(self, rects_solidos):
+        #empurrao ja acabou a animação - mantem a fisica normal, mas nao deixa o bixo atacar
+        if self.TEM_GRAVIDADE:
+            self.aplicar_gravidade()
+        self.mover_com_colisão(rects_solidos)
+        self._decrementar_cooldowns()
+        resultado = self._atualizar_hit_flash()
+        if resultado is not None:
+            return resultado
+        self.atualizar_mask()        
+        return 0
+    
 
     def _estado_especial(self, rects_solidos, player):
         # hook opcional (ex: escudo do boss). None = não fez nada especial, segue o fluxo normal
@@ -193,6 +213,12 @@ class InimigoBase(Entity):
                 self._iniciar_morte()
                 return
 
+
+        #hiper armo quando estive no prorpio ataque
+        if self._animando_ataque and self.IMUNE_DURANTE_ATAQUE:
+            return
+
+        
         #hiper amor
         if self._imune_stagger > 0:
             return

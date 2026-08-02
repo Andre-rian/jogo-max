@@ -5,6 +5,8 @@ from settings import *
 
 from core.inventario import Inventario
 
+from core.menu_navegavel import hover_index
+
 from world.tile_map import Tilemap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
 
@@ -259,8 +261,6 @@ class Gamescene:
     #ATUALIZAR  
     def atualizar(self, eventos): 
         teclas = pygame.key.get_pressed()
-        pos_mouse = pygame.mouse.get_pos()
-        pos_mouse_mundo = self.camera.mouse_para_mundo(pos_mouse)
 
         if self.menu_fogueira.aberto:
             self.menu_fogueira.atualizar(eventos)
@@ -283,7 +283,7 @@ class Gamescene:
         if self.morrendo:
 
             #atualizar o player
-            self.player.atualizar(rects_solidos, self.camera, pos_mouse_mundo)
+            self.player.atualizar(rects_solidos, self.camera)
 
             #camera segue o player
             self.camera.atualizar(self.player.rect)
@@ -293,7 +293,7 @@ class Gamescene:
             return
 
         #atualizar o player
-        self.player.atualizar(rects_solidos, self.camera, pos_mouse_mundo)
+        self.player.atualizar(rects_solidos, self.camera)
 
         #atualizar a transiçao de cena
         self._checar_transiçao()
@@ -387,6 +387,8 @@ class Gamescene:
 
         pos_mouse = pygame.mouse.get_pos()
         fonte_opçao = pygame.font.SysFont("Georgia", 30)
+
+        itens_com_rect = []
         
         #houver com mouse
         for i, opçao in enumerate(self.opçoes_pause):
@@ -394,10 +396,12 @@ class Gamescene:
             x = Screen_widht // 2 - texto.get_width() // 2
             y = 320 + i * 50
             rect_opçao = pygame.Rect(x - 10, y - 5, texto.get_width() + 20, texto.get_height() + 10)
-            if rect_opçao.collidepoint(pos_mouse):
-                self.opçoes_selecionadas = i
+            itens_com_rect.append((i, rect_opçao))
 
 
+        indice_houver = hover_index(eventos, pos_mouse, itens_com_rect)   
+        if indice_houver is not None:
+            self.opçoes_selecionadas = indice_houver
 
         #navega o menu com as setas e confirma com enter
         for evento in eventos:
@@ -512,6 +516,11 @@ class Gamescene:
         #reseta os inimigos das salas ja visitadas
         self.inimigos_morto_por_sala.clear()
 
+        #curar o player e recarregar as poções
+        self.player.hp = self.player.hp_max
+        self.player.pocao.recarregar()
+
+
         #respwna os inimigos da sala atual
         self._spwanar_inimigos(self.sala_atual)
 
@@ -535,10 +544,14 @@ class Gamescene:
         for inimigo in self.inimigos:
             if not inimigo.vivo:
                 continue
+
+            if inimigo in self.player._alvos_atingidos:
+                continue #o inimigo ja foi acertado por esse golpe
             
-            if rect_ataque.colliderect(inimigo.rect):
+            if inimigo.colide_mask_com_rect(rect_ataque):
                 direçao = 1 if self.player.olhando_dir else -1
                 inimigo.receber_hit(self.player.calcular_dano(), direçao)
+                self.player._alvos_atingidos.add(inimigo)
     
 
     def _registrar_bau_aberto(self, col, linha):
@@ -720,6 +733,22 @@ class Gamescene:
             #debug do ngc do globin
             sr_inimigo = self.camera.aplicar(inimigo.rect)
             pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
+
+            #mostra o mask esta(ngxc azul)
+            if getattr(inimigo, "mask", None) and hasattr(inimigo, "_mask_pos"):
+                mx, my = inimigo._mask_pos
+                pontos = inimigo.mask.outline(2)
+                if pontos:
+                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
+                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
+            
+             #DEBUG: contorno real da mask do player
+            if getattr(self.player, "mask", None) and hasattr(self.player, "_mask_pos"):
+                mx, my = self.player._mask_pos
+                pontos = self.player.mask.outline(2)
+                if pontos:
+                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
+                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
 
         for r in self.parede_boss:
             pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)

@@ -1,6 +1,10 @@
 import pygame
+import logging
+log = logging.getLogger("inventario")
+
 from settings import Screen_widht, Screen_height, Dourado, Branco, Preto
 from entities.objetos.item import get_item
+from core.menu_navegavel import hover_index 
 
 
 class Inventario:
@@ -23,9 +27,11 @@ class Inventario:
         #menu ações
         self.menu_contexto = None # NOne - fechado, senao iria guarda o item e a posição 
         self.callback_descartar = None 
+        self.opcao_contexto_selecionada = 0
 
         #grid de itens
-        self.slot_selecionado = 0
+        self.slot_selecionado = None
+        self._ignorar_frame_abertura = False
         self.slots_por_linha = 4
 
 
@@ -41,11 +47,16 @@ class Inventario:
     def abrir(self):
         self.aberto = True
         self.aba_atual = 0
-        self.slot_selecionado = 0
+        self.slot_selecionado = None
+        self._ignorar_frame_abertura = True #trava até o proximo atualizar
+        self.menu_contexto = None
+        self.opcao_contexto_selecionada = 0
 
 
     def fechar(self):
         self.aberto = False
+        self.menu_contexto = None
+        self.opcao_contexto_selecionada = 0
 
 
     #retorna a lista de itens da aba atual
@@ -104,7 +115,18 @@ class Inventario:
     def atualizar(self, eventos, player):
         if not self.aberto:
             return
+
         
+        if self._ignorar_frame_abertura:
+            self._ignorar_frame_abertura = False
+            return #ignora qualquer evento que sobra do abrir inventario
+
+        escs_no_frame = [e for e in eventos if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE]
+        if escs_no_frame:
+            log.debug(f"[FRAME] {len(escs_no_frame)} evento(s) ESC neste frame")
+
+
+
         px, py = self.painel_x, self.painel_y
         pw, ph = self.painel_w, self.painel_h
         pos_mouse = pygame.mouse.get_pos()
@@ -125,6 +147,9 @@ class Inventario:
         itens = self._itens_da_aba(player)
         slot_size = 60
         gap = 8
+
+        itens_com_rect = []
+        
         for i in range(len(itens)):
             col = i % self.slots_por_linha
 
@@ -132,26 +157,39 @@ class Inventario:
 
             sx = col1_x + 10 + col * (slot_size + gap)
             sy = py + 10 + lin * (slot_size + gap)
-            rect_slot = pygame.Rect(sx, sy, slot_size, slot_size)
-            if rect_slot.collidepoint(pos_mouse):
-                self.slot_selecionado = i
+            itens_com_rect.append((i, pygame.Rect(sx, sy, slot_size, slot_size)))                    
 
-                item = itens[i]
-                if hasattr(item, "id"):
-                    player.itens_novos.discard(item.id)
-
-        
-
+        indice_houver = hover_index(eventos, pos_mouse, itens_com_rect)
+        if indice_houver is not None:
+            self.slot_selecionado = indice_houver
+            item = itens[indice_houver]
+            if hasattr(item, "id"):
+                player.itens_novos.discard(item.id)
 
         for evento in eventos:
             if evento.type == pygame.KEYDOWN:
 
                 if evento.key == pygame.K_ESCAPE:
+                    log.debug(f"[esc] menu_contexto={'ABERTO' if self.menu_contexto else 'FECHADO'}")
+
                     if self.menu_contexto: #verificar se o menu de contexto esta aberto
                         self.menu_contexto = None
                         return
                     self.fechar()
+                    log.debug("[esc] -> fechando o inventario inteiro")
                     return
+
+                if self.menu_contexto:
+                    opcoes = self.menu_contexto["opcoes"]
+                    if evento.key == pygame.K_UP:
+                        self.opcao_contexto_selecionada = (self.opcao_contexto_selecionada - 1) % len(opcoes)
+                    elif evento.key == pygame.K_DOWN:
+                        self.opcao_contexto_selecionada = (self.opcao_contexto_selecionada + 1) % len(opcoes)
+                    elif evento.key == pygame.K_RETURN:
+                        opcao = opcoes[self.opcao_contexto_selecionada]
+                        self._executar_opcao(opcao, self.menu_contexto["item"], player)
+                        self.menu_contexto = None
+                    return   # não deixa cair nas teclas de navegação do grid abaixo
 
 
                 elif evento.key == pygame.K_TAB:
@@ -161,24 +199,66 @@ class Inventario:
                 elif evento.key == pygame.K_RIGHT:
                     itens = self._itens_da_aba(player)
                     if itens:
-                        self.slot_selecionado = min(len(itens) - 1,
-                                                    self.slot_selecionado + 1)
+                        atual = self.slot_selecionado if self.slot_selecionado is not None else -1
+                        self.slot_selecionado = min(len(itens) - 1, atual+ 1)
                         
                 elif evento.key == pygame.K_LEFT:
-                    self.slot_selecionado = max(0, self.slot_selecionado - 1)
+                    atual = self.slot_selecionado if self.slot_selecionado is not None else  1
+                    self.slot_selecionado = max(0, atual - 1)
 
 
                 elif evento.key == pygame.K_DOWN:
                     itens = self._itens_da_aba(player)
-                    novo = self.slot_selecionado + self.slots_por_linha
+                    atual = self.slot_selecionado if self.slot_selecionado is not None else -self.slots_por_linha
+                    novo = atual + self.slots_por_linha
                     if novo < len(itens):
                         self.slot_selecionado = novo
 
                 elif evento.key == pygame.K_UP:
-                    novo = self.slot_selecionado - self.slots_por_linha
-                    if novo >= 0:
-                        self.slot_selecionado = novo
+                    if self.slot_selecionado is not None:
+                        novo = self.slot_selecionado - self.slots_por_linha
+                        if novo >= 0:
+                            self.slot_selecionado = novo
 
+                elif evento.key == pygame.K_RETURN:          
+                        itens = self._itens_da_aba(player)
+                        if self.slot_selecionado is not None and self.slot_selecionado < len(itens):
+                            item = itens[self.slot_selecionado]
+                            col = self.slot_selecionado % self.slots_por_linha
+                            lin = self.slot_selecionado // self.slots_por_linha
+                            col1_x = px + 180
+                            slot_size = 60
+                            gap = 8
+                            sx = col1_x + 10 + col * (slot_size + gap)
+                            sy = py + 10 + lin * (slot_size + gap)
+    
+                            from entities.objetos.item import Arma, Consumivel
+    
+                            if isinstance(item, Arma):
+                                slots_equipados = [
+                                    player.inventario["mao_direita"],
+                                    player.inventario["mao_esquerda"],
+                                    player.inventario["armadura"]]
+    
+                                if hasattr(item, "id") and item.id in [s for s in slots_equipados if s is not None]:
+                                    opcoes = ["Desequipar"]
+                                else:
+                                    opcoes = ["Equipar", "Descartar"]
+    
+                            elif isinstance(item, Consumivel) or hasattr(item, "cargas"):
+                                opcoes = ["Usar", "Descartar"]
+    
+                            else:
+                                opcoes = ["Descartar"]
+    
+                            self.menu_contexto = {
+                                "item": item,
+                                "x": sx + slot_size + 4,
+                                "y": sy,
+                                "opcoes": opcoes
+                            }
+                            self.opcao_contexto_selecionada = 0
+    
             elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
                 #clique nas abas
                 for i in range(len(self.abas)):
@@ -202,6 +282,10 @@ class Inventario:
                     for i, opcao in enumerate(opcoes):
                         oy = my + 4 + i * opcao_h
                         rect_opcao = pygame.Rect(mx, oy, menu_w, opcao_h)
+
+
+                        
+                
                         if rect_opcao.collidepoint(pos_mouse):
                             clicou_opcao = True
                             self._executar_opcao(opcao, self.menu_contexto["item"], player)
@@ -256,8 +340,25 @@ class Inventario:
                             "y": sy,
                             "opcoes" : opcoes
                         }
+                        self.opcao_contexto_selecionada = 0
+
                         break
 
+                    #houver do menu dos itens
+                    if self.menu_contexto:
+                        mx = self.menu_contexto["x"]
+                        my = self.menu_contexto["y"]
+                        opcoes = self.menu_contexto["opcoes"]
+                        opcao_h = 28
+                        menu_w = 110
+                        for i, opcao in enumerate(opcoes):
+                            oy = my + 4 + i * opcao_h
+                            rect_opcao = pygame.Rect(mx, oy, menu_w, opcao_h)
+                            if rect_opcao.collidepoint(pos_mouse):
+                                self.opcao_contexto_selecionada = i 
+
+
+                    
     def _tentar_equipar(self, item, player):
         from entities.objetos.item import Arma
         if isinstance(item, Arma):
@@ -421,7 +522,8 @@ class Inventario:
             rect_opcao = pygame.Rect(mx, oy, menu_w, opcao_h)
 
             #hover
-            if rect_opcao.collidepoint(pos_mouse):
+
+            if i == self.opcao_contexto_selecionada:
                 pygame.draw.rect(self.tela, (50, 40, 25), rect_opcao, border_radius=3)
 
             txt = self.fonte_normal.render(opcao, True, Branco)
@@ -503,7 +605,7 @@ class Inventario:
             sy = y + lin * (slot_size + gap)
 
 
-            selecionado = i == self.slot_selecionado
+            selecionado =  self.slot_selecionado is not None and i == self.slot_selecionado
             cor_borda = Dourado if selecionado else (80, 60, 35)
             cor_fundo = (50, 40, 25) if selecionado else (30, 24, 15)
 
@@ -594,9 +696,9 @@ class Inventario:
             ])
 
         elif item.icone == "pocao":
-            pygame.draw.ellipse(self.tela, (220, 160, 30),
+            pygame.draw.ellipse(self.tela, (160, 10, 20),
                                 (cx - 10, cy - 5, 20, 18))
-            pygame.draw.rect(self.tela, (180, 140, 60),
+            pygame.draw.rect(self.tela, (190, 180, 190),
                              (cx - 4, cy - 14, 8, 10), border_radius=2)
             cargas_txt = self.fonte_pequena.render(
                 str(item.cargas if item.cargas is not None else item.quantidade),
@@ -628,7 +730,7 @@ class Inventario:
         itens = self._itens_da_aba(player)
 
         #detalhes dos itens selecionados
-        if itens and self.slot_selecionado < len(itens):
+        if itens and self.slot_selecionado is not None and self.slot_selecionado< len(itens):
             item = itens[self.slot_selecionado]
 
             nome = self.fonte_titulo.render(item.nome, True, Dourado)

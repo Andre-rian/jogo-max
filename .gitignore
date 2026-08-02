@@ -46,6 +46,18 @@ entities/monsters/__pycache__/skeleton.cpython-313.pyc
 entities/projeteis/__pycache__/__init__.cpython-313.pyc
 entities/projeteis/__pycache__/bomba.cpython-313.pyc
 entities/projeteis/__pycache__/esporo_mushroom.cpython-313.pyc
+saves.db
+
+__pycache__/save_manager.cpython-314.pyc
+core/__pycache__/inventario.cpython-314.pyc
+core/__pycache__/menu_fogueira.cpython-314.pyc
+core/__pycache__/menu.cpython-314.pyc
+entities/objetos/__pycache__/drop.cpython-314.pyc
+entities/objetos/__pycache__/__init__.cpython-314.pyc
+entities/objetos/__pycache__/fogueira.cpython-314.pyc
+entities/objetos/__pycache__/bau.cpython-314.pyc
+entities/objetos/__pycache__/poçao.cpython-314.pyc
+entities/objetos/__pycache__/item.cpython-314.pyc
 entities/projeteis/__pycache__/projetil_boss.cpython-313.pyc
 entities/objetos/__pycache__/poçao.cpython-313.pyc
 entities/objetos/__pycache__/fogueira.cpython-313.pyc
@@ -58,7 +70,6 @@ saves.db
 entities/objetos/__pycache__/__init__.cpython-314.pyc
 entities/objetos/__pycache__/bau.cpython-314.pyc
 entities/objetos/__pycache__/fogueira.cpython-314.pyc
-saves.db
 __pycache__/save_manager.cpython-314.pyc
 core/__pycache__/menu.cpython-314.pyc
 entities/objetos/__pycache__/poçao.cpython-314.pyc
@@ -74,3 +85,8 @@ entities/objetos/__pycache__/fogueira.cpython-313.pyc
 entities/objetos/__pycache__/poçao.cpython-313.pyc
 entities/objetos/__pycache__/drop.cpython-314.pyc
 core/__pycache__/menu_fogueira.cpython-314.pyc
+.venv
+ui/__pycache__/particulas.cpython-314.pyc
+entities/objetos/__pycache__/drop_eco.cpython-314.pyc
+jogo.log
+__pycache__

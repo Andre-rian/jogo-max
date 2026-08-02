@@ -1,6 +1,7 @@
 import pygame
 import sys
 from settings import Screen_widht, Screen_height, Preto, Dourado, Branco, Vermelho_sangue
+from core.menu_navegavel import hover_index
 
 class MenuInicial:
 
@@ -25,13 +26,18 @@ class MenuInicial:
         slots = self.save_manager.listar_slots()
         pos_mouse = pygame.mouse.get_pos()
 
+
+        itens_com_rect = []
+
         #houver com os mouses nos slots
         for i in  range(1, 4):
             slot_y = 240 + (i - 1) * 140
-            rect_slot = pygame.Rect(Screen_widht // 2 - 250, slot_y, 500, 110)
-            if rect_slot.collidepoint(pos_mouse):
-                self.slot_selecionado = i
+            rect_slot = pygame.Rect(Screen_widht // 2 - 250, slot_y, 500, 110)  
+            itens_com_rect.append((i, rect_slot))
 
+        indice_houver = hover_index(eventos, pos_mouse, itens_com_rect)
+        if indice_houver is not None:
+            self.slot_selecionado = indice_houver
 
 
 

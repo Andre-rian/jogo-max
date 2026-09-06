@@ -1,5 +1,9 @@
 import pygame
 import sys
+import logging
+import unicodedata
+
+logger = logging.getLogger(__name__)
 
 from settings import *
 
@@ -7,7 +11,7 @@ from core.inventario import Inventario
 
 from core.menu_navegavel import hover_index
 
-from world.tile_map import Tilemap
+from world.tile_map import TileMap
 from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
 
 from core.camera_player import Camera
@@ -19,6 +23,7 @@ from entities.projeteis.projetil_boss import ProjetilBoss
 
 from entities.player import Player
 from entities.objetos.bau import Bau
+from entities.objetos.porta import Porta
 from entities.objetos.drop_eco import DropEco
 
 from entities.objetos.fogueira import Fogueira
@@ -32,6 +37,20 @@ from entities.monsters.skeleton_boss import EsqueletoBoss
 
 from ui.hud import Hud
 from ui.particulas import ParticulaEco
+
+
+
+# corrigi os key sensitives dos arquivos 
+def _nome_arquivo_normalizado(nome):
+    #remove acentos dos nomes das salas para monta os caminhos para o tmx
+    nfdk = unicodedata.normalize('NFKD', nome)
+    return ''.join(c for c in nfdk if not unicodedata.combining(c))
+
+
+
+
+
+
 
 class Gamescene:
     #centraliza toda a logica do jogo, mapa, inimigo e etc, para alivar e organiza o arquivo main.py
@@ -58,6 +77,9 @@ class Gamescene:
 
         #baus
         self.baus_abertos = set()
+
+        #portas
+        self.portas_abertas = set()
 
         #particulas do eco
         self.particulas_ecos = []
@@ -102,7 +124,11 @@ class Gamescene:
         self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
     
+
     
+
+
+
     #CARREGA A SALA 
 
     def _carregar_sala(self, nome_sala, posiçao_spwan=None, respawnando=False ):
@@ -110,10 +136,34 @@ class Gamescene:
 
         self.sala_atual = nome_sala
 
-        #monta o tilemap com o grid das salas
-        grid = [linha[:] for linha in Salas[nome_sala]]     #copia do grid, por causa do bugs do bau
+        #se existe um tmx para aquela sala usa ele, senao pular
+        import os 
+        caminho_tmx = f"assets/maps/{_nome_arquivo_normalizado(nome_sala)}.tmx"
+        if os.path.exists(caminho_tmx):
+            logger.info(f"[MAPA] carregando '{nome_sala}' via TMX: {caminho_tmx}")
+            grid = TileMap.carregar_camada_tmx(caminho_tmx, "colisao")
+            grid_decoracao = TileMap.carregar_camada_tmx(caminho_tmx, "decoracao")
+            grid_fundo = TileMap.carregar_camada_tmx(caminho_tmx, "fundo")
+            objetos_tmx = TileMap.carregar_objetos_tmx(caminho_tmx, "objetos")
+
+
+            if grid is None:
+                logger.warning(f"[MAPA] '{nome_sala}': camada 'colisao' ausente no TMX, caindo para o FALLBACK pythoi")
+                grid = [linha[:] for linha in Salas[nome_sala]]
+           
+        else:
+            logger.info(f"[MAPA] '{caminho_tmx}' Caminho TMX não encontrado - carregando '{nome_sala}' via PYTHON grid (Fallback)")
+            grid = [linha[:] for linha in Salas[nome_sala]]
+            grid_decoracao = None
+            grid_fundo = None
+            objetos_tmx = None
         
-        self.mapa = Tilemap(grid)
+
+
+
+    
+        
+        self.mapa = TileMap(grid, grid_decoracao, grid_fundo)
 
 
 
@@ -121,20 +171,75 @@ class Gamescene:
 
         #ajusta os baus da sala
         self.baus = []
-        for linha_idx, linha in enumerate(Salas[nome_sala]):
-            for col_idx, tile in enumerate(linha):
-                if tile == 6:
-                    if (col_idx, linha_idx) in self.baus_abertos:
-                        continue
-                    
-                    bau = Bau(
-                        col_idx * Tile_size,
-                        linha_idx * Tile_size,
-                        col_idx, linha_idx,
-                        id_item=1
-                    )
-                    bau.callback_aberto = self._registrar_bau_aberto
-                    self.baus.append(bau)
+
+        if objetos_tmx is not None:
+            logger.info(f"[MAPA] '{nome_sala}': baús via Objetc Layer do tiled")
+            for obj in objetos_tmx:
+                if obj["tipo"] != "bau":
+                    continue
+
+                col_idx, linha_idx = obj["col"],  obj["linha"]
+                if (col_idx, linha_idx) in self.baus_abertos:
+                    continue
+
+                try:
+                    id_item = int(obj["propriedades"].get("id_item", 1))
+                except (TypeError, ValueError):
+                    logger.warning(f"[MAPA] baú em ({col_idx},{linha_idx}) com id_item inválido, usando 1")    
+                    id_item = 1
+
+
+                bau = Bau(
+                col_idx * Tile_size,
+                linha_idx * Tile_size,
+                col_idx, linha_idx,
+                id_item=id_item        
+                )
+                bau.callback_aberto = self._registrar_bau_aberto
+                self.baus.append(bau)
+ 
+
+        else:
+            for linha_idx, linha in enumerate(Salas[nome_sala]):
+                    for col_idx, tile in enumerate(linha):
+                        if tile == 6:
+                            if (col_idx, linha_idx) in self.baus_abertos:
+                                continue
+                            
+                            bau = Bau(
+                                col_idx * Tile_size,
+                                linha_idx * Tile_size,
+                                col_idx, linha_idx,
+                                id_item=1
+                            )
+                            bau.callback_aberto = self._registrar_bau_aberto
+                            self.baus.append(bau)
+
+
+
+
+        #ajusta as portas na sala
+        self.portas = []
+        if objetos_tmx is not None:
+            for obj in objetos_tmx:
+                if obj["tipo"] != "porta":
+                    continue
+
+                col_idx, linha_idx = obj["col"], obj["linha"]
+                porta = Porta(
+                    col_idx * Tile_size,
+                    linha_idx * Tile_size,
+                    col_idx, linha_idx
+                )
+                if (col_idx, linha_idx) in self.portas_abertas:
+                    porta.aberta = True
+
+                self.portas.append(porta)
+
+
+
+
+
 
         #ajusta as fogueiras nas salas
 
@@ -213,12 +318,25 @@ class Gamescene:
         self.altura_mapa = len(grid) * Tile_size
         self.camera = Camera(self.largura_mapa, self.altura_mapa)
 
-        #posiçao do spwan
+    #posiçao do spwan
+        spwans_tmx = {}
+        if objetos_tmx is not None:
+            for obj in objetos_tmx:
+                if obj["tipo"] != "spwan":
+                    continue
+                nome_spwan =  obj["propriedades"].get("nome") or "default"
+                spwans_tmx[nome_spwan] = (obj["col"], obj["linha"])
+
+
+
+        
         if not respawnando:
-            if posiçao_spwan is None:
-                col, linha = spwans[nome_sala]
-            else:
+            if posiçao_spwan is not None:
                 col, linha = posiçao_spwan
+            elif spwans_tmx.get("default") is not None:
+                col, linha = spwans_tmx["default"]
+            else:
+                col, linha = spwans[nome_sala]
             self.player.rect.x = col * Tile_size
             self.player.rect.y = linha * Tile_size
             self.player.vel.xy = (0, 0)
@@ -271,7 +389,7 @@ class Gamescene:
             self._atualizar_pausa(eventos)
             
 
-        rects_solidos = self.mapa.rect_solidos + self.parede_boss
+        rects_solidos = self.mapa.rects_solidos + self.parede_boss
         
         if self.inventario.aberto:
             self.inventario.atualizar(eventos, self.player)
@@ -314,6 +432,8 @@ class Gamescene:
         for fogueira in self.fogueiras:
             fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
 
+        for porta in self.portas:
+            porta.atualizar(self.player, teclas, self.hud, self.portas_abertas)
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -776,6 +896,9 @@ class Gamescene:
 
         for fogueira in self.fogueiras:
             fogueira.desenhar(self.tela, self.camera)
+
+        for porta in self.portas:
+            porta.desenhar(self.tela, self.camera)
 
         if self.menu_fogueira.aberto:
             self.menu_fogueira.desenhar()

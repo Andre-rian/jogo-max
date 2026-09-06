@@ -93,7 +93,7 @@ Conexoes = {
 }
 
 spwans = {
-    'calabouço_1': (2, 10),
+    'calabouço_1': (10, 15),
     'calabouço_2': (1, 10),
     'calabouço_3': (2, 10),
     'calabouço_4': (2, 10),

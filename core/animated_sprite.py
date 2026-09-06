@@ -1,4 +1,8 @@
+import logging
 import pygame
+from core.recursos import carregar_imagem, criar_placeholder
+
+logger = logging.getLogger(__name__)
 
 class AnimatedSprite:
     #carrega um spriteshet, fatia em frames e anima automaticamente.
@@ -25,9 +29,14 @@ class AnimatedSprite:
 
 
     def _carregar_frames(self, caminho, fw, fh, escala, n_frames=None):
-        
-        sheet = pygame.image.load(caminho).convert_alpha()
 
+        sheet = carregar_imagem(caminho)
+        if sheet.get_width() < fw or sheet.get_height() < fh:
+            logger.warning(
+                f"[SPRITE] spritesheet '{caminho}' ({sheet.get_width()}x{sheet.get_height()}) "
+                f"menor que o frame {fw}x{fh} — usando placeholder magenta"
+            )
+            sheet = criar_placeholder((fw, fh))
 
         if n_frames is None:
             n_frames = sheet.get_width() // fw

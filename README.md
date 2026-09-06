@@ -32,13 +32,15 @@ O jogador controla um **cavaleiro habilidoso**, capturado por esse reino e apris
 ### Atributos do jogador
 | Atributo | Valor inicial | Observações |
 |---|---|---|
-| Pontos de Vida (PV) | 100 | Aumenta automaticamente conforme o jogador sobe de **level** |
-| Stamina | — | Utilizada em ações como dash e ataque |
+| Pontos de Vida (PV) | 200 | `50 + Vigor × 15` |
+| Stamina | 130 | `30 + Resistência × 10` |
+| Força | 10 | Aumenta o dano do ataque |
+| Destreza | 9 | Aumenta o dano do ataque |
 
 Se a barra de vida chegar a zero, o jogador **morre** e retorna ao **último checkpoint**.
 
-### 📈 Sistema de níveis (Levels)
-O jogador evolui através de um sistema de **levels**. A cada level ganho, seus **Pontos de Vida máximos aumentam**, tornando-o mais resistente para enfrentar as fases seguintes do castelo.
+### 📈 Atributos
+O jogador possui **Vigor** (aumenta os PV máximos), **Resistência** (aumenta a stamina máxima), **Força** e **Destreza** (aumentam o dano). Os valores máximos de vida e stamina são calculados a partir desses atributos.
 
 ### 🎒 Inventário
 O jogador conta com um **sistema de inventário**, onde itens, poções e equipamentos recuperados ao longo do jogo podem ser armazenados e gerenciados.
@@ -52,6 +54,9 @@ O jogador conta com um **sistema de inventário**, onde itens, poções e equipa
 | `A` | Mover para a esquerda *(2x rápido = dash para a esquerda)* |
 | `D` | Mover para a direita *(2x rápido = dash para a direita)* |
 | `Espaço` | Pular |
+| `K` | Atacar com a espada |
+| `F` | Usar poção |
+| `E` | Interagir (baús, portas, fogueiras) |
 | `ESC` | Abrir menu do jogo (com opção de sair) |
 
 ---
@@ -61,9 +66,10 @@ O jogador conta com um **sistema de inventário**, onde itens, poções e equipa
 | Inimigo | Comportamento |
 |---|---|
 | Esqueleto | Morto-vivo do calabouço |
-| Guarda do castelo | Patrulha e defende o território |
-| Lobo | Mais rápido, persegue o jogador |
-| **Rei do castelo** | Chefe final (*boss*) |
+| Globin | Patrulha o território |
+| Cogumelo | Solta esporos para atacar |
+| Olho voador | Flutua e dispara projéteis |
+| **Carrasco Esquelético** | Chefe final (*boss*) |
 
 > Alguns inimigos possuem mais vida e ficam parados, enquanto outros são mais rápidos e perseguem o jogador ativamente — cada tipo com um comportamento único.
 
@@ -71,18 +77,12 @@ O jogador conta com um **sistema de inventário**, onde itens, poções e equipa
 
 ## 🏰 Fases e progressão
 
-O mapa está situado dentro de um castelo. Conforme o jogador avança, ele **sobe os andares** do castelo, cada um representando uma fase:
+O mapa está situado dentro de um castelo, dividido em **5 calabouços** (`calabouco_1` a `calabouco_5`). Cada calabouço é um mapa construído no **Tiled** (formato `.tmx`), com camadas de fundo, colisão e decoração.
 
-1. **Calabouço** — fase tutorial
-2. **Meio do castelo**
-3. **Topo do castelo**
-
-Os caminhos são formados por corredores, com colunas e paredes intransponíveis delimitando os limites do mapa. Os itens são obtidos derrotando os próprios inimigos que os carregam.
-
-Para avançar de fase, o jogador precisa alcançar um ponto específico do mapa (ex: escadas).
+Os caminhos são formados por corredores, com colunas e paredes intransponíveis delimitando os limites do mapa. Para avançar para o próximo calabouço, o jogador precisa abrir a porta correta da sala.
 
 ### Condições de jogo
-- ✅ **Vitória:** fugir do castelo, derrotando o rei
+- ✅ **Vitória:** fugir do castelo, derrotando o Carrasco Esquelético
 - ❌ **Derrota:** morte do jogador (retorna ao último checkpoint com vida zerada)
 - 🚫 Não há sistema de pontuação
 
@@ -94,18 +94,23 @@ Para avançar de fase, o jogador precisa alcançar um ponto específico do mapa 
 jogo-max/
 ├── main.py
 ├── settings.py
-├── itens.json
-├── saves.db
 ├── save_manager.py
+├── logging_config.py
+├── itens.json
 ├── core/
 │   ├── __init__.py
-│   ├── camera_player.py
+│   ├── camera.py
 │   ├── game_scene.py
 │   ├── animated_sprite.py
+│   ├── navegacao.py
+│   ├── recursos.py
+│   ├── menu.py
+│   ├── menu_fogueira.py
 │   └── inventario.py
 ├── entities/
 │   ├── __init__.py
 │   ├── entity.py
+│   ├── inimigo_base.py
 │   ├── player.py
 │   ├── monsters/
 │   │   ├── __init__.py
@@ -125,27 +130,45 @@ jogo-max/
 │       ├── __init__.py
 │       ├── item.py
 │       ├── bau.py
+│       ├── porta.py
 │       ├── fogueira.py
 │       ├── pocao.py
-│       └── drop.py
+│       ├── drop.py
+│       └── drop_eco.py
 ├── world/
-│   ├── __init__.py
+│   ├── niveis.py
+│   ├── rooms.py
 │   ├── tile_map.py
-│   └── rooms.py
+│   └── tiles.py
 ├── ui/
 │   ├── __init__.py
-│   └── hud.py
+│   ├── estilo.py
+│   ├── icones.py
+│   ├── overlays.py
+│   ├── particulas.py
+│   └── hud/
+│       ├── __init__.py
+│       ├── hud.py
+│       ├── status.py
+│       ├── ecos.py
+│       ├── pocao.py
+│       ├── mensagens.py
+│       ├── notificacao.py
+│       ├── boss.py
+│       └── debug_painel.py
 └── assets/
-    ├── sprites/
-    │   ├── player/knight/
-    │   ├── enemies/monsters/
-    │   │   ├── skeleton/
-    │   │   ├── esqueletos/
-    │   │   ├── goblin/
-    │   │   ├── mushroom/
-    │   │   └── flying_eye/
-    │   └── objetos/baus/
-    └── tileset/calabouço/
+    ├── maps/                   # calabouco_1.tmx (construído no Tiled)
+    └── sprites/
+        ├── player/knight/
+        ├── enemies/monsters/
+        │   ├── skeleton/
+        │   ├── esqueletos/
+        │   ├── goblin/
+        │   ├── mushroom/
+        │   └── flying_eye/
+        └── objetos/
+            ├── baus/
+            └── portas/
 ```
 
 ---
@@ -153,7 +176,7 @@ jogo-max/
 ## 🚀 Requisitos
 
 - **Python 3.x**
-- **Pygame**
+- **pygame-ce** (Community Edition)
 
 ---
 

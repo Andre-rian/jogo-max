@@ -9,12 +9,13 @@ from settings import *
 
 from core.inventario import Inventario
 
-from core.menu_navegavel import hover_index
+from core.navegacao import hover_index
 
 from world.tile_map import TileMap
-from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
+from world.rooms import Salas
+from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos
 
-from core.camera_player import Camera
+from core.camera import Camera
 
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
@@ -37,6 +38,8 @@ from entities.monsters.skeleton_boss import EsqueletoBoss
 
 from ui.hud import Hud
 from ui.particulas import ParticulaEco
+from ui.overlays import desenhar_tela_morte, desenhar_tela_pausa
+from ui.estilo import Fonte_texto
 
 
 
@@ -123,6 +126,7 @@ class Gamescene:
         self._menu_callback = None #sera setado no main
         self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
+        self._frame_pausa = 0
     
 
     
@@ -254,15 +258,12 @@ class Gamescene:
                         callback_descanso=self._descansar_fogueira
                     )
                     fogueira._callback_abrir_menu = self._abrir_menu_fogueira
-                    print(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
+                    logger.debug(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
                     self.fogueiras.append(fogueira)
 
         for fogueira in self.fogueiras:
             if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
                 fogueira.ativa = True
-                for fogueira in self.fogueiras:
-                    if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
-                        fogueira.ativa = True
         
 
 
@@ -273,8 +274,7 @@ class Gamescene:
 
         #drop fixos da sala
         from entities.objetos.drop import Drop
-        from world.rooms import Drops_fixos
-        
+
         for dados in Drops_fixos.get(nome_sala, []):
             id_item, col_drop, lin_drop = dados 
 
@@ -389,7 +389,7 @@ class Gamescene:
             self._atualizar_pausa(eventos)
             
 
-        rects_solidos = self.mapa.rects_solidos + self.parede_boss
+        rects_solidos = self.mapa.rects_solidos + self.parede_boss + [p.rect for p in self.portas if not p.aberta]
         
         if self.inventario.aberto:
             self.inventario.atualizar(eventos, self.player)
@@ -506,7 +506,7 @@ class Gamescene:
 
 
         pos_mouse = pygame.mouse.get_pos()
-        fonte_opçao = pygame.font.SysFont("Georgia", 30)
+        fonte_opçao = Fonte_texto(28)
 
         itens_com_rect = []
         
@@ -650,7 +650,7 @@ class Gamescene:
 
 
     def _abrir_menu_fogueira(self):
-        print("abrindo menu fogueira")
+        logger.info("abrindo menu fogueira")
         self.menu_fogueira.abrir()
         
 
@@ -844,34 +844,37 @@ class Gamescene:
     #DESENHAR   
     
     def desenhar(self):
+        self._frame_pausa += 1
         self.mapa.desenhar(self.tela, self.camera)
 
         for inimigo in self.inimigos:
             inimigo.desenhar(self.tela, self.camera)
 
 
-            #debug do ngc do globin
-            sr_inimigo = self.camera.aplicar(inimigo.rect)
-            pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
+            if DEBUG:
+                #debug dos rects dos inimigos
+                sr_inimigo = self.camera.aplicar(inimigo.rect)
+                pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
 
-            #mostra o mask esta(ngxc azul)
-            if getattr(inimigo, "mask", None) and hasattr(inimigo, "_mask_pos"):
-                mx, my = inimigo._mask_pos
-                pontos = inimigo.mask.outline(2)
-                if pontos:
-                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
-                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
-            
-             #DEBUG: contorno real da mask do player
-            if getattr(self.player, "mask", None) and hasattr(self.player, "_mask_pos"):
-                mx, my = self.player._mask_pos
-                pontos = self.player.mask.outline(2)
-                if pontos:
-                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
-                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
+                #mostra a mask (azul)
+                if getattr(inimigo, "mask", None) and hasattr(inimigo, "_mask_pos"):
+                    mx, my = inimigo._mask_pos
+                    pontos = inimigo.mask.outline(2)
+                    if pontos:
+                        pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
+                        pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
 
-        for r in self.parede_boss:
-            pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)
+                #DEBUG: contorno real da mask do player
+                if getattr(self.player, "mask", None) and hasattr(self.player, "_mask_pos"):
+                    mx, my = self.player._mask_pos
+                    pontos = self.player.mask.outline(2)
+                    if pontos:
+                        pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
+                        pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
+
+        if DEBUG:
+            for r in self.parede_boss:
+                pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)
 
 
   
@@ -881,6 +884,9 @@ class Gamescene:
 
         for p in self.particulas_ecos:
             p.desenhar(self.tela, self.camera)
+
+        for porta in self.portas:
+            porta.desenhar(self.tela, self.camera)
 
         self.player.desenhar(self.tela, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)
@@ -897,14 +903,11 @@ class Gamescene:
         for fogueira in self.fogueiras:
             fogueira.desenhar(self.tela, self.camera)
 
-        for porta in self.portas:
-            porta.desenhar(self.tela, self.camera)
-
         if self.menu_fogueira.aberto:
             self.menu_fogueira.desenhar()
-        
 
-        pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
+        if DEBUG:
+            pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
 
         self.inventario.desenhar(self.player)
 
@@ -912,60 +915,11 @@ class Gamescene:
 
         #tela de morte - desenhada por cima de tudo
         if self.morrendo:
-            self._desenhar_tela_morte()
+            progresso = 1 - (self.timer_morto / self.duraçao_morte)
+            desenhar_tela_morte(self.tela, progresso)
 
 
         #tela de menu
         if self.pausado:
-            self._desenhar_pausa()
-
-
-
-    def _desenhar_tela_morte(self):
-        #fade escuro com o texto voce morreu centralizado
-
-        progresso = 1 - (self.timer_morto / self.duraçao_morte)
-        alpha = int(progresso * 200) #maximo 200 de 255, pra tela nao ficar toda preta
-
-        #superfice transparente
-        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0 , alpha))
-        self.tela.blit(overlay, (0, 0))
-
-        #texto so aparece depois do fade ta na metade
-        if progresso > 0.4:
-            fonte = pygame.font.SysFont("Georgia", 64, bold=True)
-            texto = fonte.render("VOCÊ MORREU", True, Vermelho_sangue)
-            x = Screen_widht // 2 - texto.get_width() // 2
-            y = Screen_height // 2 - texto.get_height() // 2
-            self.tela.blit(texto, (x, y))
-
-    def _desenhar_pausa(self):
-        #fundo semitrasnparente
-        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0 , 160))
-        self.tela.blit(overlay, (0, 0))
-
-
-        fonte_titulo = pygame.font.SysFont("Georgia", 48, bold=True)
-        fonte_opçao = pygame.font.SysFont("Georgia", 30)
-
-        #titulo
-        titulo = fonte_titulo.render("PAUSA", True, Dourado)
-        self.tela.blit(titulo, (Screen_widht // 2 - titulo.get_width() // 2, 220))
-        
-
-        #opçoes
-        for i, opçao in enumerate(self.opçoes_pause):
-            selecionado = i == self.opçoes_selecionadas
-            cor = Dourado if selecionado else Branco
-            texto = fonte_opçao.render(opçao, True, cor)
-            x = Screen_widht // 2 - texto.get_width() // 2
-            y = 320 + i * 50
-
-            #seta indicando a opçao selecionada
-            if selecionado:
-                seta = fonte_opçao.render("▶", True, Dourado)
-                self.tela.blit(seta, (x - 30, y))
-
-            self.tela.blit(texto, (x, y))
+            desenhar_tela_pausa(self.tela, self._frame_pausa,
+                                self.opçoes_pause, self.opçoes_selecionadas)

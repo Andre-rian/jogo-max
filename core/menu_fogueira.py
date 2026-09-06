@@ -1,6 +1,17 @@
 import pygame
 import math
-from settings import Screen_widht, Screen_height, Dourado, Branco, Preto
+import logging
+from settings import Screen_widht, Screen_height
+from ui.estilo import (
+    Fonte_titulo, Fonte_texto,
+    Roxo_espectral, Azul_espectral, Azul_claro,
+    Branco_texto, Cinza_texto, Cinza_texto_escuro, Vermelho_ritual, Verde_cura,
+    desenhar_overlay, desenhar_painel, desenhar_botao,
+    desenhar_titulo, desenhar_linha_ornamental, desenhar_eco_profano,
+    escurecer, misturar
+)
+
+logger = logging.getLogger(__name__)
 
 def custo_nivel(nivel):
     return int(50 * (1.25 ** nivel))
@@ -21,11 +32,12 @@ class MenuFogueira:
 
         self.estado = self.MENU_PRINCIPAL
         self.aberto = False
+        self._frame = 0
 
         pygame.font.init()
-        self.fonte_titulo = pygame.font.SysFont("Georgia", 22, bold=True)
-        self.fonte_normal = pygame.font.SysFont("Georgia", 18)
-        self.fonte_pequena = pygame.font.SysFont("Georgia", 14)
+        self.fonte_titulo = Fonte_titulo(22, negrito=True)
+        self.fonte_normal = Fonte_texto(20)
+        self.fonte_pequena = Fonte_texto(15)
 
         #menu principal da fogueira
         self.opcoes = ["Descansar", "Subir Nível", "Sair"]
@@ -52,11 +64,8 @@ class MenuFogueira:
 
         }
 
-
-
-        
     def abrir(self):
-        print("MenuFogueira.abrir() chamado")
+        logger.debug("MenuFogueira.abrir() chamado")
         self.aberto = True
         self.estado = self.MENU_PRINCIPAL
         self.opcao_selecionada = 0
@@ -253,10 +262,10 @@ class MenuFogueira:
         if not self.aberto:
             return
         
+        self._frame += 1
+
         #overlay 
-        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 160))
-        self.tela.blit(overlay, (0, 0))
+        desenhar_overlay(self.tela, 165)
 
         if self.estado == self.MENU_PRINCIPAL:
             self._desenhar_menu_principal()
@@ -269,21 +278,23 @@ class MenuFogueira:
 
 
         #titulo 
-        txt = self.fonte_titulo.render("Fogueira", True, Dourado)
-        self.tela.blit(txt, (Screen_widht // 2 - txt.get_width() // 2, y_base - 40))        
+        cx_titulo = Screen_widht // 2
+        desenhar_titulo(self.tela, "FOGUEIRA",
+                        Fonte_titulo(34, negrito=True), Roxo_espectral,
+                        cx_titulo, y_base - 80, espacamento=3)
+        sub = self.fonte_normal.render("chama antiga entre as ruinas",
+                                       True, Cinza_texto_escuro)
+        self.tela.blit(sub, (cx_titulo - sub.get_width() // 2, y_base - 52))
+        desenhar_linha_ornamental(self.tela, cx_titulo, y_base - 34, 180, Roxo_espectral)
+        desenhar_eco_profano(self.tela, cx_titulo, y_base - 34, 10, self._frame)
 
 
         for i, opcao in enumerate(self.opcoes):
-            y = y_base + i * 50
+            y = y_base + 20 + i * 50
             selecionada = i == self.opcao_selecionada
-            cor = Dourado if selecionada else (160, 130, 80)
-            cor_fundo = (50, 40, 25) if selecionada else (20, 15, 10)
+            desenhar_botao(self.tela, pygame.Rect(x, y, 240, 40), opcao,
+                           selecionada, self._frame, fonte_btn=self.fonte_normal)
 
-            pygame.draw.rect(self.tela, cor_fundo, (x, y, 240, 40), border_radius=4)
-            pygame.draw.rect(self.tela, cor, (x, y, 240, 40), 1, border_radius=4)
-
-            txt = self.fonte_normal.render(opcao, True, cor)
-            self.tela.blit(txt, (x + 120 - txt.get_width() // 2, y + 10))
 
     def _desenhar_level_up(self):
         p = self.player
@@ -294,11 +305,11 @@ class MenuFogueira:
 
         #painel esquerdo = informaçoes do player
         px, py = 80, Screen_height // 2 - 160
-        pygame.draw.rect(self.tela, (20, 15, 10), (px, py, 220, 200), border_radius=6)
-        pygame.draw.rect(self.tela, (80, 60, 35), (px, py, 220, 200), 1, border_radius=6)
+        painel_esq = pygame.Rect(px, py, 220, 200)
+        desenhar_painel(self.tela, painel_esq, self._frame,
+                        titulo="Subir Nível", titulo_fonte=self.fonte_titulo)
 
-        titulo = self.fonte_titulo.render("Subir Nível", True, Dourado)
-        self.tela.blit(titulo, (px + 10, py + 10))
+        desenhar_eco_profano(self.tela, px + 22, py + 34, 9, self._frame)
 
         infos = [
             ("Nível", f"{p.nivel} → {p.nivel + total_pontos}"),
@@ -308,92 +319,88 @@ class MenuFogueira:
         ]
 
         for i, (label, valor) in enumerate(infos):
-            cor_valor = (255, 80, 80) if label == "Custo" and custo_total > p.ecos else Branco
-            lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
+            cor_valor = Vermelho_ritual if label == "Custo" and custo_total > p.ecos else Branco_texto
+            lbl = self.fonte_pequena.render(label, True, Cinza_texto)
             val = self.fonte_pequena.render(valor, True, cor_valor)
-            self.tela.blit(lbl, (px + 10, py + 50 + i * 30))
-            self.tela.blit(val, (px + 210 - val.get_width(), py + 50 + i * 30))
+            self.tela.blit(lbl, (px + 12, py + 74 + i * 28))
+            self.tela.blit(val, (px + 208 - val.get_width(), py + 74 + i * 28))
 
 
         #painel central - atributops
         cx = Screen_widht // 2 - 120
-        pygame.draw.rect(self.tela, (20, 15, 10), (cx, py, 240, 280), border_radius=6)
-        pygame.draw.rect(self.tela, (80, 60, 35), (cx, py, 240, 280), 1, border_radius=6)
+        painel_central = pygame.Rect(cx, py, 240, 280)
+        desenhar_painel(self.tela, painel_central, self._frame,
+                        titulo="Atributos", titulo_fonte=self.fonte_titulo)
 
         for i, atr in enumerate(self._atributos):
             ay = py + 20 + i * 60
             selecionado = i == self.atributo_selecionado
-            cor = Dourado if selecionado else (160, 130, 80)
+            cor = Azul_claro if selecionado else Cinza_texto
 
             label = self._labes[atr]
             valor_atual = getattr(p, atr)
             pendente = self.pendente[atr]
 
             lbl = self.fonte_normal.render(label, True, cor)
-            self.tela.blit(lbl, (cx + 10, ay))
+            self.tela.blit(lbl, (cx + 14, ay))
 
 
             #valor atual → novo
             if pendente > 0:
                 val_txt = f"{valor_atual}  →  {valor_atual + pendente}"
-                cor_val = (100, 220, 100)
+                cor_val = Verde_cura
             
             else:
                 val_txt = str(valor_atual)
-                cor_val = Branco
+                cor_val = Branco_texto
 
             val = self.fonte_normal.render(val_txt, True, cor_val)
-            self.tela.blit(val, (cx + 230 - val.get_width(), ay))
+            self.tela.blit(val, (cx + 236 - val.get_width(), ay))
 
 
             #botao -
-            pygame.draw.rect(self.tela, (50, 40, 25), (cx - 40, ay, 30, 30), border_radius=3)
-            pygame.draw.rect(self.tela, cor, (cx - 40, ay, 30, 30), 1, border_radius=3)
-            m = self.fonte_normal.render("-", True, cor)
-            self.tela.blit(m, (cx + 250 + 15 - m.get_width() // 2, ay + 5))
+            rect_menos = pygame.Rect(cx - 40, ay, 30, 30)
+            desenhar_botao(self.tela, rect_menos, "-", selecionado, self._frame,
+                           fonte_btn=self.fonte_normal, marcador=False)
 
             #botao +
-            pygame.draw.rect(self.tela, (50, 40, 25), (cx - 40, ay, 30, 30), border_radius=3)
-            pygame.draw.rect(self.tela, cor, (cx - 40, ay, 30, 30), 1, border_radius=3)
-            ma = self.fonte_normal.render("+", True, cor)
-            self.tela.blit(ma, (cx + 250 + 15 - ma.get_width() // 2, ay + 5))
+            rect_mais = pygame.Rect(cx + 250, ay, 30, 30)
+            desenhar_botao(self.tela, rect_mais, "+", selecionado, self._frame,
+                           fonte_btn=self.fonte_normal, marcador=False)
 
         #botao confirmar
-        cor_btn = Dourado if custo_total <= p.ecos and total_pontos > 0 else (80, 60, 35)
-        pygame.draw.rect(self.tela, (30, 25, 15),
-                         (cx, py + 250, 240, 40), border_radius=4)
-        pygame.draw.rect(self.tela, cor_btn,
-                         (cx, py + 250, 240, 40), border_radius=4)
-        
-        conf = self.fonte_normal.render("Confirmar", True, cor_btn)
-        self.tela.blit(conf, (cx + 120 - conf.get_width() // 2, py + 260))
+        pode_confirmar = custo_total <= p.ecos and total_pontos > 0
+        rect_confirma = pygame.Rect(cx, py + 250, 240, 40)
+        desenhar_botao(self.tela, rect_confirma, "Confirmar", pode_confirmar,
+                       self._frame, fonte_btn=self.fonte_normal)
 
 
         #painel direito - mostra como vai ficar os status
         dx = Screen_widht - 300
-        pygame.draw.rect(self.tela, (20, 15, 10), (dx, py, 220, 200), border_radius=6)
-        pygame.draw.rect(self.tela, (80, 60, 35), (dx, py, 220, 200), 1, border_radius=6)
-
-        prev_titulo =self.fonte_titulo.render("Preview", True, Dourado)
-        self.tela.blit(prev_titulo, (dx + 10, py + 10))
-
+        painel_dir = pygame.Rect(dx, py, 220, 200)
+        desenhar_painel(self.tela, painel_dir, self._frame,
+                        titulo="Preview", titulo_fonte=self.fonte_titulo)
 
         previews = [
             ("HP",        f"{p.hp_max} → {hp_novo}"),
             ("Stamina",   f"{p.stamina_max} → {stamina_nova}")
-
         ]
 
         for i, (label, valor) in enumerate(previews):
-            lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
-            val = self.fonte_pequena.render(valor, True, (100, 220, 100))
-            self.tela.blit(lbl, (dx + 10, py + 50 + i * 30))
-            self.tela.blit(val, (dx + 210 - val.get_width(), py + 50 + i * 30))
+            lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+            val = self.fonte_pequena.render(valor, True, Verde_cura)
+            self.tela.blit(lbl, (dx + 12, py + 74 + i * 28))
+            self.tela.blit(val, (dx + 208 - val.get_width(), py + 74 + i * 28))
 
-        
+        #apoio visual do custo disponivel
+        desenhar_eco_profano(self.tela, dx + 26, py + 150, 13, self._frame)
+        eco_txt = self.fonte_normal.render(str(p.ecos), True, Branco_texto)
+        self.tela.blit(eco_txt, (dx + 44, py + 146))
+
+
         #instruções
         inst = self.fonte_pequena.render(
             "← → ajustar   ENTER confirmar   ESC voltar",
-            True, (80, 60, 35))
+            True, Cinza_texto_escuro)
         self.tela.blit(inst, (Screen_widht // 2 - inst.get_width() // 2,
                                Screen_height - 40))

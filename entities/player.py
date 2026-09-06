@@ -1,11 +1,14 @@
 import pygame
 import math
 import random
+import logging
 from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave
 from entities.entity import Entity
 from core.animated_sprite import AnimatedSprite
-from entities.objetos.poçao import Pocao
+from entities.objetos.pocao import Pocao
 from settings import Dourado, Tile_size
+
+logger = logging.getLogger(__name__)
 
 class Player(Entity):
 
@@ -59,7 +62,7 @@ class Player(Entity):
 
     def __init__(self, x, y):
         hp_inicial = self.HP_BASE + (self.VIGOR_INICIAL * self.HP_POR_VIGOR)
-        super().__init__(x, y, largura=32, altura=66, hp_max=hp_inicial)
+        super().__init__(x, y, largura=Tile_size * 2, altura=Tile_size * 2, hp_max=hp_inicial)
 
         
         
@@ -160,58 +163,58 @@ class Player(Entity):
         # animações
         KNIGHT = "assets/sprites/player/knight/"
         self.animacoes = {
-            self.Parado:   AnimatedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=2, loop=True),
-            self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=2, loop=True),
-            self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=2, loop=True),
-            self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=2, loop=True),
-            self.Atacando: AnimatedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=2, loop=False),
-            self.Dash:     AnimatedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=2, loop=False),
-            self.Morto:    AnimatedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=2, loop=False),
+            self.Parado:   AnimatedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
+            self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=1.7, loop=True),
+            self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
+            self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
+            self.Atacando: AnimatedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=1.7, loop=False),
+            self.Dash:     AnimatedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=1.7, loop=False),
+            self.Morto:    AnimatedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=1.7, loop=False),
                 }
         
         self.animacoes_ataque = {
 
                         "espada": {
                     "normal": {
-                        "parado":    AnimatedSprite(KNIGHT + "_AttackNoMovement.png",     120, 80, velocidade=5, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "_Attack.png",               120, 80, velocidade=5, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "_AttackNoMovement.png",     120, 80, velocidade=5, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "_Attack.png",               120, 80, velocidade=5, escala=1.7),
                     },
                     "pesado": {
-                        "parado":    AnimatedSprite(KNIGHT + "_Attack2NoMovement.png",    120, 80, velocidade=5, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "_Attack2.png",              120, 80, velocidade=5, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "_Attack2NoMovement.png",    120, 80, velocidade=5, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "_Attack2.png",              120, 80, velocidade=5, escala=1.7),
                     },
                     "combo": {
-                        "parado":    AnimatedSprite(KNIGHT + "_AttackComboNoMovement.png",120, 80, velocidade=4, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "_AttackCombo2hit.png",      120, 80, velocidade=4, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "_AttackComboNoMovement.png",120, 80, velocidade=4, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "_AttackCombo2hit.png",      120, 80, velocidade=4, escala=1.7),
                     },
                 },
                 "machado": {
                     "normal": {
-                        "parado":    AnimatedSprite(KNIGHT + "Attack_Axe.png",          76, 80, velocidade=12, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "Attack_Axe.png",          76, 80, velocidade=12, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "Attack_Axe.png",          76, 80, velocidade=12, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "Attack_Axe.png",          76, 80, velocidade=12, escala=1.7),
                     },
                     "pesado": {
-                        "parado":    AnimatedSprite(KNIGHT + "Attack2_Axe.png",      106, 80, velocidade=12, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "Attack2_Axe.png",      106, 80, velocidade=12, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "Attack2_Axe.png",      106, 80, velocidade=12, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "Attack2_Axe.png",      106, 80, velocidade=12, escala=1.7),
                     },
                     "combo": {
-                        "parado":    AnimatedSprite(KNIGHT + "Attack_Combo_Axe.png", 56, 80, velocidade=12, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "Attack_Combo_Axe.png", 56, 80, velocidade=12, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "Attack_Combo_Axe.png", 56, 80, velocidade=12, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "Attack_Combo_Axe.png", 56, 80, velocidade=12, escala=1.7),
                     },
                 },
                 None: {  # sem arma - soco
                     "normal": {
-                        "parado":    AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=2),
-                        "movimento": AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=2),
+                        "parado":    AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=1.7),
+                        "movimento": AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=1.7),
                     },
                 },
             }
         #animaçoes pocao
-        self.anim_pocao_parado = AnimatedSprite(KNIGHT + "knight_poçao.png", 30, 78, velocidade=14, escala=2)
-        self.anim_pocao_movimento = AnimatedSprite(KNIGHT + "knight_poçao_movimento.png",  32, 80, velocidade=14, escala=2)
+        self.anim_pocao_parado = AnimatedSprite(KNIGHT + "knight_poçao.png", 30, 78, velocidade=14, escala=1.7)
+        self.anim_pocao_movimento = AnimatedSprite(KNIGHT + "knight_poçao_movimento.png",  32, 80, velocidade=14, escala=1.7)
 
         #animaçao pegando item
-        self.anim_pegando_item = AnimatedSprite(KNIGHT + "Pegando_item.png", 46, 80, velocidade=8, escala=2)
+        self.anim_pegando_item = AnimatedSprite(KNIGHT + "Pegando_item.png", 46, 80, velocidade=8, escala=1.7)
 
         self._estado_anterior = self.Parado
         self.anim_atual = self.animacoes[self.Parado]
@@ -220,7 +223,7 @@ class Player(Entity):
         
         if isinstance(item, Arma):
             self.inventario["mao_direita"] = item.id
-            print(f"Equipado: {item.nome} ID: {item.id}" )
+            logger.debug(f"Equipado: {item.nome} ID: {item.id}")
 
 
 
@@ -263,7 +266,7 @@ class Player(Entity):
         elif isinstance(item, Material):
             id_ = str(item.id)
 
-            print(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
+            logger.debug(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
             
             if id_ in self.inventario["materiais"]:
                 
@@ -692,7 +695,7 @@ class Player(Entity):
         self.checkpoint_pos.x = x if x is not None else self.rect.x 
         self.checkpoint_pos.y = y if y is not None else self.rect.y 
         self.checkpoint_sala = nome_sala
-        print(f"checkpoint definido: sala={nome_sala}, x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
+        logger.info(f"checkpoint definido: sala={nome_sala}, x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
 
     def respawnar(self): 
         #voltar para o ultimo checkpoint com o hp cheio
@@ -703,7 +706,7 @@ class Player(Entity):
         self.vivo = True
         self.vel = pygame.Vector2(0,0)
         self.estado = self.Parado
-        print(f"respawnando em: x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
+        logger.info(f"respawnando em: x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
         self.atacando = False
 
 

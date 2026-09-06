@@ -2,7 +2,9 @@ import pygame
 import os
 import logging
 import xml.etree.ElementTree as ET
-from settings import Tile_size, Registro_ID, Tile_vazio
+from settings import Tile_size
+from world.tiles import Registro_ID, Tile_vazio
+from core.recursos import carregar_imagem, criar_placeholder
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +14,13 @@ def _carregar_folha(path):
     # carrega a imagem inteira do tileset e reproveita ela(cache global)
 
     if path not in _cache_folhas:
-        _cache_folhas[path] = pygame.image.load(path).convert_alpha()
+        folha = carregar_imagem(path)
+        if folha.get_width() < Tile_size or folha.get_height() < Tile_size:
+            logger.warning(
+                f"[MAPA] tileset '{path}' menor que um tile {Tile_size}px — usando placeholder magenta"
+            )
+            folha = criar_placeholder((Tile_size, Tile_size))
+        _cache_folhas[path] = folha
     return _cache_folhas[path]
 
 
@@ -33,6 +41,12 @@ class TileRef:
         folha = _carregar_folha(self.imagem_path)
         x = self.col * Tile_size
         y = self.linha * Tile_size
+        if x + Tile_size > folha.get_width() or y + Tile_size > folha.get_height():
+            logger.warning(
+                f"[MAPA] tile ({self.col},{self.linha}) fora do tileset '{self.imagem_path}' "
+                f"({folha.get_width()}x{folha.get_height()})"
+            )
+            return _carregar_folha(self.imagem_path)
         return folha.subsurface((x, y, Tile_size, Tile_size))
 
 

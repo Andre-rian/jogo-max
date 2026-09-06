@@ -1,11 +1,18 @@
 import json
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 #carrega o banco de itens
 _caminho = os.path.join(os.path.dirname(__file__), "..", "..", "itens.json")
-with open(_caminho, encoding="utf-8") as f:
-    _banco = json.load(f)
+try:
+    with open(_caminho, encoding="utf-8") as f:
+        _banco = json.load(f)
+except (FileNotFoundError, OSError, json.JSONDecodeError) as e:
+    logger.warning(f"[ITENS] não foi possível carregar '{_caminho}': {e}")
+    _banco = {}
 
 class Item:
     #classe bas para todos os itens do jogo
@@ -107,5 +114,5 @@ def get_item(id):
 
 
 #atalhos pra quebra galho
-EspadaLonga = Registro_Itens[1]
-MachadadoDeGuerra = Registro_Itens[3] 
+EspadaLonga = Registro_Itens.get(1)
+MachadadoDeGuerra = Registro_Itens.get(3) 

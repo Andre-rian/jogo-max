@@ -1,7 +1,7 @@
 import pygame
 import logging
 logger = logging.getLogger("fogueira")
-from settings import Tile_size
+from settings import Tile_size, DEBUG
 
 class Fogueira:
 
@@ -11,6 +11,9 @@ class Fogueira:
         self.linha = linha 
 
         self.rect = pygame.Rect(x, y, Tile_size, Tile_size)
+
+        #area de interaçao com folga de meio tile - aceita o player encostado
+        self.interacao = self.rect.inflate(Tile_size // 2, Tile_size // 2)
         
 
         self._callback_descanso = callback_descanso
@@ -36,11 +39,11 @@ class Fogueira:
         
 
 
-        dist = abs(player.rect.centerx - self.rect.centerx)
+        colide = player.rect.colliderect(self.interacao)
 
-        if dist < 80:
+        if colide:
             if not self.ativa:
-                hud.mostra_mensagem("pressione E para descansar")
+                hud.mostrar_prompt("pressione E para descansar")
 
 
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
@@ -49,7 +52,7 @@ class Fogueira:
                     fogueiras_ativas.add((self.col, self.linha)) #registra a fogueira como ativa
                     player.defenir_checkpoint(sala_atual, x=self.rect.centerx, y=self.rect.centery)
                     player.cooldown_interaçao = 60
-                    hud.limpar_mensagem()
+                    hud.limpar_prompt()
                     
                     if self._callback_abrir_menu:
                         self._callback_abrir_menu()
@@ -60,9 +63,11 @@ class Fogueira:
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                     logger.debug(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
                     player.cooldown_interaçao = 60
-                    hud.limpar_mensagem()
+                    hud.limpar_prompt()
                     if self._callback_abrir_menu:
                         self._callback_abrir_menu()
+        else:
+            hud.limpar_prompt()
 
     def _ativar(self, player, hud):
         self.ativa = True
@@ -111,7 +116,8 @@ class Fogueira:
                                 (sr.centerx - 3, sr.centery + pulso, 6, 6))
 
         # debug
-        pygame.draw.rect(tela, (200, 100, 30), sr, 1)
+        if DEBUG:
+            pygame.draw.rect(tela, (200, 100, 30), sr, 1)
 
 
 

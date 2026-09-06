@@ -1,4 +1,5 @@
 import pygame
+from settings import DEBUG
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
 
@@ -110,7 +111,8 @@ class Bomba(Projetil):
         sr = camera.aplicar(self.rect)
 
         #debug para conferir a hitbox da explosao
-        pygame.draw.rect(tela, (255, 165, 0), sr, 2)  # laranja para a bomba        
+        if DEBUG:
+            pygame.draw.rect(tela, (255, 165, 0), sr, 2)  # laranja para a bomba        
         if self.explodindo:
             #centraliza a explosao na posiçao da bomba
             sprite_w = self.anim_explosao.largura

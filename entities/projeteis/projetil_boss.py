@@ -1,4 +1,5 @@
 import pygame
+from settings import DEBUG
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
 
@@ -70,4 +71,5 @@ class ProjetilBoss(Projetil):
         self.anim.desenhar(tela, offset_x, offset_y, espelhado)
 
         # debug
-        pygame.draw.rect(tela, (255, 200, 0), sr, 2)
+        if DEBUG:
+            pygame.draw.rect(tela, (255, 200, 0), sr, 2)

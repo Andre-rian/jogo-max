@@ -1,4 +1,6 @@
 import pygame
+import logging
+logger = logging.getLogger("fogueira")
 from settings import Tile_size
 
 class Fogueira:
@@ -42,12 +44,13 @@ class Fogueira:
 
 
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
-                    print(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
+                    logger.debug(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
                     self.ativa = True
                     fogueiras_ativas.add((self.col, self.linha)) #registra a fogueira como ativa
                     player.defenir_checkpoint(sala_atual, x=self.rect.centerx, y=self.rect.centery)
                     player.cooldown_interaçao = 60
-                    self._timer_descanso = 120
+                    hud.limpar_mensagem()
+                    
                     if self._callback_abrir_menu:
                         self._callback_abrir_menu()
 
@@ -55,8 +58,9 @@ class Fogueira:
                 #fogueira ja ativida, pode descansar se sair da sala\
                 
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
-                    print(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
+                    logger.debug(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
                     player.cooldown_interaçao = 60
+                    hud.limpar_mensagem()
                     if self._callback_abrir_menu:
                         self._callback_abrir_menu()
 

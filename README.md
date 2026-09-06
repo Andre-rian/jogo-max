@@ -1,41 +1,96 @@
-# jogo-max
-jogo do projeto da materia p.o.o
+# 🗡️ Profane Echo
 
-nome do jogo: Profane Echo
+> Projeto da matéria de **Programação Orientada a Objetos (POO)**
 
-o estilo do jogo sera um aventura e plataforma, o genero pode ser chamado tambem de metroidvania
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)
+![Pygame](https://img.shields.io/badge/Pygame-Engine-brightgreen?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Em%20desenvolvimento-yellow?style=flat-square)
+![Gênero](https://img.shields.io/badge/G%C3%AAnero-Metroidvania-blueviolet?style=flat-square)
 
-o ambiente do jogo sera em um castelo, com calabouçõs ,grandes salões e ects
+---
 
-a ideia do jogo é sair/ fugir desse castelo derrotando quem quiser lhe impedi
+## 📖 Sobre o projeto
 
-Para vencer o jogador dever fugir do castelo, no caminho recuperando suas armas de voltar e derrotando o rei daquele castelo
+**Profane Echo** é um jogo de **aventura e plataforma** no estilo **metroidvania**, ambientado em um castelo repleto de calabouços, grandes salões e corredores traiçoeiros.
 
-O personagem é um cavaleiro habilidoso que foi capturado por esse reino e aprisionado no calabouço do castelo, sendo mantido como um escravo.
-o player se movimento para esquedar ou direita, podendo pular e dar dash para esquivar de ataques, pode ataca com sua espada.
-possuindo os atributos de vida e stamina
+O jogador controla um **cavaleiro habilidoso**, capturado por esse reino e aprisionado no calabouço do castelo como escravo. Para vencer, ele precisa **fugir do castelo**, recuperando suas armas pelo caminho e derrotando o **rei** que governa aquelas terras — enfrentando diversas tentativas de homicídio ao longo da jornada.
 
-os inimigos serao esqueletos dos mortos no calabouço, guardas do castelos, lobos, e o inimigo final o rei do castelo
+---
 
-o comportamento deles irao varia alguns com mais vida que ficam parados, outros mais rapidos que perseguem o player e ect
-se colidir com o inimigo sua vida ira diminui
+## 🎮 Gameplay
 
-o mapa como mencinado anteriomente sera situado em um castelo, com a medida que o jogador avança de fase são os andares do castelo que o player sobe, o jogo esta cotado para ter 3-4 fase a primeira o calabouço- tutorial, a segunda o meio do castelo, e a terceira o topo do castelo, os caminhos serao corredores, as paredes que nao poderao ser atravessadas vao desde de colunas a paredes normais, os itens ficaram com os proprios inimigos a serem derrotados
+### Movimentação
+- Andar para a **esquerda** ou **direita**
+- **Pular**
+- **Dash** (esquiva rápida) na direção do movimento, ativado ao pressionar a tecla de direção **duas vezes** em um curto intervalo de tempo
 
+### Combate
+- Ataque corpo a corpo com **espada**
+- Vida (**PV**) e **stamina** como atributos principais
+- Colisão com inimigos causa dano ao jogador
 
-o jogo nao tera um sistema de pontuaçao
+### Atributos do jogador
+| Atributo | Valor inicial | Observações |
+|---|---|---|
+| Pontos de Vida (PV) | 100 | Aumenta automaticamente conforme o jogador sobe de **level** |
+| Stamina | — | Utilizada em ações como dash e ataque |
 
-o jogador começara com uma quantidade de 100 pontos de vida ou pv, esse numero podera ser aumentado com o decorre do jogo pegando melhorias no mapa, como citado antes o jogador perde vida se levar hits dos inimigos, e se a barra de vida for zerada, o player morre e retorna a ultimo checkpoint
+Se a barra de vida chegar a zero, o jogador **morre** e retorna ao **último checkpoint**.
 
-sobre as teclas serao basicas a tecla a para ir a esquerda e ser for clicada 2 vezes no tempo certo o jogador dara um dash para a direçao da tecla, a tecla d para ir a direita e ser for clicada 2 vezes no tempo certo o jogador dara um dash para a direçao da tecla, a tecla do espaço sera para pular, e a tecla esc sera para abrir o menu do jogo que tera a opçao de sair
+### 📈 Sistema de níveis (Levels)
+O jogador evolui através de um sistema de **levels**. A cada level ganho, seus **Pontos de Vida máximos aumentam**, tornando-o mais resistente para enfrentar as fases seguintes do castelo.
 
-o jogo começa no calabouço, e para passar de fase tera que chegar no local espesifico no caso as escadas, a condiçao de derrota seria ser morto, oque acontece durante a partida é o player sofre tentativas de homicidios durante a jogatina
+### 🎒 Inventário
+O jogador conta com um **sistema de inventário**, onde itens, poções e equipamentos recuperados ao longo do jogo podem ser armazenados e gerenciados.
 
-regras nao tem muito oq citar os limites do mapa serão as parede que nao tera como passar
+---
 
+## ⌨️ Controles
 
-sobre a organização dos arquivos tenho a parte dessa fase inicial do projeto
+| Tecla | Ação |
+|---|---|
+| `A` | Mover para a esquerda *(2x rápido = dash para a esquerda)* |
+| `D` | Mover para a direita *(2x rápido = dash para a direita)* |
+| `Espaço` | Pular |
+| `ESC` | Abrir menu do jogo (com opção de sair) |
 
+---
+
+## 👹 Inimigos
+
+| Inimigo | Comportamento |
+|---|---|
+| Esqueleto | Morto-vivo do calabouço |
+| Guarda do castelo | Patrulha e defende o território |
+| Lobo | Mais rápido, persegue o jogador |
+| **Rei do castelo** | Chefe final (*boss*) |
+
+> Alguns inimigos possuem mais vida e ficam parados, enquanto outros são mais rápidos e perseguem o jogador ativamente — cada tipo com um comportamento único.
+
+---
+
+## 🏰 Fases e progressão
+
+O mapa está situado dentro de um castelo. Conforme o jogador avança, ele **sobe os andares** do castelo, cada um representando uma fase:
+
+1. **Calabouço** — fase tutorial
+2. **Meio do castelo**
+3. **Topo do castelo**
+
+Os caminhos são formados por corredores, com colunas e paredes intransponíveis delimitando os limites do mapa. Os itens são obtidos derrotando os próprios inimigos que os carregam.
+
+Para avançar de fase, o jogador precisa alcançar um ponto específico do mapa (ex: escadas).
+
+### Condições de jogo
+- ✅ **Vitória:** fugir do castelo, derrotando o rei
+- ❌ **Derrota:** morte do jogador (retorna ao último checkpoint com vida zerada)
+- 🚫 Não há sistema de pontuação
+
+---
+
+## 📁 Estrutura do projeto
+
+```
 jogo-max/
 ├── main.py
 ├── settings.py
@@ -52,20 +107,20 @@ jogo-max/
 │   ├── __init__.py
 │   ├── entity.py
 │   ├── player.py
-│   └── monsters/
-│       ├── __init__.py
-│       ├── skeleton.py
-│       ├── globin.py
-│       ├── mushroom.py
-│       ├── flying_eye.py
-│       └── skeleton_boss.py
-│   └── projeteis/
-│       ├── __init__.py
-│       ├── projetil.py
-│       ├── bomba.py
-│       ├── esporo_mushroom.py
-│       ├── projetil_flying_eye.py
-│       └── projetil_boss.py
+│   ├── monsters/
+│   │   ├── __init__.py
+│   │   ├── skeleton.py
+│   │   ├── globin.py
+│   │   ├── mushroom.py
+│   │   ├── flying_eye.py
+│   │   └── skeleton_boss.py
+│   ├── projeteis/
+│   │   ├── __init__.py
+│   │   ├── projetil.py
+│   │   ├── bomba.py
+│   │   ├── esporo_mushroom.py
+│   │   ├── projetil_flying_eye.py
+│   │   └── projetil_boss.py
 │   └── objetos/
 │       ├── __init__.py
 │       ├── item.py
@@ -91,10 +146,29 @@ jogo-max/
     │   │   └── flying_eye/
     │   └── objetos/baus/
     └── tileset/calabouço/
+```
 
-o minimo que queremos entrega na primeira versão seria a parte inicial da fase 1(calabouço)
-o minino para o jogo rodar seria as bibliotecas
+---
 
+## 🚀 Requisitos
 
-melhorias futuras sao muitas
-mapas diferentes, sistema de levels do player, outras armas e armaduras, sistema de uma loja para trocar moedas por melhorias e etc
+- **Python 3.x**
+- **Pygame**
+
+---
+
+## 📦 Escopo da primeira entrega
+
+O mínimo a ser entregue na primeira versão é a parte inicial da **Fase 1 (Calabouço)**, com o jogo rodando com as bibliotecas mínimas necessárias.
+
+---
+
+## 🔮 Melhorias futuras
+
+- 🗺️ Mapas diferentes
+- ⚔️ Outras armas e armaduras
+- 🛒 Sistema de loja para trocar moedas por melhorias
+
+---
+
+<p align="center"><i>Profane Echo — escape, sobreviva, ressoe.</i></p>

@@ -12,6 +12,11 @@ Titulo = "Profane Echo"
 # Titulo
 Tile_size = 32
 
+# camera
+ZOOM_PADRAO = 1.35      # mais proximo do player
+ZOOM_BOSS = 1.0         # em luta contra o boss, desaproxima (mostra mais da arena)
+ZOOM_SUAVIZAÇÃO = 0.08
+
 
 # fisica player
 

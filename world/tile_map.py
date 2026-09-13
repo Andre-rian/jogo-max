@@ -56,9 +56,9 @@ class TileMap:
 
     def __init__(self, grid, grid_decoracao=None, grid_fundo=None):
 
-        self.grid = grid
-        self.linhas = len(grid)
-        self.colunas = len(grid[0]) if self.linhas > 0 else 0
+        self.grid = self._converter_grid_fallback(grid)
+        self.linhas = len(self.grid)
+        self.colunas = len(self.grid[0]) if self.linhas > 0 else 0
 
         self.grid_decoracao = grid_decoracao
         self.grid_fundo = grid_fundo
@@ -66,6 +66,24 @@ class TileMap:
         self.rects_solidos = self._calcular_rects_solidos()
         self.rects_dano = self._calcular_rects_danos()
         self.rects_bau = self._calcular_rects_baus()        
+
+    @staticmethod
+    def _converter_grid_fallback(grid):
+        #grids python (ints 0..9, usados quando nao existe tmx) viram TileRef
+        #placeholder para a fisica e desenho do jogo
+        novo = []
+        for linha in grid:
+            nova = []
+            for ref in linha:
+                if isinstance(ref, int):
+                    if ref == 0:
+                        nova.append(None)
+                    else:
+                        nova.append(TileRef("placeholder", "", 0, 0, tile_id_legado=ref))
+                else:
+                    nova.append(ref)
+            novo.append(nova)
+        return novo        
 
     #carregamento do tmx
 
@@ -188,6 +206,7 @@ class TileMap:
 
             objetos.append({
                 "tipo" : tipo,
+                "id": int(obj.get("id")),
                 "col" : int(x // Tile_size),
                 "linha" : int(y // Tile_size) ,
                 "propriedades" : propriedades ,

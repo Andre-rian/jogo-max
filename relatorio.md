@@ -193,9 +193,14 @@ jogo-max/
 | 11 | Renomear typos consagrados (`Screen_widht`, `Savemaneger`...) | consistência | médio | ⏳ |
 | 12 | ZeroDivision na tela de morte (`duraçao_morte`) + clamps na física | robustez | baixo | ⏳ |
 | 13 | Adicionar type hints e um primeiro teste automatizado | qualidade geral | alto | ⏳ |
+| 14 | Câmera com zoom: aproxima do player (1.35x) e desaproxima na luta do boss (1.0x, ease suave) | jogabilidade | médio | ✅ |
+| 15 | Spawn do player na troca de sala usa o spawn do TMX (nome do lado da entrada ou `default`); antes o jogador nascia dentro da parede do `calabouco_2` (linha fixa dos dados fallback) | bug | médio | ✅ |
+| 16 | Salas sem TMX (fallback 3–5) crashavam no carregamento: grid de `int` ia direto para o `TileMap` que esperava `TileRef` — agora converte para placeholder | bug | alto | ✅ |
 
 ## Status de validação
 - Todos os arquivos alterados compilam (`compileall` exit 0).
 - Smoke test de import (menu, cena, inventário, pausa, morte, fogueira, HUD novo, `core/recursos`, `core/camera`, `core/navegacao`, `world/niveis`, `save_manager`) — OK.
 - Smoke test de runtime com `DEBUG=False`: `Gamescene` roda 120 frames + pausa + inventário + notificação + morte — OK.
 - Teste do prompt contextual nos 5 objetos (baú, porta, fogueira, drop, eco): aparece na colisão com a hitbox e some ao sair — OK.
+- Câmera: zoom 1.35 no dia a dia, ease para 1.0 em luta de boss e volta ao normal após a derrota — OK (teste com o boss real do calabouço_5).
+- Spawn nas trocas de sala: `calabouço_1 → calabouço_2` usa o spawn do TMX (32, 640) sem cair em parede; ida e volta validado; salas fallback (3–5) carregam sem crash — OK.

@@ -28,6 +28,7 @@ from entities.objetos.porta import Porta
 from entities.objetos.drop_eco import DropEco
 
 from entities.objetos.fogueira import Fogueira
+from entities.objetos.tocha import Tocha, NOME_TILESET_TOCHA, FLAME_ROWS
 from core.menu_fogueira import MenuFogueira
 
 from entities.monsters.skeleton import Skeleton
@@ -128,6 +129,9 @@ class Gamescene:
         self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
         self._frame_pausa = 0
+
+        #debug: mostra o que o engine considera plataforma/escada (F3 no jogo)
+        self.debug_tiles = False
     
 
     
@@ -149,26 +153,62 @@ class Gamescene:
             grid = TileMap.carregar_camada_tmx(caminho_tmx, "colisao")
             grid_decoracao = TileMap.carregar_camada_tmx(caminho_tmx, "decoracao")
             grid_fundo = TileMap.carregar_camada_tmx(caminho_tmx, "fundo")
+            grid_escadas = TileMap.carregar_camada_tmx(caminho_tmx, "escadas")
+            grid_plataformas = TileMap.carregar_camada_tmx(caminho_tmx, "plataformas")
             objetos_tmx = TileMap.carregar_objetos_tmx(caminho_tmx, "objetos")
 
 
             if grid is None:
                 logger.warning(f"[MAPA] '{nome_sala}': camada 'colisao' ausente no TMX, caindo para o FALLBACK pythoi")
                 grid = [linha[:] for linha in Salas[nome_sala]]
-           
         else:
             logger.info(f"[MAPA] '{caminho_tmx}' Caminho TMX não encontrado - carregando '{nome_sala}' via PYTHON grid (Fallback)")
             grid = [linha[:] for linha in Salas[nome_sala]]
             grid_decoracao = None
             grid_fundo = None
+            grid_escadas = None
+            grid_plataformas = None
             objetos_tmx = None
         
 
 
 
+
     
         
-        self.mapa = TileMap(grid, grid_decoracao, grid_fundo)
+        self.mapa = TileMap(grid, grid_decoracao, grid_fundo, grid_escadas, grid_plataformas)
+
+
+        #tochas decorativas: uma tocha = um FOGO (linha 0 ou 2 da folha) + a HASTE
+        #logo abaixo (linha seguinte). Só o fogo vira entidade (32x64 já com a haste);
+        #as células do mapa que sobravam (fogo estático + haste) são removidas.
+        self.tochas = []
+        if grid_decoracao is not None:
+            raizes = []
+            for linha_idx_d, linha_d in enumerate(grid_decoracao):
+                for col_idx_d, ref in enumerate(linha_d):
+                    if ref is None or ref.tileset_nome != NOME_TILESET_TOCHA:
+                        continue
+                    if ref.linha in FLAME_ROWS:
+                        raizes.append((col_idx_d, linha_idx_d, ref.linha))
+
+            for col_idx_d, linha_idx_d, linha_folha in raizes:
+                variante = "fraca" if linha_folha == 0 else "forte"
+                self.tochas.append(Tocha(col_idx_d * Tile_size, linha_idx_d * Tile_size,
+                                         col_idx_d, linha_idx_d, variante=variante))
+                grid_decoracao[linha_idx_d][col_idx_d] = None
+                if linha_idx_d + 1 < len(grid_decoracao):
+                    embaixo = grid_decoracao[linha_idx_d + 1][col_idx_d]
+                    if embaixo is not None and embaixo.tileset_nome == NOME_TILESET_TOCHA:
+                        grid_decoracao[linha_idx_d + 1][col_idx_d] = None
+        if objetos_tmx is not None:
+            for obj in objetos_tmx:
+                if obj["tipo"] != "tocha":
+                    continue
+                col_idx, linha_idx = obj["col"], obj["linha"]
+                variante = obj["propriedades"].get("variante", "forte")
+                self.tochas.append(Tocha(col_idx * Tile_size, linha_idx * Tile_size,
+                                         col_idx, linha_idx, variante=variante))
 
 
 
@@ -565,6 +605,11 @@ class Gamescene:
     def atualizar(self, eventos): 
         teclas = pygame.key.get_pressed()
 
+        #F3 liga/desliga o debug de plataforma/escada
+        for ev in eventos:
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F3:
+                self.debug_tiles = not self.debug_tiles
+
         if self.menu_fogueira.aberto:
             self.menu_fogueira.atualizar(eventos)
             return
@@ -585,7 +630,9 @@ class Gamescene:
         #bloquueia os outros atualizar se o player estiver morto
         if self.morrendo:
             #atualizar o player
-            self.player.atualizar(rects_solidos, self.camera)
+            self.player.atualizar(rects_solidos, self.camera,
+                                  rects_plataforma=self.mapa.rects_plataforma,
+                                  rects_escada=self.mapa.rects_escada)
 
             #camera segue o player
             self._atualizar_zoom_camera()
@@ -596,7 +643,9 @@ class Gamescene:
             return
 
         #atualizar o player
-        self.player.atualizar(rects_solidos, self.camera)
+        self.player.atualizar(rects_solidos, self.camera,
+                              rects_plataforma=self.mapa.rects_plataforma,
+                              rects_escada=self.mapa.rects_escada)
 
         #atualizar a transiçao de cena
         self._checar_transiçao()
@@ -619,6 +668,9 @@ class Gamescene:
 
         for porta in self.portas:
             porta.atualizar(self.player, teclas, self.hud, self.portas_abertas)
+
+        for tocha in self.tochas:
+            tocha.atualizar()
 
         #atualizar os espinhos
         self._checar_espinhos()
@@ -1045,6 +1097,9 @@ class Gamescene:
 
         self.mapa.desenhar(vista, self.camera)
 
+        for tocha in self.tochas:
+            tocha.desenhar(vista, self.camera)
+
         for inimigo in self.inimigos:
             inimigo.desenhar(vista, self.camera)
 
@@ -1088,6 +1143,26 @@ class Gamescene:
         self.player.desenhar(vista, self.camera)
         sr_player = self.camera.aplicar(self.player.rect)
 
+        if self.debug_tiles:
+            #verde = o que o engine considera plataforma one-way
+            for r in self.mapa.rects_plataforma:
+                sr = self.camera.aplicar(r)
+                over = pygame.Surface((sr.width, sr.height), pygame.SRCALPHA)
+                over.fill((0, 255, 0, 60))
+                vista.blit(over, sr)
+                pygame.draw.rect(vista, (0, 255, 0), sr, 2)
+            #amarelo = celulas de escada
+            for r in self.mapa.rects_escada:
+                sr = self.camera.aplicar(r)
+                over = pygame.Surface((sr.width, sr.height), pygame.SRCALPHA)
+                over.fill((255, 220, 0, 45))
+                vista.blit(over, sr)
+                pygame.draw.rect(vista, (255, 220, 0), sr, 2)
+            #marcador magenta nos pes = esta de pe em uma plataforma (pronto p/ S+Espaço)
+            if self.player._sobre_plataforma:
+                pe = pygame.Rect(self.player.rect.centerx - 3, self.player.rect.bottom - 3, 6, 6)
+                pygame.draw.rect(vista, (255, 0, 255), self.camera.aplicar(pe))
+
         for bau in self.baus:
             bau.desenhar(vista, self.camera)  
 
@@ -1113,6 +1188,22 @@ class Gamescene:
         self.inventario.desenhar(self.player)
 
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
+
+        #overlay de debug (F3): estado de plataformas/escadas direto na tela
+        if self.debug_tiles:
+            linhas_info = []
+            if self.player._sobre_plataforma:
+                linhas_info.append("SOBRE PLATAFORMA -> S+espaco (ou seta+espaco) para descer")
+            if self.player._timer_atravessar > 0:
+                linhas_info.append("DESCENDO PELA PLATAFORMA...")
+            if self.player._escalando:
+                linhas_info.append("ESCALANDO (W sobe / S desce)")
+            if not linhas_info:
+                linhas_info.append("F3: plat=verde escada=amarelo (nenhuma condicao ativa)")
+            fonte_debug = pygame.font.SysFont(None, 24)
+            for i, msg in enumerate(linhas_info):
+                txt = fonte_debug.render(msg, True, (255, 255, 255), (0, 0, 0))
+                self.tela.blit(txt, (10, 8 + i * 26))  
 
         #tela de morte - desenhada por cima de tudo
         if self.morrendo:

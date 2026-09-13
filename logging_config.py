@@ -1,5 +1,5 @@
 import logging
-from logging.handlers import RotatingFileHandler
+from logging import FileHandler
 
 NIVEL = logging.DEBUG
 ARQUIVO_LOG = "jogo.log"
@@ -9,12 +9,10 @@ DATA_FORMATO = "%H:%M:%S"
 
 
 def configurar_logging():
-    # RotatingFileHandler: o log cresce até MAX_BYTES e rotaciona para
-    # jogo.log.1, jogo.log.2 ... em vez de ser sobrescrito a cada execução.
-    file_handler = RotatingFileHandler(
+    #FileHandler: um único arquivo de log (jogo.log), sem rotação jogo.log.1/2/3
+    file_handler = FileHandler(
         ARQUIVO_LOG,
-        maxBytes=1_000_000,
-        backupCount=3,
+        mode="a",
         encoding="utf-8",
     )
 

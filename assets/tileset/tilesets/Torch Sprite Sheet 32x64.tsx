@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<tileset version="1.10" tiledversion="1.12.2" name="Torch Sprite Sheet 32x64" tilewidth="32" tileheight="32" tilecount="16" columns="4">
+  <image source="../calabouco/Torch Sprite Sheet 32x64.png" width="128" height="128"/>
+</tileset>
+

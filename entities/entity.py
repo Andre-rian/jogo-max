@@ -46,6 +46,13 @@ class Entity(pygame.sprite.Sprite):
         #mask, começando a implementaçõa 
         self.mask = None
 
+        #plataformas one-way: True quando os pés estão apoiados em uma
+        self._sobre_plataforma = False
+
+        #durante drop, linha (row) que o solid deve ignorar ate o player descer abaixo dela
+        self._drop_linha_top = None
+        self._drop_linha_baixo = 0
+
 
     #Gravidade 
     def aplicar_gravidade(self):
@@ -63,7 +70,7 @@ class Entity(pygame.sprite.Sprite):
 
 
     #COLISAO
-    def mover_com_colisão(self, rects_solidos):
+    def mover_com_colisão(self, rects_solidos, rects_plataforma=None):
         #move o rect pelo os eixos separadamente 
 
         #eixo x
@@ -72,27 +79,90 @@ class Entity(pygame.sprite.Sprite):
 
         for tile in rects_solidos:
             if self.rect.colliderect(tile):
-                if self.vel.x > 0:      #indo para direita
+                #resolve pela penetração mínima (face mais próxima), NÃO pela direção
+                #da velocidade: senão, preso em um lado contrário ao movimento (ex.:
+                #respawn/teletransporte dentro de uma parede), o player é LANÇADO pro
+                #outro lado da tile e atravessa as colisões no caminho
+                saida_esq = self.rect.right - tile.left
+                saida_dir = tile.right - self.rect.left
+                if saida_esq <= saida_dir:
                     self.rect.right = tile.left
-                elif self.vel.x < 0:
-                    self.rect.left = tile.right #indo para esquerda
-                self.vel.x = 0 
+                else:
+                    self.rect.left = tile.right
+                self.vel.x = 0
+                #resolve só o 1º solido por frame (evita cascata de 32px por tile)
+                break 
 
         #eixo y
         self.no_chao = False
+        self._sobre_plataforma = False
+        pe_anterior = self.rect.bottom
         self.rect.y += int(self.vel.y)
 
         for tile in rects_solidos:
             if self.rect.colliderect(tile):
                 if self.vel.y > 0:      #caindo
-                    self.rect.bottom = tile.top
-                    self.no_chao = True
+                    #1) durante o drop (timer>0) deixa passar tudo
+                    #2) apos o timer, ainda ignora o solid da MESMA row da plataforma
+                    #   ate o player ter descido abaixo dela (senão é jogado de volta)
+                    ignorar_solid = self._atravessando()
+                    if (not ignorar_solid and self._drop_linha_top is not None
+                            and tile.top == self._drop_linha_top
+                            and self.rect.top < self._drop_linha_baixo):
+                        ignorar_solid = True
+                    if ignorar_solid:
+                        continue
+                    #também por penetração mínima: cair de lado com um canto preso
+                    #numa parede não pode "puxar" o player para cima/para o outro lado
+                    saida_topo = self.rect.bottom - tile.top
+                    saida_baixo = tile.bottom - self.rect.top
+                    if saida_topo <= saida_baixo:
+                        self.rect.bottom = tile.top
+                        self.no_chao = True
+                    else:
+                        self.rect.top = tile.bottom
                     self.vel.y = 0
+                    break
                 elif self.vel.y < 0:    #subindo(bateu no teto)
+                    #plataforma one-way na subida: sólido da MESMA row da plataforma (a
+                    #parede que a ladeia) não bloqueia enquanto o player cruza a horizontal
+                    #da plataforma. Assim o pulo vindo de baixo passa pelo vão e sobe limpo,
+                    #podendo pousar em cima. Teto de verdade (outra row) continua bloqueando.
+                    if rects_plataforma and self._solido_na_row_da_plataforma(tile, rects_plataforma):
+                        continue
                     self.rect.top = tile.bottom
-                    self.vel.y = 0 
+                    self.vel.y = 0
+                    break 
+
+        if rects_plataforma and self.vel.y >= 0 and not self._atravessando():
+            #plataforma one-way: segura só vindo de cima. pula por baixo e desce (drop) ignoram
+            #usar sobreposição horizontal + proximidade vertical (nao colliderect): detecta
+            #tambem quando o player é segurado pelo solido ao lado e fica em edge-touch (ex: 288)
+            for plat in rects_plataforma:
+                dentro_x = self.rect.right > plat.left and self.rect.left < plat.right
+                if dentro_x and self.rect.bottom >= plat.top and pe_anterior - 1 <= plat.top:
+                    self.rect.bottom = plat.top
+                    self.no_chao = True
+                    self._sobre_plataforma = True
+                    self.vel.y = 0
+
         if self.no_chao:
             self.vel.y = 0
+
+        #se o player desceu além da row do drop, pode voltar a colidir com solidos normais
+        if self._drop_linha_top is not None and self.rect.top >= self._drop_linha_baixo:
+            self._drop_linha_top = None
+
+    def _atravessando(self):
+        #entidades que podem descer atraves de plataformas (player) sobrescrevem
+        return False
+
+    def _solido_na_row_da_plataforma(self, tile, rects_plataforma):
+        #o sólido está na mesma row de uma plataforma one-way E o player a cruza na horizontal?
+        for plat in rects_plataforma:
+            if tile.top == plat.top and self.rect.right > plat.left and self.rect.left < plat.right:
+                return True
+        return False
 
     #Dano/combante
     def receber_dano(self, quantidade, frames_invenc=None):

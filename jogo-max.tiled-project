@@ -1,0 +1,15 @@
+{
+    "automappingRulesFile": "",
+    "commands": [],
+    "compatibilityVersion": "1.12",
+    "extensionsPath": "",
+    "folders": [
+        {
+            "path": "assets"
+        }
+    ],
+    "objectTypesFile": "",
+    "propertyTypes": [],
+    "scriptsPath": "",
+    "templatesPath": ""
+}

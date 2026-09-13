@@ -21,6 +21,7 @@ class Player(Entity):
     Atacando = "atacando"
     Bebendo = "bebendo"
     Pegando = "pegando"
+    Escalando = "escalando"
     Morto = "morto"
 
     #status base
@@ -62,7 +63,7 @@ class Player(Entity):
 
     def __init__(self, x, y):
         hp_inicial = self.HP_BASE + (self.VIGOR_INICIAL * self.HP_POR_VIGOR)
-        super().__init__(x, y, largura=Tile_size * 2, altura=Tile_size * 2, hp_max=hp_inicial)
+        super().__init__(x, y, largura=Tile_size * 1.2, altura=Tile_size * 2, hp_max=hp_inicial)
 
         
         
@@ -123,6 +124,19 @@ class Player(Entity):
 
         #interaçao (evita pressionar E em multiplos objetos ao mesmo tempo)
         self.cooldown_interaçao = 0
+
+        #plataformas one-way e escadas
+        self._timer_atravessar = 0   #frames atravessando a plataforma (S+Espaço)
+        self._escalando = False       #se está subindo/descendo em uma escada
+        self._bloqueio_escalada = 0   #frames sem poder pegar escada logo apos pular
+        self._escada_lock = None      #cell da escada em que está agarrado
+        self._escada_top = None       #limite superior do corredor da escada
+        self._escada_bottom = 0       #limite inferior do corredor da escada
+        self._escalando_prev = False  #estava escalando no frame anterior (p/ sair limpo ao soltar)
+        self._debug_plat_prev = False #diagnostico: avisa 1x quando fica em cima da plataforma
+        self._aguardando_drop = 0      #frames de tolerancia p/ apertar baixo apos o espaço
+        self._drop_linha_top = None    #durante o drop, topo da row ignorada nos solidos
+        self._drop_linha_baixo = 0
 
         #invetario(bem basico)
         self.inventario = {
@@ -279,8 +293,8 @@ class Player(Entity):
 
 
 
-    #UPDATE
-    def atualizar(self, rects_solidos, camera):
+#UPDATE
+    def atualizar(self, rects_solidos, camera, rects_plataforma=None, rects_escada=None):
         if not self.vivo:
             self.estado = self.Morto                                
             if self._estado_anterior != self.Morto:   #animação de morte
@@ -295,8 +309,7 @@ class Player(Entity):
         
 
 
-           
-
+       
 
         self._frame_atual += 1
 
@@ -304,13 +317,18 @@ class Player(Entity):
         
         self._verificar_dash(teclas)
         self._mover_horizontal(teclas)
-        self._pular(teclas)
+        self._pular(teclas, rects_plataforma, rects_solidos)
         self._atacar(teclas)
         self._usar_pocao(teclas)
         self._atualizar_stamina(teclas)
+        self._escalar(teclas, rects_escada)
 
         self.aplicar_gravidade()
-        self.mover_com_colisão(rects_solidos)
+        self.mover_com_colisão(rects_solidos, rects_plataforma)
+        #diagnostico: avisa quando o player fica de pe numa plataforma (uma vez so por pouso)
+        if self._sobre_plataforma and not self._debug_plat_prev:
+            logger.info(f"[DROPLOG] DE PE em plataforma (bottom={self.rect.bottom})")
+        self._debug_plat_prev = self._sobre_plataforma
         self.atualizar_invencibilidade()
         self._atualizar_estado()
         self._atualizar_times()
@@ -409,16 +427,112 @@ class Player(Entity):
                 self.vel.x = 0
 
     #PULO
-    def _pular(self, teclas):
+    def _pular(self, teclas, rects_plataforma=None, rects_solidos=None):
         if self.em_dahs:
             #so pular se tiver no chao
             return
-        if teclas[pygame.K_SPACE] and self.no_chao:
+
+        if teclas[pygame.K_SPACE]:
+            #S+Espaço (ou Seta-pbaixo+Espaço) em cima de uma plataforma = desce atraves dela
+            segurando_baixo = teclas[pygame.K_s] or teclas[pygame.K_DOWN]
+            if (segurando_baixo and self._sobre_plataforma and rects_plataforma):
+                if not self._poder_descer(rects_solidos):
+                    #só desce se TODA a largura do player está sobre a plataforma: com parte
+                    #do player sobre um bloco solido (ex: metade na plataforma, metade no bloco),
+                    #o espaço abaixo não cabe ele e o drop não acontece
+                    logger.info("[DROPLOG] drop bloqueado: parte do player esta sobre um bloco solido")
+                    return
+                self._aguardando_drop = 0
+                self._drop_linha_top = self.rect.bottom
+                self._drop_linha_baixo = self.rect.bottom + Tile_size
+                logger.info(f"[DROPLOG] DROP disparou (baixo segurado + espaço, sobre_plataforma={self._sobre_plataforma}, vel.y={self.vel.y:.1f}, bottom={self.rect.bottom})")
+                self._timer_atravessar = 8
+                self.no_chao = False
+                self.vel.y = 2
+                return
+
+            #espaço veio ANTES do baixo, mas estamos em cima da plataforma:
+            #aguarda alguns frames pro baixo chegar (funciona tambem espaço+s)
+            if self._sobre_plataforma and rects_plataforma:
+                edge_espaco = (self._teclas_anterior is None or not self._teclas_anterior[pygame.K_SPACE])
+                if edge_espaco:
+                    logger.info(f"[DROPLOG] espaço apertado em cima de plataforma - aguardando baixo (S/seta) bottom={self.rect.bottom}")
+                if self._aguardando_drop > 0:
+                    self._aguardando_drop -= 1
+                elif edge_espaco:
+                    self._aguardando_drop = 6
+                if self._aguardando_drop > 0:
+                    return
+
+            #pula do chao normalmente, ou direto da escada
+            if not self.no_chao and not self._escalando:
+                return
             if not self._tem_stamina(self.Stamina_pulo):
                 return #sem stamina nao pula
             self.vel.y = self.Pulo
             self.no_chao = False
+            self._escalando = False
+            self._bloqueio_escalada = 12  #nao pega escada subindo (pulo limpo)
             self._gastar_stamina(self.Stamina_pulo)
+
+    #ESCADA - subir/descer segurando W e S
+    def _escalar(self, teclas, rects_escada=None):
+        if self.em_dahs or self.recebendo_knockback or not rects_escada:
+            self._escalando = False
+            return
+
+        sobre_escada = self.rect.collidelist(rects_escada)
+        segurando = teclas[pygame.K_w] or teclas[pygame.K_s]
+
+        #agarrar a escada ao encostar segurando W/S (bloqueio so nos frames logo apos pular)
+        if sobre_escada != -1 and segurando and self._bloqueio_escalada <= 0 and not self._atravessando():
+            if not self._escalando:
+                self._escada_lock = rects_escada[sobre_escada]
+                self._calcular_corredor_escada(rects_escada)
+                logger.info(f"[DROPLOG] AGARROU escada (rect={self.rect})")
+            self._escalando = True
+            self.vel.x = 0  #ao escalar nao anda para os lados
+        else:
+            self._escalando = False
+            return
+
+        if teclas[pygame.K_w]:
+            self.vel.y = -self.Speed
+        elif teclas[pygame.K_s]:
+            self.vel.y = self.Speed
+        self.no_chao = False
+
+    def _calcular_corredor_escada(self, rects_escada):
+        #corredor vertical da escada: conjunto das cells na mesma coluna
+        esc = self._escada_lock
+        tops, baixos = [], []
+        for r in rects_escada:
+            if r.left < esc.right and r.right > esc.left:
+                tops.append(r.top)
+                baixos.append(r.bottom)
+        self._escada_top = min(tops)
+        self._escada_bottom = max(baixos)
+
+    def aplicar_gravidade(self):
+        #escalando nao cai: o movimento vertical é controlado pelo W/S
+        if self._escalando:
+            return
+        super().aplicar_gravidade()
+
+    def _atravessando(self):
+        return self._timer_atravessar > 0
+
+    def _poder_descer(self, rects_solidos):
+        #o drop só é permitido se o retângulo inteiro do player está sobre a plataforma:
+        #nenhum solido da row do pe pode encostar na faixa horizontal do player
+        #(senão ele desceria "metade na plataforma, metade dentro de um bloco")
+        if not rects_solidos:
+            return True
+        pe = self.rect.bottom
+        for s in rects_solidos:
+            if s.top == pe and self.rect.left < s.right and s.left < self.rect.right:
+                return False
+        return True
 
     #ATAQUEEEE -- clique esquerdo do mouse
     def _atacar(self, teclas):
@@ -613,6 +727,14 @@ class Player(Entity):
         if self.cooldown_interaçao > 0:
             self.cooldown_interaçao -= 1
 
+        #atravessando plataforma (S+Espaço)
+        if self._timer_atravessar > 0:
+            self._timer_atravessar -= 1
+
+        #bloqueio de pegar escada apos pulo
+        if self._bloqueio_escalada > 0:
+            self._bloqueio_escalada -= 1
+
     def _usar_pocao(self, teclas):
         self.pocao.atualizar()
         
@@ -668,7 +790,9 @@ class Player(Entity):
     def _atualizar_estado(self):
         #define o estado atual com base no player
 
-        if self.em_dahs:
+        if self._escalando:
+            self.estado = self.Escalando
+        elif self.em_dahs:
             self.estado = self.Dash
         elif self._pegando:
             self.estado = self.Pegando
@@ -706,19 +830,72 @@ class Player(Entity):
         self.vivo = True
         self.vel = pygame.Vector2(0,0)
         self.estado = self.Parado
+        self._escalando = False
+        self._escada_lock = None
+        self._escada_top = None
+        self._escada_bottom = 0
+        self._escalando_prev = False
+        self._timer_atravessar = 0
+        self._bloqueio_escalada = 0
+        self._aguardando_drop = 0
+        self._debug_plat_prev = False
+        self._drop_linha_top = None
+        self._drop_linha_baixo = 0
         logger.info(f"respawnando em: x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
         self.atacando = False
 
 
     #colisao
-    def mover_com_colisão(self, rects_solidos):
+    def mover_com_colisão(self, rects_solidos, rects_plataforma=None):
+        foi_escalando = self._escalando_prev
+        self._escalando_prev = self._escalando
+
+        if self._escalando:
+            #subindo/descendo a escada: preso na coluna dela, sem colidir com as paredes
+            esc = self._escada_lock
+            if esc is not None:
+                self.rect.centerx = esc.centerx
+            self.rect.y += int(self.vel.y)
+            if self._escada_top is not None:
+                if self.rect.top < self._escada_top:
+                    self.rect.top = self._escada_top
+                    self.vel.y = 0
+                if self.rect.bottom > self._escada_bottom:
+                    self.rect.bottom = self._escada_bottom
+                    self.vel.y = 0
+            self.no_chao = False
+            self._sobre_plataforma = False
+            return
+
+        if foi_escalando:
+            #soltou a escada: sai limpo dos blocos (sem "jogada" nem ficar preso)
+            self._empurrar_fora_dos_solidos(rects_solidos)
+            self._escada_lock = None
+            self._escada_top = None
+            self._escada_bottom = 0
+
         # chama a colisão normal da Entity
-        super().mover_com_colisão(rects_solidos)
+        super().mover_com_colisão(rects_solidos, rects_plataforma)
     
         # se estava em dash e bateu na parede (vel.x zerou), cancela o dash
         if self.em_dahs and self.vel.x == 0:
             self.em_dahs = False
             self.timer_dash = 0
+
+    def _empurrar_fora_dos_solidos(self, rects_solidos):
+        #empurra o rect na horizontal para fora de qualquer solido, pelo menor deslocamento
+        for _ in range(4):
+            i = self.rect.collidelist(rects_solidos)
+            if i == -1:
+                return
+            tile = rects_solidos[i]
+            p_esquerd = self.rect.right - tile.left   #anda p/ a esquerda ate encostar
+            p_direit = tile.right - self.rect.left     #anda p/ a direita ate encostar
+            if p_esquerd < p_direit:
+                self.rect.x -= p_esquerd
+            else:
+                self.rect.x += p_direit
+            self.vel.x = 0
     
 
     #DESENHO (placerholder geometrico ou coisa do tipo)

@@ -88,8 +88,8 @@ Todos os `print()` de debug foram substituídos por `logger` (níveis `debug`/`i
 ### 15. Bug das partículas do Eco Profano corrigido
 - `drop_eco.py` tinha `if self._timer * 8 == 0` (nunca verdadeiro; partículas nunca spawnavam) → `self._timer % 8 == 0`.
 
-### 16. `jogo.log` com `RotatingFileHandler`
-- `jogo.log` cresce até 1 MB e rotaciona (`jogo.log.1`, `.2`, `.3`) em vez de ser sobrescrito a cada execução (`mode="w"`).
+### 16. `jogo.log` com `FileHandler` (arquivo único)
+- `jogo.log` é **um único arquivo** com `FileHandler(mode="a")`: as execuções acumulam no mesmo `jogo.log`, sem rotação. **Razão:** com `RotatingFileHandler` (versão anterior) o histórico virava `jogo.log.1/.2/.3` múltiplos, e vários logs "soltos" se espalhavam; com arquivo único fica simples de acompanhar. (Nesta sessão: `RotatingFileHandler` → `FileHandler`.)
 
 ### 17. Prompt contextual de interação (`mostrar_prompt`/`limpar_prompt`)
 - **Antes:** os objetos (baú, porta, fogueira, drops, eco) mediam uma distância pelo `centerx` do player (`dist < 10/50/60/80`) e chamavam `hud.mostra_mensagem(...)`, que seta um timer de 180 frames — a dica aparecia de longe e **ficava na tela** mesmo depois de o player sair.
@@ -99,6 +99,37 @@ Todos os `print()` de debug foram substituídos por `logger` (níveis `debug`/`i
   - ao coletar/interagir (abrir baú, pegar item, alternar porta, descansar), o prompt é limpo na hora.
 - Aplicado em: `entities/objetos/bau.py`, `porta.py`, `fogueira.py`, `drop.py`, `drop_eco.py`. Mensagens de evento ("Jogo salvo", "O caminho esta livre") continuam no `mostra_mensagem` temporizado.
 - **Ajuste pós-teste:** descobriu-se que a porta é **sólida na física** (`game_scene` adiciona `p.rect` das portas fechadas aos `rects_solidos`), então o player é bloqueado na frente dela e **nunca sobrepõe a hitbox real** — com `colliderect` estrito a porta ficava impossível de abrir. Cada objeto ganhou um `interacao` (rect inflado): a porta com ~1 tile de folga de cada lado (abre encostado, dos dois lados), baú/fogueira/drops/eco com folga de meio tile. Demais objetos continuam em tiles caminháveis, então a sobreposição acontece normalmente.
+
+## Plataformas, escadas, colisão e tilesets (nova leva)
+
+### 18. Plataformas one-way estilo Terraria + drop
+- Tiles de plataforma (gids globais `PLATAFORMA_GIDS` no `world/tiles.py`) não participam da colisão sólida — funcionam como piso: o player anda/salta por **baixo** delas, **segura só caindo de cima** e **desce com S+Espaço** (ou Seta-baixo+Espaço).
+- Física em `world/tile_map.py` + `world/tiles.py`: `_eh_plataforma` reconhece a plataforma pelo gid (máscara `& 0x1FFFFFFF` para flips) e existe camada dedicada `plataformas` no TMX (qualquer tile pintado vira plataforma).
+- **Subida limpa:** ao pular por baixo de uma plataforma ladeada por parede, o sólido da **mesma row** da plataforma não bloqueia a subida (o pulo passa pelo vão e pousa em cima) — mas teto real de outra row continua bloqueando.
+- **Drop** (`entities/player.py`): S+Espaço dispara o atravessamento (`_timer_atravessar=8`) ignorando só a row da plataforma até o player descer abaixo dela; ordem invertida (Espaço→S) tem janela de tolerância de 6 frames.
+
+### 19. Drop só com o retângulo inteiro sobre a plataforma
+- **Pedido do usuário:** o player só pode descer se o espaço abaixo "cabe" ele — nada de descer "metade na plataforma, metade em cima de um bloco".
+- Implementado via `_poder_descer(rects_solidos)` em `player.py`: antes de disparar o drop, se algum sólido da **row do pé** encostar na faixa horizontal do player, o drop é **bloqueado** (fica parado, não pula nem desce). Metade sobre o **vazio** (sem bloco) continua descendo normalmente.
+
+### 20. Correção do "lançamento"/teleporte ao colidir
+- `entities/entity.py` — `mover_com_colisão`:
+  - **Antes:** o loop resolvia **todas** as tiles colidindo no mesmo frame (cascata de snaps de 32px por tile → teleporte através das paredes) e escolhia o lado pela **direção da velocidade** — preso no lado contrário ao movimento (respawn/teletransporte dentro de parede), o player era lançado `rect.left = tile.right` e atravessava tudo.
+  - **Depois:** resolução por **penetração mínima** (face mais próxima) no eixo X e no ramo de queda, + `break` depois do 1º sólido resolvido por eixo por frame. Regressões verificadas (harness G): spawn no canto da parede, drop+D e drop+A contra parede — nenhum teleporte.
+
+### 21. Escadas
+- Em `player.py`: agarrar a escada segurando W/S ao encostar (com `_bloqueio_escalada` logo após pulo); durante a escalada o player fica **preso na coluna** da escada (`rect.centerx` pinado), movimento vertical por W/S (sem gravidade), clamp no corredor da escada (`_escada_top`/`_escada_bottom`); ao soltar, `_empurrar_fora_dos_solidos` tira o player dos blocos pelo menor deslocamento (sem "jogada"). Bloqueio de pegar escada ao empurrar contra uma parede. Validado nos cenários de descida passando por parede, soltar no meio da escada e teto de bloco acima.
+
+### 22. Tocha animada como entidade (`entities/objetos/tocha.py` — novo)
+- A folha `Torch Sprite Sheet 32x64.png` (128x128) contém na verdade **duas tochas de 32x64 empilhadas**: linhas 0–1 = chama fraca, linhas 2–3 = chama forte; cada tocha tem 4 frames (colunas).
+- `carregar_frames_tocha(variante)` fatia os 4 frames 32x64 (padrão `forte`); `Tocha` anima a 6 fps (velocidade=6) e desenha com a câmera.
+- Detecção em `core/game_scene.py`: células do `grid_decoracao` do tileset **pelo nome** (`NOME_TILESET_TOCHA`) com `flame row` viram entidades; a "haste" da célula logo abaixo é removida. Suporte também a objectos `type="tocha"` no TMX (propriedade `variante`, default `forte`).
+
+### 23. Tilesets externos (.tsx) + projeto Tiled + mapa molde
+- Os tilesets **embutidos** nos `.tmx` foram **externalizados** para `assets/tileset/tilesets/*.tsx` (um arquivo por conjunto: `parede_variantes`, `chao_variantes`, `decoracao_tileset`, `tileset`, `Sidescroller`, `Platformer Asset All K`, `Dungeon Tile Set 32px`, `Torch Sprite Sheet 32x64`). O motor já suportava `.tsx` externos (`_ler_tileset`), e os `firstgid` foram preservados — validado: hashes das camadas dos dois mapas **byte-idênticos** antes/depois.
+- **Benefício:** editar um tile no `.tsx` atualiza automáticamente todos os mapas que o referenciam (sem duplicação/divergência de tilesets embutidos por `.tmx`).
+- `jogo-max.tiled-project` (raiz) indexa a pasta `assets` → no Tiled os tilesets aparecem num painel fixo.
+- `assets/maps/_template.tmx` — **mapa molde** vazio com os 8 tilesets externos e as camadas padrão (`fundo`, `escadas`, `plataformas`, `colisao`, `decoracao`, `objetos`). Para mapa novo: File → Save As. `Dungeon Tile Set 32px` fica no firstgid 2458, então os gids de plataforma (`PLATAFORMA_GIDS`) seguem válidos em qualquer mapa novo.
 
 ---
 
@@ -171,7 +202,7 @@ jogo-max/
 ### Outros — parcialmente corrigido
 - ✅ `get_item()` atalhos (`EspadaLonga = Registro_Itens[1]`) → `Registro_Itens.get(1)` (sem `KeyError`).
 - ✅ Bug das partículas do `drop_eco` (`_timer * 8` → `_timer % 8`).
-- ✅ `jogo.log` rotativo (`RotatingFileHandler`) em vez de sobrescrita.
+- ✅ `jogo.log` único (`FileHandler(mode="a")`) em vez de sobrescrita/rotação.
 - ⏳ Nenhum `sys.setrecursionlimit`/proteção de loop infinito; callbacks (menu↔cena↔save) crescem sem coordenação central.
 - ⏳ Sem type hints (dificulta tooling, IDE e refatoração segura).
 - ⏳ Sem testes automatizados — o smoke test atual é manual/temporário.
@@ -184,7 +215,7 @@ jogo-max/
 | 2 | Tratamento de erro no `save_manager` + caminho absoluto + `fechar()` no quit | evita perda/corrupção de save | baixo | ✅ |
 | 3 | `try/except` global no loop do `main.py` com save de emergência | jogo não morre por exceção boba | baixo | ✅ |
 | 4 | Corrigir bug das partículas do `drop_eco` (`_timer % 8`) | comportamento esperado | trivial | ✅ |
-| 5 | `RotatingFileHandler` para `jogo.log` | preserva histórico | trivial | ✅ |
+| 5 | `FileHandler` para `jogo.log` (arquivo único, sem rotação) | histórico simples | trivial | ✅ |
 | 6 | Dividir `ui/hud.py` em componentes (item 2 das subpastas) | manutenção | médio | ✅ |
 | 7 | Separar `world/rooms.py` (dados de nível → `world/niveis.py`) | manutenção | baixo | ✅ |
 | 8 | Renomear `camera_player.py`→`camera.py`, `menu_navegavel.py`→`navegacao.py` | consistência | médio | ✅ |
@@ -196,6 +227,10 @@ jogo-max/
 | 14 | Câmera com zoom: aproxima do player (1.35x) e desaproxima na luta do boss (1.0x, ease suave) | jogabilidade | médio | ✅ |
 | 15 | Spawn do player na troca de sala usa o spawn do TMX (nome do lado da entrada ou `default`); antes o jogador nascia dentro da parede do `calabouco_2` (linha fixa dos dados fallback) | bug | médio | ✅ |
 | 16 | Salas sem TMX (fallback 3–5) crashavam no carregamento: grid de `int` ia direto para o `TileMap` que esperava `TileRef` — agora converte para placeholder | bug | alto | ✅ |
+| 17 | Plataformas one-way + drop (S+Espaço, só com o player inteiro sobre a plataforma) e escadas | jogabilidade | médio | ✅ |
+| 18 | Corrigir "lançamento"/teleporte ao colidir com parede (`mover_com_colisão` por penetração mínima + break) | bug | médio | ✅ |
+| 19 | Tocha animada decorativa como entidade (detecção por tileset no TMX) | conteúdo | médio | ✅ |
+| 20 | Tilesets externos `.tsx` + `.tiled-project` + mapa molde `_template.tmx` | pipeline | médio | ✅ |
 
 ## Status de validação
 - Todos os arquivos alterados compilam (`compileall` exit 0).
@@ -204,3 +239,6 @@ jogo-max/
 - Teste do prompt contextual nos 5 objetos (baú, porta, fogueira, drop, eco): aparece na colisão com a hitbox e some ao sair — OK.
 - Câmera: zoom 1.35 no dia a dia, ease para 1.0 em luta de boss e volta ao normal após a derrota — OK (teste com o boss real do calabouço_5).
 - Spawn nas trocas de sala: `calabouço_1 → calabouço_2` usa o spawn do TMX (32, 640) sem cair em parede; ida e volta validado; salas fallback (3–5) carregam sem crash — OK.
+- Harness de plataformas/escadas (`test_plataformas_escadas.py`): grupos A–H TUDO OK —
+  - A/B: pousar em plataformas e descer com S+Espaço; C: **drop bloqueado** com metade do player sobre bloco (e liberado com metade sobre o vazio); D/E: subir por baixo da plataforma ladeada de parede e teto real bloqueando; F: escada restrita à coluna (desce passando pela parede, soltar sem "jogada", teto de bloco); G: sem teleporte ao nascer/tocar parede (regressão do "lançamento"); H: drop só com o retângulo inteiro sobre a plataforma.
+- Tilesets `.tsx`: hashes das camadas dos dois mapas idênticos antes/depois da externalização; `Gamescene` carrega os dois `.tmx` e roda 60 frames (update+draw) sem exceção, com 1 tocha detectada por tileset nome — OK.

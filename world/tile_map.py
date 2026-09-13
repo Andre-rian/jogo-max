@@ -3,7 +3,7 @@ import os
 import logging
 import xml.etree.ElementTree as ET
 from settings import Tile_size
-from world.tiles import Registro_ID, Tile_vazio
+from world.tiles import Registro_ID, Tile_vazio, PLATAFORMA_GIDS
 from core.recursos import carregar_imagem, criar_placeholder
 
 logger = logging.getLogger(__name__)
@@ -26,35 +26,49 @@ def _carregar_folha(path):
 
 class TileRef:
     # descreve Um tile pintado numa celula Tiled: de qual tileset veio e a posição dele dentro do tile
-    __slots__ = ("tileset_nome", "imagem_path", "col", "linha", "tile_id_legado")
+    __slots__ = ("tileset_nome", "imagem_path", "col", "linha", "tile_id_legado", "spacing", "margin", "gid",
+                 "flip_h", "flip_v", "flip_d")
 
-    def __init__(self, tileset_nome, imagem_path, col, linha, tile_id_legado=None):
+    def __init__(self, tileset_nome, imagem_path, col, linha, tile_id_legado=None, spacing=0, margin=0, gid=None):
 
         self.tileset_nome = tileset_nome
         self.imagem_path = imagem_path
         self.col = col
         self.linha = linha
         self.tile_id_legado = tile_id_legado
+        self.spacing = spacing
+        self.margin = margin
+        self.gid = gid
+        #Tiled guarda 3 bits de flip no topo do gid (0xE0000000); o id do tile fica nos 29 bits (0x1FFFFFFF)
+        self.flip_h = bool(gid and gid & 0x80000000)  # horizontal
+        self.flip_v = bool(gid and gid & 0x40000000)  # vertical
+        self.flip_d = bool(gid and gid & 0x20000000)  # diagonal
 
 
     def get_surface(self):
         folha = _carregar_folha(self.imagem_path)
-        x = self.col * Tile_size
-        y = self.linha * Tile_size
+        x = self.margin + self.col * (Tile_size + self.spacing)
+        y = self.margin + self.linha * (Tile_size + self.spacing)
         if x + Tile_size > folha.get_width() or y + Tile_size > folha.get_height():
             logger.warning(
                 f"[MAPA] tile ({self.col},{self.linha}) fora do tileset '{self.imagem_path}' "
                 f"({folha.get_width()}x{folha.get_height()})"
             )
             return _carregar_folha(self.imagem_path)
-        return folha.subsurface((x, y, Tile_size, Tile_size))
+        surf = folha.subsurface((x, y, Tile_size, Tile_size))
+        #aplica os flips que o Tiled guardou no gid
+        if self.flip_d:
+            surf = pygame.transform.rotate(surf, 90)
+        if self.flip_h or self.flip_v:
+            surf = pygame.transform.flip(surf, self.flip_h, self.flip_v)
+        return surf
 
 
 class TileMap:
 
     #calcula a fisica dos blocos, danos e desenha na tela
 
-    def __init__(self, grid, grid_decoracao=None, grid_fundo=None):
+    def __init__(self, grid, grid_decoracao=None, grid_fundo=None, grid_escadas=None, grid_plataformas=None):
 
         self.grid = self._converter_grid_fallback(grid)
         self.linhas = len(self.grid)
@@ -62,10 +76,14 @@ class TileMap:
 
         self.grid_decoracao = grid_decoracao
         self.grid_fundo = grid_fundo
+        self.grid_escadas = grid_escadas
+        self.grid_plataformas = grid_plataformas
 
         self.rects_solidos = self._calcular_rects_solidos()
+        self.rects_plataforma = self._calcular_rects_plataforma()
         self.rects_dano = self._calcular_rects_danos()
-        self.rects_bau = self._calcular_rects_baus()        
+        self.rects_bau = self._calcular_rects_baus()
+        self.rects_escada = self._calcular_rects_escada()        
 
     @staticmethod
     def _converter_grid_fallback(grid):
@@ -110,6 +128,9 @@ class TileMap:
                 tilewidth = int(raiz_tsx.get("tilewidth", Tile_size))
                 tileheight = int(raiz_tsx.get("tileheight", Tile_size))
                 tilecount_attr = raiz_tsx.get("tilecount")
+                columns_attr = raiz_tsx.get("columns")
+                spacing = int(raiz_tsx.get("spacing", 0))
+                margin = int(raiz_tsx.get("margin", 0))
                 pasta_da_imagem = os.path.dirname(caminho_tsx)
 
             else:
@@ -119,6 +140,9 @@ class TileMap:
                 tilewidth = int(ts.get("tilewidth", Tile_size))
                 tileheight = int(ts.get("tileheight", Tile_size))
                 tilecount_attr = ts.get("tilecount")
+                columns_attr = ts.get("columns")
+                spacing = int(ts.get("spacing", 0))
+                margin = int(ts.get("margin", 0))
                 pasta_da_imagem = pasta_base
 
             if img is None:
@@ -128,13 +152,23 @@ class TileMap:
     
             largura_img = int(img.get("width"))
             altura_img = int(img.get("height"))
-            colunas = largura_img // tilewidth
+
+            if columns_attr:
+                colunas = int(columns_attr)
+            else:
+                pas_x = tilewidth + spacing
+                colunas = max(1, (largura_img - 2 * margin + spacing) // pas_x) if pas_x > 0 else 1
 
             caminho_img = img.get("source")
             caminho_img = os.path.normpath(os.path.join(pasta_da_imagem, caminho_img))
 
             
-            tilecount = int(tilecount_attr) if tilecount_attr else colunas * (altura_img // tileheight)
+            if tilecount_attr:
+                tilecount = int(tilecount_attr)
+            else:
+                pas_y = tileheight + spacing
+                linhas = max(1, (altura_img - 2 * margin + spacing) // pas_y) if pas_y > 0 else 1
+                tilecount = colunas * linhas
 
             tilesets.append({
                 "firstgid" : firstgid,
@@ -142,6 +176,8 @@ class TileMap:
                 "imagem_path" :  caminho_img,
                 "colunas" : colunas,
                 "tilecount" : tilecount,
+                "spacing" : spacing,
+                "margin" : margin,
                 
             })
 
@@ -150,12 +186,14 @@ class TileMap:
 
     @staticmethod
     def _resolver_gid(gid, tileset):
-        if gid == 0:
+        #gids do Tiled tem bits de flag (flip h/v/diagonal) no topo: id real = gid & 0x1FFFFFFF
+        gid_masc = gid & 0x1FFFFFFF
+        if gid_masc == 0:
             return None
 
         alvo = None
         for ts in tileset:
-            if gid >= ts["firstgid"]:
+            if gid_masc >= ts["firstgid"]:
                 alvo = ts
             else:
                 break
@@ -163,14 +201,16 @@ class TileMap:
         if alvo is None:
             return None
 
-        id_local = gid - alvo["firstgid"]
+        id_local = gid_masc - alvo["firstgid"]
         col = id_local % alvo["colunas"]
         linha = id_local // alvo["colunas"]
 
         if alvo["nome"] == "placerholde":
-            return TileRef(alvo["nome"], alvo["imagem_path"], col, linha, tile_id_legado=id_local + 1)
+            return TileRef(alvo["nome"], alvo["imagem_path"], col, linha, tile_id_legado=id_local + 1,
+                           spacing=alvo.get("spacing", 0), margin=alvo.get("margin", 0), gid=gid)
 
-        return TileRef(alvo["nome"], alvo["imagem_path"], col, linha)
+        return TileRef(alvo["nome"], alvo["imagem_path"], col, linha,
+                       spacing=alvo.get("spacing", 0), margin=alvo.get("margin", 0), gid=gid)
 
     @staticmethod
     def carregar_objetos_tmx(caminho, nome_camada="objetos"):
@@ -277,10 +317,45 @@ class TileMap:
         for linha_i, linha in enumerate(self.grid):
             for col_i, ref in enumerate(linha):
                 solid, _ = self._tile_info(ref)
-                if solid:
+                if solid and not self._eh_plataforma(ref):
                     rects.append(pygame.Rect(
                         col_i * Tile_size, linha_i * Tile_size, Tile_size, Tile_size
 
+                    ))
+        return rects
+
+    def _eh_plataforma(self, ref):
+        #tiles one-way: fora da colisao solida, viram piso so por cima (gid sem os bits de flip)
+        return ref is not None and ref.gid is not None and (ref.gid & 0x1FFFFFFF) in PLATAFORMA_GIDS
+
+    def _calcular_rects_plataforma(self):
+        rects = []
+        #colisao com gid de plataforma (compatibilidade com a forma antiga)
+        for linha_i, linha in enumerate(self.grid):
+            for col_i, ref in enumerate(linha):
+                if self._eh_plataforma(ref):
+                    rects.append(pygame.Rect(
+                        col_i * Tile_size, linha_i * Tile_size, Tile_size, Tile_size
+                    ))
+        #camada dedicada 'plataformas': qualquer tile pintado vira plataforma
+        if self.grid_plataformas:
+            for linha_i, linha in enumerate(self.grid_plataformas):
+                for col_i, ref in enumerate(linha):
+                    if ref is not None:
+                        r = pygame.Rect(col_i * Tile_size, linha_i * Tile_size, Tile_size, Tile_size)
+                        if r not in rects:
+                            rects.append(r)
+        return rects
+
+    def _calcular_rects_escada(self):
+        rects = []
+        if not self.grid_escadas:
+            return rects
+        for linha_i, linha in enumerate(self.grid_escadas):
+            for col_i, ref in enumerate(linha):
+                if ref is not None:
+                    rects.append(pygame.Rect(
+                        col_i * Tile_size, linha_i * Tile_size, Tile_size, Tile_size
                     ))
         return rects
 
@@ -327,6 +402,12 @@ class TileMap:
         self._desenhar_camada_simples(tela, camera, self.grid_fundo, 
                                       linha_inicio, linha_fim, col_inicio, col_fim)
 
+        self._desenhar_camada_simples(tela, camera, self.grid_escadas,
+                                      linha_inicio, linha_fim, col_inicio, col_fim)
+
+        self._desenhar_camada_simples(tela, camera, self.grid_plataformas,
+                                      linha_inicio, linha_fim, col_inicio, col_fim)
+
         for linha_i in range(linha_inicio, linha_fim):
             for col_i in range(col_inicio, col_fim):
                 ref = self.grid[linha_i][col_i]            
@@ -357,6 +438,9 @@ class TileMap:
                 ref = grid[linha_i][col_i]
                 if ref is None:
                     continue
+                if not ref.imagem_path:
+                    #marcador sem sprite (ex: camada de escadas ainda sem imagem)
+                    continue
                 rect_mundo = pygame.Rect(col_i * Tile_size, linha_i * Tile_size, Tile_size, Tile_size)
                 rect_tela = camera.aplicar(rect_mundo)
                 tela.blit(ref.get_surface(), rect_tela)
@@ -375,6 +459,7 @@ class TileMap:
         if 0 <= linha < self.linhas and 0 <= col < self.colunas:
             self.grid[linha][col] = None
             self.rects_solidos = self._calcular_rects_solidos()
+            self.rects_plataforma = self._calcular_rects_plataforma()
             self.rects_dano = self._calcular_rects_danos()
             self.rects_bau = self._calcular_rects_baus()
 

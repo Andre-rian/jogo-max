@@ -8,6 +8,10 @@ from core.recursos import carregar_imagem, criar_placeholder
 
 logger = logging.getLogger(__name__)
 
+# gids globais (TMX) de tiles de plataforma one-way estilo Terraria:
+# anda/salta por baixo, desce com S+Espaço, segura apenas caindo de cima
+PLATAFORMA_GIDS = frozenset({2594, 2595, 2596, 2609, 2610, 2611})
+
 
 class Tile:
 

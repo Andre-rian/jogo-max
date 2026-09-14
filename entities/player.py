@@ -346,9 +346,6 @@ class Player(Entity):
         #avançar o frame da animaçao atual
         self.anim_atual.atualizar()
 
-        #mask pro combate melhorado
-        self.atualizar_mask()
-
 
         #salvar teclas para o proximo frame
         self._teclas_anterior = teclas
@@ -604,17 +601,17 @@ class Player(Entity):
         if self.olhando_dir:  #atacando para direita
             return pygame.Rect(
                 self.rect.right, 
-                self.rect.centery - 16,
+                self.rect.centery - 32,
                 self.Ataque_range, 
-                32
+                64
             )
         
         else:
             return pygame.Rect(
                 self.rect.left - self.Ataque_range,
-                self.rect.centery - 16,
+                self.rect.centery - 32,
                 self.Ataque_range,
-                32
+                64
             )
     
     def calcular_dano(self):

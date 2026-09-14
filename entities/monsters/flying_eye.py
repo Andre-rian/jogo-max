@@ -34,6 +34,11 @@ class FlyingEye(InimigoBase):
     Cooldown_ataque = 150
     Cooldown_projetil_max = 350
 
+    #hitbox de contato (infla o rect lógico 30x30 pro corpo-no-ar); antes usava a
+    #máscara do sprite 300x300, que fazia a mordida/dash acertar de muito longe
+    Folga_contato_x = 20
+    Folga_contato_y = 10
+
     def __init__(self, x, y, patrulha_esq, patrulha_dir):
         super().__init__(x, y, largura=30, altura=30, hp_max=60,
                           patrulha_esq=patrulha_esq, patrulha_dir=patrulha_dir)
@@ -126,6 +131,16 @@ class FlyingEye(InimigoBase):
 
     #Ataques 
 
+    def _contato_com(self, player):
+        #hit por rect (inflado pequeno), nao por mascara de sprite gigante
+        return self.golpe_acerta(player)
+
+    def rect_do_golpe(self):
+        #o olho conecta por contato — zona = rect lógico inflado (frente/trás e une altura)
+        if not (getattr(self, "_animando_ataque", False) and self._ataque_atual):
+            return None
+        return self.rect.inflate(self.Folga_contato_x, self.Folga_contato_y)
+
     def _iniciar_ataque(self, tipo, player):
         self._ataque_atual = tipo
         self._animando_ataque = True
@@ -176,7 +191,7 @@ class FlyingEye(InimigoBase):
                 self.rect.x += int(self._vel_ataque.x)
                 self.rect.y += int(self._vel_ataque.y)
 
-                if not self._dano_aplicado and self.colide_mask_com_mask(player):
+                if not self._dano_aplicado and self._contato_com(player):
                     self._dano_aplicado = True
                     player.receber_dano(self.Dano_mordida, frames_invenc=25)
 
@@ -192,7 +207,7 @@ class FlyingEye(InimigoBase):
             if self._fase_ataque == "dashando":
                 self.rect.x += int(self._vel_ataque.x)
                 self._vel_ataque.x *= 0.92
-                if not self._dano_aplicado and self.colide_mask_com_mask(player):
+                if not self._dano_aplicado and self._contato_com(player):
                     self._dano_aplicado = True
                     player.receber_dano(self.Dano_dash, frames_invenc=20)
 

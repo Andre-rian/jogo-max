@@ -912,7 +912,7 @@ class Gamescene:
             if inimigo in self.player._alvos_atingidos:
                 continue #o inimigo ja foi acertado por esse golpe
             
-            if inimigo.colide_mask_com_rect(rect_ataque):
+            if inimigo.rect.colliderect(rect_ataque):
                 direçao = 1 if self.player.olhando_dir else -1
                 inimigo.receber_hit(self.player.calcular_dano(), direçao)
                 self.player._alvos_atingidos.add(inimigo)
@@ -1105,27 +1105,23 @@ class Gamescene:
 
 
             if DEBUG:
-                #debug dos rects dos inimigos
+                #debug: rect lógico do inimigo (vermelho) — hitbox real de combate
                 sr_inimigo = self.camera.aplicar(inimigo.rect)
                 pygame.draw.rect(vista, (255, 0, 0), sr_inimigo, 2)
 
-                #mostra a mask (azul)
-                if getattr(inimigo, "mask", None) and hasattr(inimigo, "_mask_pos"):
-                    mx, my = inimigo._mask_pos
-                    pontos = inimigo.mask.outline(2)
-                    if pontos:
-                        pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
-                        pygame.draw.polygon(vista, (0, 200, 255), pontos_tela, 1)
-
-                #DEBUG: contorno real da mask do player
-                if getattr(self.player, "mask", None) and hasattr(self.player, "_mask_pos"):
-                    mx, my = self.player._mask_pos
-                    pontos = self.player.mask.outline(2)
-                    if pontos:
-                        pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
-                        pygame.draw.polygon(vista, (0, 200, 255), pontos_tela, 1)
+                #debug: zona de conexão do golpe em curso — verde se conecta no player, laranja se não
+                zona = inimigo.rect_golpe_debug()
+                if zona is not None:
+                    cor_zona = (0, 255, 0) if zona.colliderect(self.player.rect) else (255, 150, 0)
+                    pygame.draw.rect(vista, cor_zona, self.camera.aplicar(zona), 2)
 
         if DEBUG:
+            #debug: rect lógico do player (verde) e hitbox do ataque (amarelo)
+            pygame.draw.rect(vista, (0, 255, 0), self.camera.aplicar(self.player.rect), 2)
+            rect_ataque_debug = self.player.get_rect_ataque()
+            if rect_ataque_debug is not None:
+                pygame.draw.rect(vista, (255, 230, 0), self.camera.aplicar(rect_ataque_debug), 2)
+
             for r in self.parede_boss:
                 pygame.draw.rect(vista, (255, 80, 0), self.camera.aplicar(r), 2)
 

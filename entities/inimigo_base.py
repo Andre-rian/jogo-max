@@ -96,7 +96,6 @@ class InimigoBase(Entity):
         resultado = self._atualizar_hit_flash()
         if resultado is not None:
             return resultado
-        self.atualizar_mask()        
         return 0
     
 
@@ -110,6 +109,35 @@ class InimigoBase(Entity):
 
     def _offset_mask(self):
         return self._offset_desenho(self.rect)
+
+    # ---------- DEBUG DE GOLPE ----------
+
+    def _alcance_golpe_atual(self):
+        #alcance (px) que o golpe em curso usa pra conectar; None = sem zona frontal
+        return getattr(self, "Alcance_conectar", 0)
+
+    def rect_do_golpe(self):
+        #zona de conexão REAL do golpe em curso: na FRENTE do inimigo, em faixa
+        #vertical (centery ± 32). É a mesma usada no dano e no debug. None = não atacando
+        if not (getattr(self, "_animando_ataque", False) and self._ataque_atual):
+            return None
+        alc = self._alcance_golpe_atual()
+        if not alc:
+            return None
+        lado = 1 if self.olhando_dir else -1
+        if lado > 0:
+            x = self.rect.right
+        else:
+            x = self.rect.left - alc
+        return pygame.Rect(x, self.rect.centery - 32, alc, 64)
+
+    def rect_golpe_debug(self):
+        return self.rect_do_golpe()
+
+    def golpe_acerta(self, player):
+        #testa a zona do golpe contra o player (frente + faixa vertical)
+        zona = self.rect_do_golpe()
+        return zona is not None and zona.colliderect(player.rect)
 
     def _offset_desenho(self, sr):
         # cada filho sobrescreve se o sprite precisar de ajuste manual
@@ -142,7 +170,6 @@ class InimigoBase(Entity):
         resultado = self._atualizar_hit_flash()
         if resultado is not None:
             return resultado
-        self.atualizar_mask()
         return 0
 
     def _atualizar_ataque_em_curso(self, rects_solidos, player):
@@ -151,7 +178,6 @@ class InimigoBase(Entity):
             self.aplicar_gravidade()
         self.mover_com_colisão(rects_solidos)
         self._decrementar_cooldowns()
-        self.atualizar_mask()
         return 0
 
     def _decrementar_cooldowns(self):
@@ -176,7 +202,6 @@ class InimigoBase(Entity):
         self.anim_atual = self.anim_hit
         if not self.anim_hit.terminou:
             self.anim_atual.atualizar()
-        self.atualizar_mask()
         return 0
 
     def _resetar_para_estado_atual(self):
@@ -196,7 +221,6 @@ class InimigoBase(Entity):
         self._animacao_extra_hook()
 
         self.anim_atual.atualizar()
-        self.atualizar_mask()
         return dano_causado
 
     # COMBATE 

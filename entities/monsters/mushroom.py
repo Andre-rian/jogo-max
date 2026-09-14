@@ -24,6 +24,10 @@ class Mushroom(InimigoBase):
     Alcance_ataq_perto = 50
     Alcance_ataq_esporo = 180
 
+    #alcance real do golpe por distância de borda (gap)
+    Alcance_conectar = 25
+    Alcance_conectar_forte = 30
+
     Cooldown_ataq = 120
     Cooldown_forte_max = 200
     Cooldown_esporo_max = 400
@@ -101,6 +105,11 @@ class Mushroom(InimigoBase):
 
     #Ataques
 
+    def _alcance_golpe_atual(self):
+        if self._ataque_atual == "forte":
+            return self.Alcance_conectar_forte
+        return self.Alcance_conectar
+
     def _tentar_atacar(self, dist, player):
         if self.cooldown_ataq > 0:
             return
@@ -143,15 +152,13 @@ class Mushroom(InimigoBase):
         if self._ataque_atual == "normal":
             if self.anim_atual._frame_idx == 5 and not hasattr(self, "_dano_normal_ap"):
                 self._dano_normal_ap = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_perto + 10:
+                if self.golpe_acerta(player):
                     player.receber_dano(self.Dano_normal, frames_invenc=15)
 
         elif self._ataque_atual == "forte":
             if self.anim_atual._frame_idx == 6 and not hasattr(self, "_dano_forte_ap"):
                 self._dano_forte_ap = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_perto + 15:
+                if self.golpe_acerta(player):
                     player.receber_dano(self.Dano_forte, frames_invenc=20)
 
         elif self._ataque_atual == "esporo":

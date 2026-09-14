@@ -62,13 +62,6 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.vel.y = min(self.vel.y + Gravidade, Max_Fall_Speed)
     
-    def atualizar_mask(self):
-        #gera o mask a partir do frame atual da animação
-        if getattr(self, "anim_atual", None):
-            self.mask = pygame.mask.from_surface(self.anim_atual.frame_atual)
-
-
-
     #COLISAO
     def mover_com_colisão(self, rects_solidos, rects_plataforma=None):
         #move o rect pelo os eixos separadamente 
@@ -163,6 +156,13 @@ class Entity(pygame.sprite.Sprite):
             if tile.top == plat.top and self.rect.right > plat.left and self.rect.left < plat.right:
                 return True
         return False
+
+    def distancia_horizontal(self, outro):
+        #distancia em px entre as bordas dos rects (0 se as faixas X se sobrepoem).
+        #medir por bordas (e nao por centros) evita o "alcance fantasma" que embutia
+        #metade da largura de cada hitbox nos golpes corpo-a-corpo
+        return max(0, max(self.rect.left - outro.rect.right,
+                          outro.rect.left - self.rect.right))
 
     #Dano/combante
     def receber_dano(self, quantidade, frames_invenc=None):

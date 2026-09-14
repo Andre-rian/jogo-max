@@ -11,6 +11,10 @@ class Skeleton(InimigoBase):
     Alcance_ataq = 48
     Cooldown_ataq = 90
 
+    #alcance real do golpe por distância de borda (gap) — o exoesqueleto só conecta
+    #de perto, no frame de conexão da animação de ataque (não mais instantâneo)
+    Alcance_conectar = 20
+
     Duracao_morte = 90
 
     def __init__(self, x, y, patrulha_esq, patrulha_dir):
@@ -63,9 +67,27 @@ class Skeleton(InimigoBase):
         if self.cooldown_ataq > 0:
             return 0
         self.cooldown_ataq = self.Cooldown_ataq
-        player.receber_dano(self.Dano)
+        self._ataque_atual = "normal"
+        self._animando_ataque = True
+        self._dano_conectado = False
+        self.anim_atual = self.animaçoes[self.Atacando]
+        self.anim_atual.resetar()
         return self.Dano
-    
+
+    def _atualizar_animacao_ataque(self, player):
+        self.anim_atual.atualizar()
+
+        if self.anim_atual._frame_idx == 6 and not self._dano_conectado:
+            self._dano_conectado = True
+            if self.golpe_acerta(player):
+                player.receber_dano(self.Dano, frames_invenc=15)
+
+        if self.anim_atual.terminou:
+            self._animando_ataque = False
+            self._ataque_atual = None
+            self._dano_conectado = False
+            self._resetar_para_estado_atual()
+
     def _animacao_extra_hook(self):
         if self.estado == self.Patrulha and self.vel.x == 0:
             self.anim_atual = self.anim_idle

@@ -32,6 +32,10 @@ class EsqueletoBoss(InimigoBase):
     Alcance_ataq_projetil = 160
     Alcance_escudo        = 150
 
+    #alcance real dos golpes por distância de borda (gap)
+    Alcance_conectar          = 30
+    Alcance_conectar_varrido  = 50
+
     Cooldown_ataq         = 150
     Cooldown_projetil_max = 280
     Cooldown_escudo_max   = 350
@@ -89,8 +93,6 @@ class EsqueletoBoss(InimigoBase):
 
         self.aplicar_gravidade()
         self.mover_com_colisão(rects_solidos)
-        self.atualizar_mask()
-        
         return 0
 
     # IA 
@@ -152,6 +154,11 @@ class EsqueletoBoss(InimigoBase):
                 self.vel.x = self.Vel_perseguir * direçao
                 self.olhando_dir = direçao > 0
 
+    def _alcance_golpe_atual(self):
+        if self._ataque_atual == "varrido":
+            return self.Alcance_conectar_varrido
+        return self.Alcance_conectar
+
     def _iniciar_ataque(self, tipo, direçao=1, player=None):
         self._ataque_atual = tipo
         self._animando_ataque = True
@@ -173,19 +180,16 @@ class EsqueletoBoss(InimigoBase):
         if self._ataque_atual == "normal":
             if self.anim_atual._frame_idx == 4 and not hasattr(self, "_dano_normal_aplicado"):
                 self._dano_normal_aplicado = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_normal:
+                if self.golpe_acerta(player):
                     direçao_kb = 1 if player.rect.centerx > self.rect.centerx else -1
                     player.receber_dano(self.Dano_normal, frames_invenc=20)
-
                     player.vel.x = direçao_kb * 5
                     player.vel.y = -4
 
         elif self._ataque_atual == "varrido":
             if self.anim_atual._frame_idx == 4 and not hasattr(self, "_dano_varrido_aplicado"):
                 self._dano_varrido_aplicado = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_varrido:
+                if self.golpe_acerta(player):
                     direçao_kb = 1 if player.rect.centerx > self.rect.centerx else -1
                     player.receber_dano(self.Dano_varrido, frames_invenc=30)
                     player.vel.x = direçao_kb * 8

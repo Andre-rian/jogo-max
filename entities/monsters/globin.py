@@ -14,6 +14,11 @@ class Globin(InimigoBase):
     Alcance_ataq_normal = 80
     Alcance_ataq_dash = 55
     Alcance_ataq_bomba = 200
+
+    #alcance REAL do golpe, medido por distância de borda (gap) — o Alcance_ataq_* acima
+    #só decide qual golpe a IA usa; o dano só conecta se as hitboxes estiverem perto
+    Alcance_conectar = 35
+    Alcance_conectar_dash = 15
     Cooldown_ataq = 300
     Cooldown_bomba_max = 400
 
@@ -91,6 +96,11 @@ class Globin(InimigoBase):
 
     #Ataques 
 
+    def _alcance_golpe_atual(self):
+        if self._ataque_atual == "dash":
+            return self.Alcance_conectar_dash
+        return self.Alcance_conectar
+
     def _tentar_atacar(self, dist, player):
         if self.cooldown_ataq > 0:
             return
@@ -138,15 +148,13 @@ class Globin(InimigoBase):
         if self._ataque_atual == "normal":
             if self.anim_atual._frame_idx == 3 and not hasattr(self, "_dano_normal_aplicado"):
                 self._dano_normal_aplicado = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_normal:
+                if self.golpe_acerta(player):
                     player.receber_dano(self.Dano_normal, frames_invenc=10)
 
         elif self._ataque_atual == "dash":
             if self.anim_atual._frame_idx == 6 and not hasattr(self, "_dano_dash_aplicado"):
                 self._dano_dash_aplicado = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_normal:
+                if self.golpe_acerta(player):
                     player.receber_dano(self.Dano_dash)
             self.vel.x *= 0.8
 

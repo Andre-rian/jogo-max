@@ -23,6 +23,11 @@ class AnimatedSprite:
         self.loop = loop
         self._contador = 0
         self._frame_idx = 0
+
+        #quando manual=True, quem controla o frame é o sistema de combate
+        #(InstanciaAtaque -> definir_frame), não o avanço automático por tempo
+        self.manual = False
+        self._mascaras = {}
         
         #carrega e fatia o spritesheet
         self.frames = self._carregar_frames(caminho, frame_width, frame_height, escala, n_frames)
@@ -59,6 +64,8 @@ class AnimatedSprite:
 
     def atualizar(self):
         #avançar o frame de animaçao baseado na velocidade
+        if self.manual:
+            return
 
         #se nao é loop e ja chegou no ultimo frame, fica parado nele
         if not self.loop and self._frame_idx == len(self.frames) - 1:
@@ -77,6 +84,11 @@ class AnimatedSprite:
         self._contador = 0
         self._frame_idx = 0
 
+    def definir_frame(self, indice):
+        #frame explícito (usado pelo sistema de combate quando manual=True)
+        self._frame_idx = max(0, min(int(indice), len(self.frames) - 1))
+        self._contador = 0
+
     def desenhar(self, tela, x, y, espelhado=False):
         #desenhar o frame na posiçao atual x e y, o espelhado=false é para mover a direçao que a sprite esta olhando
         
@@ -91,6 +103,23 @@ class AnimatedSprite:
     def frame_atual(self):
         #retorna o frame atual como surface util para o metodo mask
         return self.frames[self._frame_idx]
+
+    @property
+    def frame_index(self):
+        return self._frame_idx
+
+    def mascara_frame(self, indice=None, espelhado=False):
+        #máscara de pixel do frame atual (ou do frame pedido), com cache
+        if indice is None:
+            indice = self._frame_idx
+        indice = max(0, min(int(indice), len(self.frames) - 1))
+        chave = (indice, bool(espelhado))
+        if chave not in self._mascaras:
+            frame = self.frames[indice]
+            if espelhado:
+                frame = pygame.transform.flip(frame, True, False)
+            self._mascaras[chave] = pygame.mask.from_surface(frame)
+        return self._mascaras[chave]
     
     @property
     def terminou(self):

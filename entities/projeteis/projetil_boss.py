@@ -2,6 +2,7 @@ import pygame
 from settings import DEBUG
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 
 class ProjetilBoss(Projetil):
 
@@ -14,12 +15,12 @@ class ProjetilBoss(Projetil):
                          vel_y=0,
                          dano=dano,
                          tem_gravidade=True,
-                         gravidade=0.05)
+                         gravidade=0.05,
+                         frames_invenc=15)
 
         self.rect     = pygame.Rect(x, y, 60, 40)
         self.direcao  = direcao
         self._timer_vida = self.Timer_vida
-        self._dano_aplicado = False
 
         Boss = "assets/sprites/enemies/monsters/esqueletos/"
         self.anim = AnimatedSprite(Boss + "Sword_sprite.png",
@@ -47,13 +48,16 @@ class ProjetilBoss(Projetil):
                 self.ativo = False
                 return
 
-        # colisao com o player
-        if player.vivo and not self._dano_aplicado and self.rect.colliderect(player.rect):
-            self._dano_aplicado = True
-            player.receber_dano(self.dano)
-            self.ativo = False
-
         self.anim.atualizar()
+
+    def dano_spec(self):
+        return DanoSpec(
+            dano_base=self.dano,
+            knockback=KnockbackSpec(forca_x=6, forca_y=-2, frames=12),
+            stagger=True,
+            duracao_hit=14,
+            frames_invenc=self.frames_invenc,
+        )
 
     def desenhar(self, tela, camera):
         if not self.ativo:

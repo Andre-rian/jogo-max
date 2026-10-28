@@ -1,6 +1,7 @@
 import pygame
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 
 class Skeleton(InimigoBase):
 
@@ -16,6 +17,7 @@ class Skeleton(InimigoBase):
     Alcance_conectar = 20
 
     Duracao_morte = 90
+    HITSTUN_FRAMES = 16  # 8 frames de hit a 2 ticks = ~267 ms (reação completa)
 
     def __init__(self, x, y, patrulha_esq, patrulha_dir):
         super().__init__(x, y, largura=30, altura=48, hp_max=60, patrulha_esq=patrulha_esq, patrulha_dir=patrulha_dir)
@@ -28,22 +30,40 @@ class Skeleton(InimigoBase):
         self.animaçoes = {
             self.Patrulha:  AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=8, escala=3, n_frames=11),
             self.Perseguir: AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=5, escala=3, n_frames=11),
-            self.Atacando:  AnimatedSprite(Skel + "Skeleton Attack.png", 43, 37, velocidade=4, escala=3, n_frames=18),
+            self.Atacando:  AnimatedSprite(Skel + "Skeleton Attack.png", 43, 37, velocidade=4, escala=3, n_frames=18, loop=False),
             self.Morto:     AnimatedSprite(Skel + "Skeleton Dead.png",   33, 32, velocidade=6, escala=3, n_frames=15),
         }
-        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=6, escala=3, n_frames=8)
+        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=2, escala=3, n_frames=8)
         self.anim_idle = AnimatedSprite(Skel + "Skeleton Idle.png", 24, 32, velocidade=8, escala=3, n_frames=11)
         self.anim_atual = self.animaçoes[self.Patrulha]
+
+        self._configurar_ataques()
+
+    def _configurar_ataques(self):
+        dano = DanoSpec(
+            dano_base=self.Dano,
+            knockback=KnockbackSpec(forca_x=3, forca_y=-1, frames=10),
+            duracao_hit=12,
+            frames_invenc=15,
+        )
+        janela = self._criar_janela("corte", 6, 8)
+        self._registrar_ataque(
+            "normal",
+            self.animaçoes[self.Atacando],
+            [janela],
+            dano,
+        )
 
     def _ia(self, rects_solidos, player):
         dist = abs(player.rect.centerx - self.rect.centerx)
 
         if player.vivo and dist < self.Alcance_detec:
             if dist < self.Alcance_ataq:
-                self.estado = self.Atacando
                 self.vel.x = 0
-                self._em_hit = False
-                return self._tentar_atacar(player)
+                if self.cooldown_ataq <= 0:
+                    return self._tentar_atacar(player)
+                #em cooldown fica em idle; não entra na pose de ataque sem golpe ativo
+                self.estado = self.Patrulha
             else:
                 self.estado = self.Perseguir
                 direçao = 1 if player.rect.centerx > self.rect.centerx else -1
@@ -67,26 +87,8 @@ class Skeleton(InimigoBase):
         if self.cooldown_ataq > 0:
             return 0
         self.cooldown_ataq = self.Cooldown_ataq
-        self._ataque_atual = "normal"
-        self._animando_ataque = True
-        self._dano_conectado = False
-        self.anim_atual = self.animaçoes[self.Atacando]
-        self.anim_atual.resetar()
-        return self.Dano
-
-    def _atualizar_animacao_ataque(self, player):
-        self.anim_atual.atualizar()
-
-        if self.anim_atual._frame_idx == 6 and not self._dano_conectado:
-            self._dano_conectado = True
-            if self.golpe_acerta(player):
-                player.receber_dano(self.Dano, frames_invenc=15)
-
-        if self.anim_atual.terminou:
-            self._animando_ataque = False
-            self._ataque_atual = None
-            self._dano_conectado = False
-            self._resetar_para_estado_atual()
+        self.iniciar_ataque("normal", player)
+        return 0
 
     def _animacao_extra_hook(self):
         if self.estado == self.Patrulha and self.vel.x == 0:

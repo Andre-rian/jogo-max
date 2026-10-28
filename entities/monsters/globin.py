@@ -2,6 +2,7 @@ import pygame
 import random
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 
 class Globin(InimigoBase):
 
@@ -23,6 +24,8 @@ class Globin(InimigoBase):
     Cooldown_bomba_max = 400
 
     Duracao_morte = 60
+    HITSTUN_FRAMES = 16  # 4 frames de hit a 4 ticks = ~267 ms (reação completa)
+    RECUPERACAO_HIT_FRAMES = 8  # ~133 ms parado antes de voltar a perseguir
 
     def __init__(self, x, y, patrulha_esq, patrulha_dir):
         super().__init__(x, y, largura=30, altura=44, hp_max=40,
@@ -40,13 +43,46 @@ class Globin(InimigoBase):
         self.animaçoes = {
             self.Patrulha:  AnimatedSprite(Gob + "Idle.png",   150, 150, velocidade=10, escala=1, n_frames=4),
             self.Perseguir: AnimatedSprite(Gob + "Run.png",    150, 150, velocidade=6,  escala=1, n_frames=8),
-            self.Atacando:  AnimatedSprite(Gob + "Attack.png", 150, 150, velocidade=5,  escala=1, n_frames=8),
+            self.Atacando:  AnimatedSprite(Gob + "Attack.png", 150, 150, velocidade=5,  escala=1, n_frames=8, loop=False),
             self.Morto:     AnimatedSprite(Gob + "Death.png",  150, 150, velocidade=8,  escala=1, n_frames=4),
         }
-        self.anim_attack2 = AnimatedSprite(Gob + "Attack2.png", 150, 150, velocidade=5, escala=1, n_frames=8)
-        self.anim_attack3 = AnimatedSprite(Gob + "Attack3.png", 150, 150, velocidade=5, escala=1, n_frames=12)
+        self.anim_attack2 = AnimatedSprite(Gob + "Attack2.png", 150, 150, velocidade=5, escala=1, n_frames=8, loop=False)
+        self.anim_attack3 = AnimatedSprite(Gob + "Attack3.png", 150, 150, velocidade=5, escala=1, n_frames=12, loop=False)
         self.anim_hit = AnimatedSprite(Gob + "Take Hit.png", 150, 150, velocidade=4, escala=1, n_frames=4)
         self.anim_atual = self.animaçoes[self.Patrulha]
+
+        self._configurar_ataques()
+
+    def _configurar_ataques(self):
+        dano_normal = DanoSpec(
+            dano_base=self.Dano_normal,
+            knockback=KnockbackSpec(forca_x=3, forca_y=-1, frames=10),
+            duracao_hit=12,
+            frames_invenc=10,
+        )
+        dano_dash = DanoSpec(
+            dano_base=self.Dano_dash,
+            knockback=KnockbackSpec(forca_x=5, forca_y=-1, frames=12),
+            duracao_hit=14,
+            frames_invenc=15,
+        )
+        self._registrar_ataque(
+            "normal",
+            self.animaçoes[self.Atacando],
+            [self._criar_janela("corte", 6, 7)],
+            dano_normal,
+        )
+        self._registrar_ataque(
+            "dash",
+            self.anim_attack2,
+            [self._criar_janela("investida", 6, 7)],
+            dano_dash,
+        )
+        self._registrar_ataque("bomba", self.anim_attack3, [], DanoSpec())
+
+    def _resetar_flags_ataque(self):
+        self._bomba_spawnada = False
+        self._bomba_direcao = 1
 
     #  IA 
 
@@ -55,10 +91,12 @@ class Globin(InimigoBase):
 
         if player.vivo and dist < self.Alcance_detec:
             if dist < self.Alcance_ataq_dash:
-                self.estado = self.Atacando
                 self.vel.x = 0
                 if self.cooldown_ataq <= 0:
                     self._tentar_atacar(dist, player)
+                else:
+                    #em cooldown fica em idle, sem pose de ataque sem golpe ativo
+                    self.estado = self.Patrulha
 
             elif dist < self.Alcance_ataq_normal:
                 if self.cooldown_ataq <= 0:
@@ -96,11 +134,6 @@ class Globin(InimigoBase):
 
     #Ataques 
 
-    def _alcance_golpe_atual(self):
-        if self._ataque_atual == "dash":
-            return self.Alcance_conectar_dash
-        return self.Alcance_conectar
-
     def _tentar_atacar(self, dist, player):
         if self.cooldown_ataq > 0:
             return
@@ -123,56 +156,31 @@ class Globin(InimigoBase):
                 self._perseguir(player)
 
     def _iniciar_ataque(self, tipo, direçao=1, player=None):
-        self._ataque_atual = tipo
-        self._animando_ataque = True
+        if not self.iniciar_ataque(tipo, player):
+            return
 
+        self._bomba_direcao = direçao
         if tipo == "normal":
-            direçao_atq = 1 if self.olhando_dir else -1
-            self.vel.x = direçao_atq * self.Vel_perseguir
-            self.anim_atual = self.animaçoes[self.Atacando]
-            self.anim_atual.resetar()
-
+            self.vel.x = (1 if self.olhando_dir else -1) * self.Vel_perseguir
         elif tipo == "dash":
-            self.vel.x = -direçao * 4
-            self.anim_atual = self.anim_attack2
-            self.anim_atual.resetar()
-
+            self.vel.x = direçao * 4
         elif tipo == "bomba":
-            self.anim_atual = self.anim_attack3
-            self.anim_atual.resetar()
-            self._bombar_spawnar = {"direçao": direçao, "frame_spawn": 6, "spawnando": False}
+            self.vel.x = 0
 
-    def _atualizar_animacao_ataque(self, player):
-        self.anim_atual.atualizar()
-
-        if self._ataque_atual == "normal":
-            if self.anim_atual._frame_idx == 3 and not hasattr(self, "_dano_normal_aplicado"):
-                self._dano_normal_aplicado = True
-                if self.golpe_acerta(player):
-                    player.receber_dano(self.Dano_normal, frames_invenc=10)
-
-        elif self._ataque_atual == "dash":
-            if self.anim_atual._frame_idx == 6 and not hasattr(self, "_dano_dash_aplicado"):
-                self._dano_dash_aplicado = True
-                if self.golpe_acerta(player):
-                    player.receber_dano(self.Dano_dash)
+    def _ao_tick_ataque(self, player, frame):
+        if self._ataque_atual == "dash":
             self.vel.x *= 0.8
-
         elif self._ataque_atual == "bomba":
-            if not self._bombar_spawnar["spawnando"] and self.anim_atual._frame_idx >= self._bombar_spawnar["frame_spawn"]:
-                self._bombar_spawnar["spawnando"] = True
+            if frame >= 6 and not self._bomba_spawnada:
+                self._bomba_spawnada = True
                 from entities.projeteis.bomba import Bomba
-                bomba = Bomba(self.rect.centerx, self.rect.centery,
-                               self._bombar_spawnar["direçao"], self.Dano_bomba)
+                bomba = Bomba(
+                    self.rect.centerx,
+                    self.rect.centery,
+                    self._bomba_direcao,
+                    self.Dano_bomba,
+                )
                 self.bombas_spawnar.append(bomba)
-
-        if self.anim_atual.terminou:
-            self._animando_ataque = False
-            self._ataque_atual = None
-            for attr in ("_dano_normal_aplicado", "_dano_dash_aplicado"):
-                if hasattr(self, attr):
-                    delattr(self, attr)
-            self._resetar_para_estado_atual()  # antes era repetido manualmente
 
     def _offset_desenho(self, sr):
         sprite_w = self.anim_atual.largura

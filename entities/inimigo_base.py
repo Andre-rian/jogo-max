@@ -1,5 +1,16 @@
 import pygame
 from entities.entity import Entity
+from core.combat import (
+    DanoSpec,
+    DefinicaoAtaque,
+    HitboxSpec,
+    InstanciaAtaque,
+    JanelaGolpe,
+    KnockbackSpec,
+    ModoMovimento,
+    PoliticaHit,
+    construir_hitboxes,
+)
 
 class InimigoBase(Entity):
 
@@ -18,8 +29,10 @@ class InimigoBase(Entity):
     KB_FORCA_Y = -2
     KB_FRAMES = 12
     HITSTUN_FRAMES = 14
-    IMUNIDADE_STAGGERS_FRAMES = 0 # SEM hiper armor 
+    RECUPERACAO_HIT_FRAMES = 0  # pausa em idle depois do hitstun, antes de voltar à IA
+    IMUNIDADE_STAGGER_FRAMES = 0 # SEM hiper armor
     IMUNE_DURANTE_ATAQUE = False #se true nao pode ser interrompido no meio do proprio ataqie
+    USAR_IFRAMES_DANO = False #inimigos comuns não têm i-frames de dano (só hitstun/knockback)
 
     def __init__(self, x, y, largura, altura, hp_max, patrulha_esq=None, patrulha_dir=None, callback_morte=None):
         super().__init__(x, y, largura, altura, hp_max)
@@ -40,14 +53,20 @@ class InimigoBase(Entity):
 
         self._ataque_atual = None
         self._animando_ataque = False
+        self.ataque_ativo = None
+        self.definicoes_ataque = {}
 
         self._em_hit = False
         self._timer_hit = 0
-        self._imune_stagger = 0 
-
-    
+        self._em_recuperacao = False
+        self._timer_recuperacao = 0
+        self._imune_stagger = 0
 
     def atualizar(self, rects_solidos, player):
+        self.atualizar_invencibilidade()
+        if self._imune_stagger > 0:
+            self._imune_stagger -= 1
+
         if not self.vivo:   
             return self._atualizar_morte()
 
@@ -60,6 +79,8 @@ class InimigoBase(Entity):
         if self._em_hit:
             return self._atualizar_hitsun_parado(rects_solidos)
 
+        if self._em_recuperacao:
+            return self._atualizar_recuperacao(rects_solidos)
 
         resultado_especial = self._estado_especial(rects_solidos, player)
     
@@ -74,7 +95,6 @@ class InimigoBase(Entity):
         if self.TEM_GRAVIDADE:
             self.aplicar_gravidade()
         self.mover_com_colisão(rects_solidos)
-        self.atualizar_invencibilidade()
         self._decrementar_cooldowns()
 
         return self._atualizar_troca_animacao(dano_causado)
@@ -84,8 +104,65 @@ class InimigoBase(Entity):
     def _ia(self, rects_solidos, player):
         raise NotImplementedError("cada inimigo implementa sua IA de perseguir/atacar aqui")
 
-    def _atualizar_animacao_ataque(self, player):
-        raise NotImplementedError("cada inimigo implementa a lógica do(s) golpe(s) aqui")
+    def _configurar_ataques(self):
+        #cada filho registra suas DefinicaoAtaque em self.definicoes_ataque
+        pass
+
+    def _criar_janela(self, nome, frame_inicio, frame_fim, *, politica=PoliticaHit.UMA_VEZ,
+                      canal=None, intervalo=0, hitbox=None, bloqueia_por_parede=True):
+        return JanelaGolpe(
+            nome=nome,
+            frame_inicio=frame_inicio,
+            frame_fim=frame_fim,
+            hitbox=hitbox or HitboxSpec(),
+            politica=politica,
+            canal=canal or nome,
+            intervalo=intervalo,
+            bloqueia_por_parede=bloqueia_por_parede,
+        )
+
+    def _registrar_ataque(self, nome, animacao, janelas, dano, *,
+                          movimento=ModoMovimento.REDUZIDO, lunge=0.0, prioridade=0):
+        self.definicoes_ataque[nome] = DefinicaoAtaque(
+            nome=nome,
+            animacao=animacao,
+            janelas=tuple(janelas),
+            movimento=movimento,
+            lunge=lunge,
+            dano=dano,
+            prioridade=prioridade,
+        )
+
+    def iniciar_ataque(self, nome, alvo=None):
+        definicao = self.definicoes_ataque.get(nome)
+        if definicao is None:
+            return False
+
+        self.ataque_ativo = InstanciaAtaque(definicao, self, alvo=alvo)
+        self._ataque_atual = nome
+        self._animando_ataque = True
+        self.anim_atual = definicao.animacao
+        self.anim_atual.manual = True
+        self.anim_atual.definir_frame(0)
+        self.estado = self.Atacando
+        self._resetar_flags_ataque()
+        return True
+
+    def encerrar_ataque(self):
+        self.ataque_ativo = None
+        self._animando_ataque = False
+        self._ataque_atual = None
+        self._resetar_flags_ataque()
+        if self.vivo:
+            self._resetar_para_estado_atual()
+
+    def _resetar_flags_ataque(self):
+        #cada filho zera flags de spawn/dano aqui (nada de hasattr persistente)
+        pass
+
+    def _ao_tick_ataque(self, player, frame):
+        #hook chamado pelo CombatSystem a cada tick da instância de ataque
+        pass
 
     def _atualizar_hitsun_parado(self, rects_solidos):
         #empurrao ja acabou a animação - mantem a fisica normal, mas nao deixa o bixo atacar
@@ -112,32 +189,20 @@ class InimigoBase(Entity):
 
     # ---------- DEBUG DE GOLPE ----------
 
-    def _alcance_golpe_atual(self):
-        #alcance (px) que o golpe em curso usa pra conectar; None = sem zona frontal
-        return getattr(self, "Alcance_conectar", 0)
-
     def rect_do_golpe(self):
-        #zona de conexão REAL do golpe em curso: na FRENTE do inimigo, em faixa
-        #vertical (centery ± 32). É a mesma usada no dano e no debug. None = não atacando
-        if not (getattr(self, "_animando_ataque", False) and self._ataque_atual):
+        #rect da hitbox ativa do golpe em curso (usado pelo debug)
+        if self.ataque_ativo is None:
             return None
-        alc = self._alcance_golpe_atual()
-        if not alc:
-            return None
-        lado = 1 if self.olhando_dir else -1
-        if lado > 0:
-            x = self.rect.right
-        else:
-            x = self.rect.left - alc
-        return pygame.Rect(x, self.rect.centery - 32, alc, 64)
+        hitboxes = construir_hitboxes(self.ataque_ativo)
+        return hitboxes[0].rect if hitboxes else None
 
     def rect_golpe_debug(self):
         return self.rect_do_golpe()
 
     def golpe_acerta(self, player):
-        #testa a zona do golpe contra o player (frente + faixa vertical)
-        zona = self.rect_do_golpe()
-        return zona is not None and zona.colliderect(player.rect)
+        if self.ataque_ativo is None:
+            return False
+        return any(hb.colide_com(player) for hb in construir_hitboxes(self.ataque_ativo))
 
     def _offset_desenho(self, sr):
         # cada filho sobrescreve se o sprite precisar de ajuste manual
@@ -173,7 +238,7 @@ class InimigoBase(Entity):
         return 0
 
     def _atualizar_ataque_em_curso(self, rects_solidos, player):
-        self._atualizar_animacao_ataque(player)
+        #a animação e as hitboxes são dirigidas pelo CombatSystem
         if self.TEM_GRAVIDADE:
             self.aplicar_gravidade()
         self.mover_com_colisão(rects_solidos)
@@ -196,11 +261,35 @@ class InimigoBase(Entity):
         self._timer_hit -= 1
         if self._timer_hit <= 0:
             self._em_hit = False
+            self._iniciar_recuperacao()
             self._resetar_para_estado_atual()
             return None
 
         self.anim_atual = self.anim_hit
         if not self.anim_hit.terminou:
+            self.anim_atual.atualizar()
+        return 0
+
+    def _iniciar_recuperacao(self):
+        self._em_recuperacao = self.RECUPERACAO_HIT_FRAMES > 0
+        self._timer_recuperacao = self.RECUPERACAO_HIT_FRAMES if self._em_recuperacao else 0
+        if self._em_recuperacao:
+            #volta para idle; o movimento/IA só libera quando a recuperação acabar
+            self.estado = getattr(self, self.ESTADO_PADRAO)
+
+    def _atualizar_recuperacao(self, rects_solidos):
+        if self.TEM_GRAVIDADE:
+            self.aplicar_gravidade()
+        self.vel.x = 0
+        self.mover_com_colisão(rects_solidos)
+        self._decrementar_cooldowns()
+
+        self._timer_recuperacao -= 1
+        if self._timer_recuperacao <= 0:
+            self._em_recuperacao = False
+            self._resetar_para_estado_atual()
+        else:
+            self._animacao_extra_hook()
             self.anim_atual.atualizar()
         return 0
 
@@ -225,44 +314,79 @@ class InimigoBase(Entity):
 
     # COMBATE 
 
+    def receber_evento(self, evento):
+        kb = evento.knockback or KnockbackSpec()
+        #o tempo mínimo de reação é do próprio inimigo; golpes mais fortes
+        #podem estender, mas nunca encurtar (globin/mushroom tinham a animação
+        #de "take hit" cortada pelo duracao_hit padrão do player)
+        duracao_hit = 0
+        if evento.stagger:
+            duracao_hit = max(self.HITSTUN_FRAMES, evento.duracao_hit or 0)
+        return self.receber_hit(
+            evento.dano,
+            evento.direcao,
+            forca_x=kb.forca_x,
+            forca_y=kb.forca_y,
+            frames_kb=kb.frames or None,
+            duracao_hit=duracao_hit,
+        )
+
     def receber_hit(self, dano, direçao_knockback, forca_x=None, forca_y=None, frames_kb=None, duracao_hit=None):
         if getattr(self, "_escudo_ativo", False):
-            return  # só o boss usa isso
+            return False  # só o boss usa isso
 
-        self.receber_dano(dano)
-
+        frames_invenc = self.Frames_ivenc if self.USAR_IFRAMES_DANO else 0
+        aplicado = self.receber_dano(dano, frames_invenc=frames_invenc)
+        if not aplicado:
+            return False
 
         if not self.vivo:
+            self.ataque_ativo = None
+            self._animando_ataque = False
+            self._ataque_atual = None
+            self._resetar_flags_ataque()
             if not hasattr(self, "_timer_morte"):
                 self._iniciar_morte()
-                return
+            return True
 
-
-        #hiper armo quando estive no prorpio ataque
+        #hiper armor quando está no próprio ataque
         if self._animando_ataque and self.IMUNE_DURANTE_ATAQUE:
-            return
+            return True
 
-        
-        #hiper amor
+        #hiper armor temporário após um stagger
         if self._imune_stagger > 0:
-            return
+            return True
 
         forca_x     = self.KB_FORCA_X       if forca_x      is None else forca_x
         forca_y     = self.KB_FORCA_Y       if forca_y      is None else forca_y
         frames_kb   = self.KB_FRAMES        if frames_kb    is None else frames_kb
         duracao_hit = self.HITSTUN_FRAMES   if duracao_hit  is None else duracao_hit
 
-
         self.aplicar_knockback(direçao_knockback, forca_x, forca_y, frames_kb)
+        self.ataque_ativo = None
         self._animando_ataque = False
         self._ataque_atual = None
+        self._resetar_flags_ataque()
 
-        self._em_hit = True
-        self._timer_hit = duracao_hit
-        self.anim_hit.resetar()
+        #se o golpe interrompeu um ataque, volta para um estado neutro.
+        #sem isso o inimigo podia terminar o hitstun exibindo o 1º frame do
+        #ataque cancelado (principalmente enquanto o cooldown ainda está ativo)
+        if self.estado == self.Atacando:
+            self.estado = getattr(self, self.ESTADO_PADRAO)
 
-        if self.IMUNIDADE_STAGGERS_FRAMES > 0:
-            self._imune_stagger = frames_kb + duracao_hit + self.IMUNIDADE_STAGGERS_FRAMES
+        if duracao_hit > 0:
+            self._em_hit = True
+            self._timer_hit = duracao_hit
+            self._em_recuperacao = False
+            self._timer_recuperacao = 0
+            self.anim_hit.resetar()
+            #aplica já neste frame para o feedback aparecer mesmo durante o hitstop
+            self.anim_atual = self.anim_hit
+
+        if self.IMUNIDADE_STAGGER_FRAMES > 0:
+            self._imune_stagger = frames_kb + duracao_hit + self.IMUNIDADE_STAGGER_FRAMES
+
+        return True
 
     # DESENHO
 

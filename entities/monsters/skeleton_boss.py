@@ -2,6 +2,7 @@ import pygame
 import random
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 from entities.projeteis.projetil_boss import ProjetilBoss
 
 
@@ -20,9 +21,10 @@ class EsqueletoBoss(InimigoBase):
     KB_FORCA_X = 1
     KB_FORCA_Y = -1
     KB_FRAMES = 6
-    HITSTUN_FRAMES = 10
+    HITSTUN_FRAMES = 32  # 4 frames de hit a 8 ticks = ~533 ms (atordoamento pesado)
     IMUNIDADE_STAGGER_FRAMES = 40
     IMUNE_DURANTE_ATAQUE = True
+    USAR_IFRAMES_DANO = False
 
     Vel_perseguir         = 1.8
 
@@ -58,16 +60,51 @@ class EsqueletoBoss(InimigoBase):
         self.animaçoes = {
             self.Patrulha:  AnimatedSprite(Boss_skeleton + "Idle.png",   150, 150, velocidade=8, escala=2, n_frames=4),
             self.Perseguir: AnimatedSprite(Boss_skeleton + "Walk.png",   150, 150, velocidade=8, escala=2, n_frames=4),
-            self.Atacando:  AnimatedSprite(Boss_skeleton + "Attack.png", 150, 150, velocidade=6, escala=2, n_frames=8),
+            self.Atacando:  AnimatedSprite(Boss_skeleton + "Attack.png", 150, 150, velocidade=6, escala=2, n_frames=8, loop=False),
             self.Morto:     AnimatedSprite(Boss_skeleton + "Death.png",  150, 150, velocidade=8, escala=2, n_frames=4),
         }
-        self.anim_attack2 = AnimatedSprite(Boss_skeleton + "Attack2.png", 150, 150, velocidade=6, escala=2, n_frames=8)
-        self.anim_attack3 = AnimatedSprite(Boss_skeleton + "Attack3.png", 150, 150, velocidade=6, escala=2, n_frames=6)
+        self.anim_attack2 = AnimatedSprite(Boss_skeleton + "Attack2.png", 150, 150, velocidade=6, escala=2, n_frames=8, loop=False)
+        self.anim_attack3 = AnimatedSprite(Boss_skeleton + "Attack3.png", 150, 150, velocidade=6, escala=2, n_frames=6, loop=False)
         self.anim_shield  = AnimatedSprite(Boss_skeleton + "Shield.png",  150, 150, velocidade=8, escala=2, n_frames=4)
-        self.anim_hit     = AnimatedSprite(Boss_skeleton + "Take Hit.png", 150, 150, velocidade=10, escala=2, n_frames=4)
+        self.anim_hit     = AnimatedSprite(Boss_skeleton + "Take Hit.png", 150, 150, velocidade=8, escala=2, n_frames=4)
         self.anim_atual   = self.animaçoes[self.Perseguir]
 
         self.ecos_drop = 150
+
+        self._configurar_ataques()
+
+    def _configurar_ataques(self):
+        dano_normal = DanoSpec(
+            dano_base=self.Dano_normal,
+            knockback=KnockbackSpec(forca_x=5, forca_y=-2, frames=14),
+            hitstop=3,
+            duracao_hit=12,
+            frames_invenc=20,
+        )
+        dano_varrido = DanoSpec(
+            dano_base=self.Dano_varrido,
+            knockback=KnockbackSpec(forca_x=8, forca_y=-2, frames=16),
+            hitstop=5,
+            duracao_hit=16,
+            frames_invenc=30,
+        )
+        self._registrar_ataque(
+            "normal",
+            self.animaçoes[self.Atacando],
+            [self._criar_janela("golpe", 6, 7)],
+            dano_normal,
+        )
+        self._registrar_ataque(
+            "varrido",
+            self.anim_attack2,
+            [self._criar_janela("varrido", 6, 7)],
+            dano_varrido,
+        )
+        self._registrar_ataque("projetil", self.anim_attack3, [], DanoSpec())
+
+    def _resetar_flags_ataque(self):
+        self._projetil_spawnado = False
+        self._projetil_direcao = 1
 
     @property
     def nome(self):
@@ -102,19 +139,25 @@ class EsqueletoBoss(InimigoBase):
 
         if player.vivo and dist < self.Alcance_detec:
             if dist < self.Alcance_ataq_normal:
-                self.estado = self.Atacando
                 self.vel.x = 0
-                self._tentar_atacar(dist, player)
+                if self.cooldown_ataq <= 0:
+                    self._tentar_atacar(dist, player)
+                else:
+                    self.estado = self.Patrulha
 
             elif dist < self.Alcance_ataq_varrido:
-                self.estado = self.Atacando
                 self.vel.x = 0
-                self._tentar_atacar(dist, player)
+                if self.cooldown_ataq <= 0:
+                    self._tentar_atacar(dist, player)
+                else:
+                    self.estado = self.Patrulha
 
             elif dist < self.Alcance_ataq_projetil and self.cooldown_projetil <= 0:
-                self.estado = self.Atacando
                 self.vel.x = 0
-                self._tentar_atacar(dist, player)
+                if self.cooldown_ataq <= 0:
+                    self._tentar_atacar(dist, player)
+                else:
+                    self.estado = self.Patrulha
 
             elif self.cooldown_escudo <= 0 and dist < self.Alcance_escudo:
                 self._escudo_ativo = True
@@ -154,63 +197,21 @@ class EsqueletoBoss(InimigoBase):
                 self.vel.x = self.Vel_perseguir * direçao
                 self.olhando_dir = direçao > 0
 
-    def _alcance_golpe_atual(self):
-        if self._ataque_atual == "varrido":
-            return self.Alcance_conectar_varrido
-        return self.Alcance_conectar
-
     def _iniciar_ataque(self, tipo, direçao=1, player=None):
-        self._ataque_atual = tipo
-        self._animando_ataque = True
+        if not self.iniciar_ataque(tipo, player):
+            return
+        self._projetil_direcao = direçao
 
-        if tipo == "normal":
-            self.anim_atual = self.animaçoes[self.Atacando]
-            self.anim_atual.resetar()
-        elif tipo == "varrido":
-            self.anim_atual = self.anim_attack2
-            self.anim_atual.resetar()
-        elif tipo == "projetil":
-            self._projetil_info = {"direçao": direçao, "frame_spawn": 3, "spawnando": False}
-            self.anim_atual = self.anim_attack3
-            self.anim_atual.resetar()
-
-    def _atualizar_animacao_ataque(self, player):
-        self.anim_atual.atualizar()
-
-        if self._ataque_atual == "normal":
-            if self.anim_atual._frame_idx == 4 and not hasattr(self, "_dano_normal_aplicado"):
-                self._dano_normal_aplicado = True
-                if self.golpe_acerta(player):
-                    direçao_kb = 1 if player.rect.centerx > self.rect.centerx else -1
-                    player.receber_dano(self.Dano_normal, frames_invenc=20)
-                    player.vel.x = direçao_kb * 5
-                    player.vel.y = -4
-
-        elif self._ataque_atual == "varrido":
-            if self.anim_atual._frame_idx == 4 and not hasattr(self, "_dano_varrido_aplicado"):
-                self._dano_varrido_aplicado = True
-                if self.golpe_acerta(player):
-                    direçao_kb = 1 if player.rect.centerx > self.rect.centerx else -1
-                    player.receber_dano(self.Dano_varrido, frames_invenc=30)
-                    player.vel.x = direçao_kb * 8
-                    player.vel.y = -4
-
-        elif self._ataque_atual == "projetil":
-            if not self._projetil_info["spawnando"] and self.anim_atual._frame_idx >= self._projetil_info["frame_spawn"]:
-                self._projetil_info["spawnando"] = True
-                p = ProjetilBoss(
-                    self.rect.centerx, self.rect.centery - 35,
-                    self._projetil_info["direçao"], self.Dano_projetil
-                )
-                self.projeteis_spawnar.append(p)
-
-        if self.anim_atual.terminou:
-            self._animando_ataque = False
-            self._ataque_atual = None
-            for attr in ("_dano_normal_aplicado", "_dano_varrido_aplicado"):
-                if hasattr(self, attr):
-                    delattr(self, attr)
-            self._resetar_para_estado_atual()
+    def _ao_tick_ataque(self, player, frame):
+        if self._ataque_atual == "projetil" and frame >= 3 and not self._projetil_spawnado:
+            self._projetil_spawnado = True
+            p = ProjetilBoss(
+                self.rect.centerx,
+                self.rect.centery - 35,
+                self._projetil_direcao,
+                self.Dano_projetil,
+            )
+            self.projeteis_spawnar.append(p)
 
 
 

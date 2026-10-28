@@ -2,6 +2,7 @@ import pygame
 import sys
 import atexit
 import logging
+import argparse
 
 from logging_config import configurar_logging
 
@@ -19,7 +20,7 @@ from save_manager import Savemaneger
 
 
 class Jogo:
-    def __init__(self):
+    def __init__(self, modo_teste_combate=False):
         pygame.init()
         self.Criar_janela()
         self.clock = pygame.time.Clock()
@@ -28,9 +29,13 @@ class Jogo:
         self.estado = "menu" #menu do jogo
         self.slot_atual = None
         self.scene = None
+        self.modo_teste_combate = modo_teste_combate
 
         self.menu = MenuInicial(self.tela, self.save_manager)
         self.menu.callback_iniciar = self._iniciar_jogo
+
+        if self.modo_teste_combate:
+            self._iniciar_jogo(None, None)
         
 
     def _atualizar_visibilidade_mouse(self):
@@ -48,13 +53,14 @@ class Jogo:
 
     def _iniciar_jogo(self, slot, dados_save):
         self.slot_atual = slot
-        self.scene = Gamescene(self.tela)
+        self.scene = Gamescene(self.tela, modo_teste_combate=self.modo_teste_combate)
         self.scene._menu_callback = self._voltar_menu
 
-        def _fazer_save():
-            if self.scene:
-                self.scene.salvar(self.save_manager, self.slot_atual)
-        self.scene._save_callback = _fazer_save
+        if self.slot_atual is not None:
+            def _fazer_save():
+                if self.scene:
+                    self.scene.salvar(self.save_manager, self.slot_atual)
+            self.scene._save_callback = _fazer_save
 
 
         if dados_save is not None:
@@ -142,4 +148,8 @@ class Jogo:
 
 
 if __name__ == "__main__":
-    Jogo().rodar()
+    parser = argparse.ArgumentParser(description="Profane Echo")
+    parser.add_argument("--teste-combate", action="store_true",
+                        help="inicia direto na arena de teste de combate")
+    args = parser.parse_args()
+    Jogo(modo_teste_combate=args.teste_combate).rodar()

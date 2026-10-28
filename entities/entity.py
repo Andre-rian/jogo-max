@@ -45,6 +45,7 @@ class Entity(pygame.sprite.Sprite):
 
         #mask, começando a implementaçõa 
         self.mask = None
+        self._mask_pos = self.rect.topleft
 
         #plataformas one-way: True quando os pés estão apoiados em uma
         self._sobre_plataforma = False
@@ -167,11 +168,11 @@ class Entity(pygame.sprite.Sprite):
     #Dano/combante
     def receber_dano(self, quantidade, frames_invenc=None):
         #Reduz o hp. se tiver invencivel = ignora. apos levar dano = frames de invecibilidade
+        #frames_invenc=0 desativa os i-frames desse golpe (inimigos comuns por padrão)
 
         if self.invencivel or not self.vivo:
-            
-            return
-        
+            return False
+
         self.hp -= quantidade
 
         if self.hp <= 0:
@@ -180,9 +181,32 @@ class Entity(pygame.sprite.Sprite):
             if self.callback_morte:
                 self.callback_morte(self.rect.centerx, self.rect.bottom)
         else:
-            #ativar os frames de invencibilidade
-            self.invencivel = True
-            self.timer_invenc = frames_invenc if frames_invenc is not None else self.Frames_ivenc 
+            frames_invenc = self.Frames_ivenc if frames_invenc is None else frames_invenc
+            if frames_invenc > 0:
+                self.invencivel = True
+                self.timer_invenc = frames_invenc
+
+        return True
+
+    def receber_evento(self, evento):
+        #ponto único de entrada de dano do sistema de combate
+        aplicado = self.receber_dano(
+            evento.dano,
+            frames_invenc=evento.frames_invenc,
+        )
+        if not aplicado:
+            return False
+
+        if self.vivo and evento.knockback is not None:
+            kb = evento.knockback
+            if kb.forca_x or kb.forca_y:
+                self.aplicar_knockback(
+                    evento.direcao,
+                    forca_x=kb.forca_x,
+                    forca_y=kb.forca_y,
+                    frames=kb.frames or 1,
+                )
+        return True
 
     def atualizar_invencibilidade(self):
         #conta a quantidade de frames da invencibilidade
@@ -208,13 +232,10 @@ class Entity(pygame.sprite.Sprite):
             self.aplicar_gravidade()
             self.mover_com_colisão(rects_solidos)
         else:
-            #inimigos que voam
-            self.rect.x += int(self.vel.x)
-            self.rect.y += int(self.vel.y)
+            #inimigos que voam também respeitam paredes/chão no knockback
+            self.mover_com_colisão(rects_solidos)
             self.vel.x *= 0.85
             self.vel.y *= 0.85
-
-        self.atualizar_invencibilidade()
 
         if self.timer_knockback <= 0:
             self.recebendo_knockback = False
@@ -226,9 +247,13 @@ class Entity(pygame.sprite.Sprite):
     
 
     def atualizar_mask(self):
-        if getattr(self, "anim_atual", None):
-            self.mask = pygame.mask.from_surface(self.anim_atual.frame_atual)
-            self._mask_pos = self._offset_mask() #guarda onde a mask realmente está no mundo
+        anim = getattr(self, "anim_atual", None)
+        if anim is not None:
+            self.mask = anim.mascara_frame(
+                anim.frame_index,
+                espelhado=not self.olhando_dir,
+            )
+            self._mask_pos = self._offset_mask()  #guarda onde a mask realmente está no mundo
 
 
 

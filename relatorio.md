@@ -1,6 +1,6 @@
 # Relatório de Mudanças — Profane Echo
 
-Reorganização estrutural, padronização de logs e limpeza de debug.
+Reorganização estrutural, padronização de logs, limpeza de debug e reformulação do combate.
 
 ## Mudanças principais e motivos
 
@@ -133,6 +133,50 @@ Todos os `print()` de debug foram substituídos por `logger` (níveis `debug`/`i
 
 ---
 
+## Combate reformulado (branch `combate`)
+
+### 21. Núcleo de combate centralizado (`core/combat/` — novo)
+- **`tipos.py`** — tipos declarativos do combate: `DanoSpec`, `KnockbackSpec`, `HitboxSpec`, `JanelaGolpe`, `DefinicaoAtaque`, `FaseAtaque`, `ModoMovimento` e `PoliticaHit`.
+- **`colisao.py`** — `Hitbox` com colisão por **máscara de pixel**; `construir_hitbox`/`construir_hitboxes` alinham a máscara da animação ao dono. Quando a hitbox tem máscara, `colide_com` **não cai mais para o rect** (antes o fallback retangular alargava golpes).
+- **`dano.py`** — `DamageEvent` + `RegistroDano` (ledger): i-frames, stagger, knockback, hitstun, hitstop e controle de “uma vez por alvo/canal”.
+- **`sistema.py`** — `CombatSystem.resolver(player, inimigos, projeteis, rects_solidos)` resolve todo o combate do frame e expõe `consumir_hitstop()`.
+- **`ataque.py`** — `InstanciaAtaque` acompanha o frame da animação e libera as janelas de golpe.
+- **`debug.py`** — desenho das hurtboxes/hitboxes ativas.
+
+**Motivo:** a lógica de acerto/dano estava duplicada entre player, inimigos e projéteis. Agora todos usam o mesmo pipeline e as mesmas regras.
+
+### 22. Player, inimigos e projéteis migrados para o pipeline
+- `entities/player.py` e `entities/inimigo_base.py` deixaram de fazer colisão/dano próprios; montam `DefinicaoAtaque`/`HitboxSpec` e delegam ao `CombatSystem`.
+- Os 5 inimigos (`Skeleton`, `Globin`, `Mushroom`, `FlyingEye`, `EsqueletoBoss`) e todos os projéteis (`Bomba`, `EsporoMushroom`, `ProjetilFlyingEye`, `ProjetilBoss`, base) foram adaptados.
+- `core/animated_sprite.py` ganhou suporte a máscara/offset por frame para as hitboxes pixel-perfect; `entities/entity.py` expõe hurtbox/máscara e aplica dano de forma consistente.
+- **Hitstop** integrado ao `GameScene`: `combate.consumir_hitstop()` pausa o mundo por alguns frames após acerto confirmado.
+
+### 23. Correções encontradas durante a migração
+- Ledger só registra o alvo **depois** de `evento.aplicado`: golpe bloqueado por i-frame não “gasta” o acerto e pode conectar no frame seguinte.
+- Hurtbox do player usa a animação de idle sem `manual=True` (não congela mais a idle ao levar dano).
+- `FlyingEye`: movimento migrado para `_atualizar_ataque_em_curso`; o hook apenas spawna o projétil. Voo, patrulha, ataque e knockback agora usam a colisão base (`mover_com_colisão`), então o inimigo não atravessa mais paredes ao perseguir, atacar ou levar hit.
+- Reação visual ao dano: o `duracao_hit` do golpe do player não encurta mais o `HITSTUN_FRAMES` do inimigo; cada tipo teve a velocidade da animação “Take Hit” ajustada para a animação completar dentro do próprio atordoamento (`Globin`/`Mushroom` ~267 ms, `Skeleton` ~267 ms, `FlyingEye` ~200 ms, boss pesado ~533 ms).
+- A animação de hit agora é aplicada imediatamente (aparece inclusive durante o hitstop) e, ao interromper um ataque, o inimigo volta para um estado neutro em vez de terminar o atordoamento no 1º frame da pose de ataque.
+- Após o hitstun, `Globin` e `Mushroom` ficam em recuperação idle antes de voltar à IA (`8` e `24` ticks, respectivamente); isso evita o retorno imediato em velocidade máxima ao player, com o `Mushroom` mais pesado demorando mais.
+- IA de `Skeleton`, `Globin`, `Mushroom` e boss não entra mais em `Atacando` enquanto o cooldown ainda está ativo (pose de ataque sem golpe ativo).
+- Defaults adicionados em `_resetar_flags_ataque`: `Globin._bomba_direcao`, `EsqueletoBoss._projetil_direcao`, `Mushroom._esporo_direçao`/`_esporo_player`.
+- `Bomba` usa a direção do dono na explosão; `EsporoMushroom` não expõe hitbox enquanto `_timer_delay > 0`.
+- **Debug de combate:** F4 alterna `debug_combate` (hurtboxes/hitboxes ativas) sem depender de `DEBUG`.
+
+### 24. Testes automatizados (`tests/` — novo, fora do git ainda)
+- `test_player_combat.py`, `test_enemy_attacks.py`, `test_projectiles.py`, `test_combat_masks.py`, `test_combat_timeline.py` e `test_enemy_regressions.py`.
+- Cobrem: hitbox por máscara sem fallback retangular, janela temporal de golpe, i-frames com retry, projéteis, ataque do player e dos inimigos, colisão do `FlyingEye` (voo/ataque/knockback), duração completa da animação de hit nos 5 inimigos, hit único por golpe, retorno a estado neutro após interrupção, recuperação parada após o hitstun e inimigo morto sem movimento/ataque.
+- Execução: `python -m pytest -q` → **34 passed**.
+
+### 25. Modo de teste de combate (novo)
+- **Como abrir:**
+  - `python main.py --teste-combate` — inicia direto na arena, sem passar pelo menu.
+  - Ou, durante o jogo, pressione **F6** — carrega/reinicia a arena a qualquer momento.
+- **O que a arena entrega:** player no `calabouço_1` com a **Espada Longa** equipada, HP/stamina cheios, um exemplar de `Skeleton`, `Globin`, `Mushroom`, `FlyingEye` e `EsqueletoBoss`, sem depender do save/progresso.
+- **Teclas úteis:** F4 liga/desliga hitboxes; F3 mostra plataformas/escadas; F6 reinicia a arena; ESC pausa.
+- A morte na arena respawna no checkpoint da própria arena e reconfigura os inimigos.
+- O modo normal continua intacto; no início via CLI de teste não há slot ativo, então a opção Salvar não grava (o callback de save não é registrado).
+
 ## Divisão em subpastas — implementado
 
 Estrutura atual do projeto:
@@ -205,7 +249,8 @@ jogo-max/
 - ✅ `jogo.log` único (`FileHandler(mode="a")`) em vez de sobrescrita/rotação.
 - ⏳ Nenhum `sys.setrecursionlimit`/proteção de loop infinito; callbacks (menu↔cena↔save) crescem sem coordenação central.
 - ⏳ Sem type hints (dificulta tooling, IDE e refatoração segura).
-- ⏳ Sem testes automatizados — o smoke test atual é manual/temporário.
+- ✅ Testes automatizados de combate adicionados em `tests/` (34 testes com `pytest`); os smoke tests de cena continuam manuais/temporários.
+- ⏳ Type hints ainda não foram adicionados de forma sistemática.
 
 ## Mudanças necessárias (resumo, por ordem de prioridade)
 
@@ -223,7 +268,7 @@ jogo-max/
 | 10 | Unificar duplicidade de códigos de cor legados ⇄ `ui/estilo.py` | consistência visual | baixo | ⏳ |
 | 11 | Renomear typos consagrados (`Screen_widht`, `Savemaneger`...) | consistência | médio | ⏳ |
 | 12 | ZeroDivision na tela de morte (`duraçao_morte`) + clamps na física | robustez | baixo | ⏳ |
-| 13 | Adicionar type hints e um primeiro teste automatizado | qualidade geral | alto | ⏳ |
+| 13 | Adicionar type hints e um primeiro teste automatizado | qualidade geral | alto | ⏳ (testes ✅, type hints pendentes) |
 | 14 | Câmera com zoom: aproxima do player (1.35x) e desaproxima na luta do boss (1.0x, ease suave) | jogabilidade | médio | ✅ |
 | 15 | Spawn do player na troca de sala usa o spawn do TMX (nome do lado da entrada ou `default`); antes o jogador nascia dentro da parede do `calabouco_2` (linha fixa dos dados fallback) | bug | médio | ✅ |
 | 16 | Salas sem TMX (fallback 3–5) crashavam no carregamento: grid de `int` ia direto para o `TileMap` que esperava `TileRef` — agora converte para placeholder | bug | alto | ✅ |
@@ -231,6 +276,11 @@ jogo-max/
 | 18 | Corrigir "lançamento"/teleporte ao colidir com parede (`mover_com_colisão` por penetração mínima + break) | bug | médio | ✅ |
 | 19 | Tocha animada decorativa como entidade (detecção por tileset no TMX) | conteúdo | médio | ✅ |
 | 20 | Tilesets externos `.tsx` + `.tiled-project` + mapa molde `_template.tmx` | pipeline | médio | ✅ |
+| 21 | Núcleo de combate centralizado (`core/combat/`) com hitbox por máscara, dano, knockback, i-frames e hitstop | jogabilidade/manutenção | alto | ✅ |
+| 22 | Player, os 5 inimigos e todos os projéteis migrados para o `CombatSystem` | consistência | alto | ✅ |
+| 23 | Ledger só registra dano aplicado; remoção do fallback retangular indevido; correções de idle/FlyingEye/defaults/projéteis; FlyingEye não atravessa paredes ao voar/atacar/levar hit; hitstun de Globin/Mushroom não é mais encurtado | bugs de combate | médio | ✅ |
+| 24 | Suíte de testes de combate (`tests/`, 34 testes) | confiabilidade | médio | ✅ |
+| 25 | Modo de teste de combate (`--teste-combate` / F6) com player armado e os 5 tipos de inimigo | validação manual | baixo | ✅ |
 
 ## Status de validação
 - Todos os arquivos alterados compilam (`compileall` exit 0).
@@ -242,3 +292,6 @@ jogo-max/
 - Harness de plataformas/escadas (`test_plataformas_escadas.py`): grupos A–H TUDO OK —
   - A/B: pousar em plataformas e descer com S+Espaço; C: **drop bloqueado** com metade do player sobre bloco (e liberado com metade sobre o vazio); D/E: subir por baixo da plataforma ladeada de parede e teto real bloqueando; F: escada restrita à coluna (desce passando pela parede, soltar sem "jogada", teto de bloco); G: sem teleporte ao nascer/tocar parede (regressão do "lançamento"); H: drop só com o retângulo inteiro sobre a plataforma.
 - Tilesets `.tsx`: hashes das camadas dos dois mapas idênticos antes/depois da externalização; `Gamescene` carrega os dois `.tmx` e roda 60 frames (update+draw) sem exceção, com 1 tocha detectada por tileset nome — OK.
+- **Combate:** `python -m pytest -q` → **34 passed**; `compileall` OK.
+- **Modo de teste:** smoke headless com `Gamescene(modo_teste_combate=True)` cria player com Espada Longa, os 5 inimigos e roda 90 frames (update+draw) sem exceção; F6 também reinicia a arena com o jogo normal em execução — OK.
+- **Regressão:** `Gamescene` sem o modo de teste continua carregando `calabouço_1` e rodando normalmente — OK.

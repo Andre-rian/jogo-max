@@ -2,6 +2,7 @@ import pygame
 from settings import DEBUG
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, Hitbox, JanelaGolpe, KnockbackSpec, PoliticaHit
 
 class Bomba(Projetil):
 
@@ -13,13 +14,12 @@ class Bomba(Projetil):
     def __init__(self, x, y, direcao, dano=20):
         #direçao -1 = esquerda, 1 = direita
         
-        super().__init__(x, y, vel_x=direcao * 4, vel_y=-6, dano=dano, tem_gravidade=True, gravidade=0.2)
+        super().__init__(x, y, vel_x=direcao * 4, vel_y=-6, dano=dano, tem_gravidade=True, gravidade=0.2, frames_invenc=30)
 
         self.rect = pygame.Rect(x, y, 20, 20)
         self.direcao = direcao
         self.explodindo = False
         self._timer_delay = 20 #esperar os 20 frames para checar a colisao com o chao ou player, evita que a bomba exploda no spawn
-        self._dano_aplicado = False #evita bug do dano ser aplicado mais de uma vez
 
         Gob = "assets/sprites/enemies/monsters/goblin/"
         self.anim_voando = AnimatedSprite(
@@ -39,18 +39,24 @@ class Bomba(Projetil):
         )
 
         #pula direto ao frame 9 ao explodir
-        self.anim_explosao._frame_idx = self.N_frames_voando
+        self.anim_explosao.definir_frame(self.N_frames_voando)
 
         self.anim_atual = self.anim_voando
-        self._player_ref = None #guarda a referencia ao player para o dano na explosao
+
+        self._janela_explosao = JanelaGolpe(
+            nome="explosao",
+            frame_inicio=0,
+            frame_fim=10_000,
+            politica=PoliticaHit.UMA_VEZ,
+            canal="explosao",
+            bloqueia_por_parede=False,
+        )
 
 
     def atualizar(self, rects_solidos, player):
         if not self.ativo:
             return
         
-        self._player_ref = player 
-
         if self.explodindo:
             self._atualizar_explosao(player)
             return
@@ -74,10 +80,6 @@ class Bomba(Projetil):
                 self.rect.bottom = tile.top
                 self._iniciar_explosao()
                 return
-            
-        #colisao com o player
-        if player.vivo and self.rect.colliderect(player.rect):
-            self._iniciar_explosao()
 
         self.anim_voando.atualizar()
 
@@ -86,23 +88,44 @@ class Bomba(Projetil):
 
         self.explodindo = True
         self.vel = pygame.Vector2(0, 0) #para a bomba no ar
-        self.anim_explosao._frame_idx = self.N_frames_voando #começa a animação de explosão
-        self.anim_explosao._contador = 0 
+        self.anim_explosao.definir_frame(self.N_frames_voando) #começa a animação de explosão
 
 
     def _atualizar_explosao(self, player):
         self.anim_explosao.atualizar()
-
-        #so aplicar o dano uma vez na area no inicio da explosao
-        if not self._dano_aplicado:
-            self._dano_aplicado = True
-            if player.vivo:
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist <= self.Raio_explosao:
-                    player.receber_dano(self.dano)
         #desativa a bomba depois da explosao
         if self.anim_explosao.terminou:
             self.ativo = False
+
+    def dano_spec(self):
+        return DanoSpec(
+            dano_base=self.dano,
+            knockback=KnockbackSpec(forca_x=7, forca_y=-3, frames=16),
+            stagger=True,
+            duracao_hit=14,
+            frames_invenc=self.frames_invenc,
+        )
+
+    def hitboxes_ativas(self):
+        if not self.ativo or not self.explodindo:
+            return ()
+
+        area = pygame.Rect(0, 0, self.Raio_explosao * 2, 160)
+        area.centerx = self.rect.centerx
+        area.bottom = self.rect.bottom
+        return [
+            Hitbox.de_rect(
+                area,
+                self.dano_spec(),
+                self._janela_explosao,
+                self,
+                self.direcao or 1,
+            )
+        ]
+
+    def ao_acertar(self, player, evento):
+        #a explosao continua ativa mesmo depois de acertar
+        pass
 
     def desenhar(self, tela, camera):
         if not self.ativo:

@@ -3,6 +3,7 @@ import random
 import math
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 
 class Mushroom(InimigoBase):
 
@@ -14,7 +15,8 @@ class Mushroom(InimigoBase):
     KB_FORCA_X = 2
     KB_FORCA_Y = -1
     KB_FRAMES = 18
-    HITSTUN_FRAMES = 16
+    HITSTUN_FRAMES = 16  # 4 frames de hit a 4 ticks = ~267 ms (reação completa)
+    RECUPERACAO_HIT_FRAMES = 24  # ~400 ms parado antes de voltar a perseguir
 
 
     Vel_patrulha = 1.0
@@ -49,18 +51,47 @@ class Mushroom(InimigoBase):
         self.animaçoes = {
             self.Patrulha:  AnimatedSprite(Mush + "Idle.png",   150, 150, velocidade=10, escala=2, n_frames=4),
             self.Perseguir: AnimatedSprite(Mush + "Run.png",    150, 150, velocidade=6,  escala=2, n_frames=8),
-            self.Atacando:  AnimatedSprite(Mush + "Attack.png", 150, 150, velocidade=5,  escala=2, n_frames=8),
+            self.Atacando:  AnimatedSprite(Mush + "Attack.png", 150, 150, velocidade=5,  escala=2, n_frames=8, loop=False),
             self.Morto:     AnimatedSprite(Mush + "Death.png",  150, 150, velocidade=8,  escala=2, n_frames=4),
         }
-        self.anim_attack2 = AnimatedSprite(Mush + "Attack2.png", 150, 150, velocidade=5, escala=2, n_frames=8)
-        self.anim_attack3 = AnimatedSprite(Mush + "Attack3.png", 150, 150, velocidade=5, escala=2, n_frames=11)
+        self.anim_attack2 = AnimatedSprite(Mush + "Attack2.png", 150, 150, velocidade=5, escala=2, n_frames=8, loop=False)
+        self.anim_attack3 = AnimatedSprite(Mush + "Attack3.png", 150, 150, velocidade=5, escala=2, n_frames=11, loop=False)
         self.anim_hit = AnimatedSprite(Mush + "Take Hit.png", 150, 150, velocidade=4, escala=2, n_frames=4)
         self.anim_atual = self.animaçoes[self.Patrulha]
 
-    #knockback
+        self._configurar_ataques()
 
-    def receber_hit(self, dano, direçao_knockback):
-        super().receber_hit(dano, direçao_knockback)
+    def _configurar_ataques(self):
+        dano_normal = DanoSpec(
+            dano_base=self.Dano_normal,
+            knockback=KnockbackSpec(forca_x=3, forca_y=-1, frames=10),
+            duracao_hit=14,
+            frames_invenc=15,
+        )
+        dano_forte = DanoSpec(
+            dano_base=self.Dano_forte,
+            knockback=KnockbackSpec(forca_x=5, forca_y=-1, frames=12),
+            duracao_hit=16,
+            frames_invenc=20,
+        )
+        self._registrar_ataque(
+            "normal",
+            self.animaçoes[self.Atacando],
+            [self._criar_janela("golpe", 6, 7)],
+            dano_normal,
+        )
+        self._registrar_ataque(
+            "forte",
+            self.anim_attack2,
+            [self._criar_janela("golpe_forte", 6, 7)],
+            dano_forte,
+        )
+        self._registrar_ataque("esporo", self.anim_attack3, [], DanoSpec())
+
+    def _resetar_flags_ataque(self):
+        self._esporo_spawnado = False
+        self._esporo_direçao = 1
+        self._esporo_player = None
 
     #IA
 
@@ -69,11 +100,12 @@ class Mushroom(InimigoBase):
 
         if player.vivo and dist < self.Alcance_detec:
             if dist < self.Alcance_ataq_perto:
-                self.estado = self.Atacando
                 self.vel.x = 0
                 if self.cooldown_ataq <= 0:
                     self._tentar_atacar(dist, player)
-                # se o cooldown ainda não zerou, só fica parado "encarando"
+                else:
+                    #em cooldown fica em idle, sem pose de ataque sem golpe ativo
+                    self.estado = self.Patrulha
 
             elif dist < self.Alcance_ataq_esporo:
                 if self.cooldown_esporo <= 0 and self.cooldown_ataq <= 0:
@@ -105,11 +137,6 @@ class Mushroom(InimigoBase):
 
     #Ataques
 
-    def _alcance_golpe_atual(self):
-        if self._ataque_atual == "forte":
-            return self.Alcance_conectar_forte
-        return self.Alcance_conectar
-
     def _tentar_atacar(self, dist, player):
         if self.cooldown_ataq > 0:
             return
@@ -130,49 +157,15 @@ class Mushroom(InimigoBase):
                 self.cooldown_esporo = self.Cooldown_esporo_max
 
     def _iniciar_ataque(self, tipo, direçao=1, player=None):
-        self._ataque_atual = tipo
-        self._animando_ataque = True
-        self._esporo_spawnado = False
+        if not self.iniciar_ataque(tipo, player):
+            return
+        self._esporo_direçao = direçao
+        self._esporo_player = player
 
-        if tipo == "normal":
-            self.anim_atual = self.animaçoes[self.Atacando]
-            self.anim_atual.resetar()
-        elif tipo == "forte":
-            self.anim_atual = self.anim_attack2
-            self.anim_atual.resetar()
-        elif tipo == "esporo":
-            self.anim_atual = self.anim_attack3
-            self.anim_atual.resetar()
-            self._esporo_direçao = direçao
-            self._esporo_player = player
-
-    def _atualizar_animacao_ataque(self, player):
-        self.anim_atual.atualizar()
-
-        if self._ataque_atual == "normal":
-            if self.anim_atual._frame_idx == 5 and not hasattr(self, "_dano_normal_ap"):
-                self._dano_normal_ap = True
-                if self.golpe_acerta(player):
-                    player.receber_dano(self.Dano_normal, frames_invenc=15)
-
-        elif self._ataque_atual == "forte":
-            if self.anim_atual._frame_idx == 6 and not hasattr(self, "_dano_forte_ap"):
-                self._dano_forte_ap = True
-                if self.golpe_acerta(player):
-                    player.receber_dano(self.Dano_forte, frames_invenc=20)
-
-        elif self._ataque_atual == "esporo":
-            if self.anim_atual._frame_idx >= 6 and not self._esporo_spawnado:
-                self._esporo_spawnado = True
-                self._spawnar_esporos(player)
-
-        if self.anim_atual.terminou:
-            self._animando_ataque = False
-            self._ataque_atual = None
-            for attr in ("_dano_normal_ap", "_dano_forte_ap"):
-                if hasattr(self, attr):
-                    delattr(self, attr)
-            self._resetar_para_estado_atual()
+    def _ao_tick_ataque(self, player, frame):
+        if self._ataque_atual == "esporo" and frame >= 6 and not self._esporo_spawnado:
+            self._esporo_spawnado = True
+            self._spawnar_esporos(player)
 
     def _spawnar_esporos(self, player):
         from entities.projeteis.esporo_mushroom import EsporoMushroom

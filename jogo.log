@@ -1,0 +1,12 @@
+19:32:01 [DEBUG] main: Loggin inicializado
+19:32:02 [INFO] core.game_scene: [MAPA] carregando 'calabouço_1' via TMX: assets/maps/calabouco_1.tmx
+19:32:02 [INFO] core.game_scene: [MAPA] 'calabouço_1': baús via Objetc Layer do tiled
+19:32:05 [DEBUG] entities.objetos.porta: porta (15,8) aberta
+19:32:06 [DEBUG] entities.objetos.porta: porta (15,8) fechada
+19:32:08 [DEBUG] entities.objetos.porta: porta (15,8) aberta
+19:32:09 [DEBUG] entities.objetos.porta: porta (15,8) fechada
+19:32:09 [DEBUG] entities.objetos.porta: porta (15,8) aberta
+19:32:10 [DEBUG] entities.objetos.porta: porta (15,8) fechada
+19:32:10 [DEBUG] entities.objetos.porta: porta (15,8) aberta
+19:32:11 [DEBUG] entities.objetos.porta: porta (15,8) fechada
+19:32:15 [DEBUG] entities.objetos.porta: porta (15,8) aberta

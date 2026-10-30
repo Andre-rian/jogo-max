@@ -1,7 +1,15 @@
 import pygame
 import sys
-from settings import Screen_widht, Screen_height, Preto, Dourado, Branco, Vermelho_sangue
-from core.menu_navegavel import hover_index
+from settings import Screen_widht, Screen_height
+from core.navegacao import hover_index
+from ui.estilo import (
+    Fonte_titulo, Fonte_texto,
+    Roxo_profundo, Roxo_espectral, Azul_espectral, Azul_claro,
+    Branco_texto, Cinza_texto, Cinza_texto_escuro, Vermelho_ritual,
+    desenhar_fundo, desenhar_overlay, desenhar_painel, desenhar_botao,
+    desenhar_titulo, desenhar_linha_ornamental, desenhar_eco_profano,
+    adicionar_brilho, escurecer
+)
 
 class MenuInicial:
 
@@ -10,9 +18,11 @@ class MenuInicial:
         self.tela = tela
         self.save_manager = save_manager
 
-        self.fonte_titulo = pygame.font.SysFont("Georgia", 64, bold=True)
-        self.fonte_slot = pygame.font.SysFont("Georgia", 28, bold=True)
-        self.fonte_info = pygame.font.SysFont("Georgia", 18)
+        self.fonte_titulo = Fonte_titulo(78, negrito=True)
+        self.fonte_slot = Fonte_titulo(27, negrito=True)
+        self.fonte_info = Fonte_texto(17)
+
+        self._frame = 0
 
         self.slot_selecionado = 1 #1, 2 ou 3
         self.confirmando_delete = False
@@ -85,14 +95,23 @@ class MenuInicial:
                         self.estado = "selecionar"
 
     def desenhar(self):
-
-        self.tela.fill(Preto)
+        self._frame += 1
         slots = self.save_manager.listar_slots()
 
+        desenhar_fundo(self.tela, self._frame)
 
         #titulo
-        titulo = self.fonte_titulo.render("KNIGHT TALES", True, Dourado)
-        self.tela.blit(titulo, (Screen_widht // 2 - titulo.get_width() // 2, 80))
+        adicionar_brilho(self.tela, Screen_widht // 2, 84, 320, Roxo_profundo,
+                         self._frame, intensidade=0.22)
+        desenhar_titulo(self.tela, "PROFANE ECHO", self.fonte_titulo,
+                        Roxo_espectral, Screen_widht // 2, 58, espacamento=6)
+
+        sub = self.fonte_info.render("o eco profano desperta entre os escombros",
+                                     True, Cinza_texto_escuro)
+        self.tela.blit(sub, (Screen_widht // 2 - sub.get_width() // 2, 146))
+
+        desenhar_linha_ornamental(self.tela, Screen_widht // 2, 176, 260, Roxo_espectral)
+        desenhar_eco_profano(self.tela, Screen_widht // 2, 176, 12, self._frame)
 
 
         #slots
@@ -102,63 +121,66 @@ class MenuInicial:
 
             #posiçao do slot na tela
             slot_y = 240 + (i - 1) * 140
+            rect_slot = pygame.Rect(Screen_widht // 2 - 250, slot_y, 500, 110)
 
-            #fundo do slot
-            cor_fundo = (40, 30, 20) if selecionado else (20, 15, 10)
-            cor_borda = Dourado if selecionado else (80, 60, 30)
-            
-            pygame.draw.rect(self.tela, cor_fundo,
-                             (Screen_widht // 2 - 250, slot_y, 500, 110),
-                             border_radius=8)
-            
-            pygame.draw.rect(self.tela, cor_borda,
-                             (Screen_widht // 2 - 250, slot_y, 500, 110),
-                             2, border_radius=8)
-            
+            cor_borda = Azul_claro if selecionado else escurecer(Azul_espectral, 0.45)
+            desenhar_painel(self.tela, rect_slot, self._frame, cor_borda=cor_borda)
 
-            #seta para mostra qual slot o jogador esta selecionando
             if selecionado:
-                seta = self.fonte_slot.render("▶", True, Dourado)
-                self.tela.blit(seta, (Screen_widht // 2 - 270, slot_y + 38))
+                desenhar_eco_profano(self.tela, rect_slot.left + 24,
+                                     rect_slot.centery, 11, self._frame)
 
             #conteudo do slot
             if dados is None:
                 #slot vazio
-                txt = self.fonte_slot.render(f"Slot {i} - Novo Jogo", True, (140, 120, 80))
-                self.tela.blit(txt, (Screen_widht // 2 - 220, slot_y + 20))
-                sub = self.fonte_info.render("Nenhum save encontrado", True, (80, 70, 50))
-                self.tela.blit(sub, (Screen_widht // 2 - 220, slot_y + 60))
+                txt = self.fonte_slot.render(f"Slot {i} - Novo Jogo",
+                                             True, Cinza_texto if not selecionado else Azul_claro)
+                self.tela.blit(txt, (rect_slot.left + 52, rect_slot.top + 22))
+                sub = self.fonte_info.render("Nenhum save encontrado",
+                                             True, Cinza_texto_escuro)
+                self.tela.blit(sub, (rect_slot.left + 52, rect_slot.top + 62))
 
             else:
                 #slot com save
-                txt = self.fonte_slot.render(f"Slot {i} - Continuar", True, Branco)
-                self.tela.blit(txt, (Screen_widht // 2 - 220, slot_y + 15))
+                txt = self.fonte_slot.render(f"Slot {i} - Continuar",
+                                             True, Branco_texto)
+                self.tela.blit(txt, (rect_slot.left + 52, rect_slot.top + 16))
 
                 sala = self.fonte_info.render(
-                    f"Sala: {dados['checkpoint_sala']}", True, (180, 160, 120))
-
-                self.tela.blit(sala, (Screen_widht // 2 - 220, slot_y + 52))
+                    f"Sala: {dados['checkpoint_sala']}", True, Cinza_texto)
+                self.tela.blit(sala, (rect_slot.left + 52, rect_slot.top + 56))
 
                 data = self.fonte_info.render(
-                    f"Salvo em: {dados['data_hora']}", True, (120, 110, 80))
-                self.tela.blit(data, (Screen_widht // 2 - 220, slot_y + 76))
+                    f"Salvo em: {dados['data_hora']}", True, Cinza_texto_escuro)
+                self.tela.blit(data, (rect_slot.left + 52, rect_slot.top + 78))
 
                 #DEL para deletar o save
-                del_txt = self.fonte_info.render("clique DEL para apagar o save", True, (180, 60, 60))
-                self.tela.blit(del_txt, (Screen_widht // 2 + 120, slot_y + 76))
+                del_txt = self.fonte_info.render("DEL p/ apagar o save",
+                                                 True, Vermelho_ritual)
+                self.tela.blit(del_txt, (rect_slot.right - del_txt.get_width() - 20,
+                                         rect_slot.top + 78))
 
 
         #confirmaçao de deletar o save
         if self.estado == "confirmar_delete":
-            overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 180))
-            self.tela.blit(overlay, (0, 0))
+            desenhar_overlay(self.tela, 190)
 
-            msg1 = self.fonte_slot.render("Apagar este save?", True, Vermelho_sangue)
-            msg2 = self.fonte_info.render("ENTER para confirmar ESC para cancelar", True, Branco)
-            self.tela.blit(msg1, (Screen_widht // 2 - msg1.get_width() // 2, Screen_height // 2 - 40))
-            self.tela.blit(msg2, (Screen_widht // 2 - msg2.get_width() // 2, Screen_height // 2 + 20))
+            painel = pygame.Rect(Screen_widht // 2 - 260, Screen_height // 2 - 70, 520, 140)
+            desenhar_painel(self.tela, painel, self._frame,
+                            cor_borda=escurecer(Vermelho_ritual, 0.25))
+
+            msg1 = self.fonte_slot.render("Apagar este save?", True, Vermelho_ritual)
+            msg2 = self.fonte_info.render("ENTER para confirmar   ESC para cancelar",
+                                          True, Cinza_texto)
+            self.tela.blit(msg1, (Screen_widht // 2 - msg1.get_width() // 2,
+                                  painel.top + 26))
+            self.tela.blit(msg2, (Screen_widht // 2 - msg2.get_width() // 2,
+                                  painel.top + 84))
 
         #instruçao de teclas na base
-        inst = self.fonte_info.render("↑↓ para navegar  ENTER para selecionar", True, (80, 70, 50))
-        self.tela.blit(inst, (Screen_widht // 2 - inst.get_width() // 2, Screen_height -40))
+        inst = self.fonte_info.render("↑↓ para navegar  ENTER para selecionar",
+                                      True, Cinza_texto_escuro)
+        self.tela.blit(inst, (Screen_widht // 2 - inst.get_width() // 2,
+                              Screen_height - 40))
+        desenhar_eco_profano(self.tela, Screen_widht - 60, Screen_height - 40,
+                             9, self._frame)

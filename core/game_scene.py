@@ -9,12 +9,15 @@ from settings import *
 
 from core.inventario import Inventario
 
-from core.menu_navegavel import hover_index
+from core.navegacao import hover_index
 
 from world.tile_map import TileMap
-from world.rooms import Salas, spwans, Inimigos_por_sala, Conexoes, Drops_inimigos
+from world.rooms import Salas
+from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos
 
-from core.camera_player import Camera
+from core.camera import Camera
+from core.combat import CombatSystem
+from core.combat.debug import desenhar_hitboxes_ativas, desenhar_hurtbox
 
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
@@ -27,6 +30,7 @@ from entities.objetos.porta import Porta
 from entities.objetos.drop_eco import DropEco
 
 from entities.objetos.fogueira import Fogueira
+from entities.objetos.tocha import Tocha, NOME_TILESET_TOCHA, FLAME_ROWS
 from core.menu_fogueira import MenuFogueira
 
 from entities.monsters.skeleton import Skeleton
@@ -37,6 +41,8 @@ from entities.monsters.skeleton_boss import EsqueletoBoss
 
 from ui.hud import Hud
 from ui.particulas import ParticulaEco
+from ui.overlays import desenhar_tela_morte, desenhar_tela_pausa
+from ui.estilo import Fonte_texto
 
 
 
@@ -55,8 +61,9 @@ def _nome_arquivo_normalizado(nome):
 class Gamescene:
     #centraliza toda a logica do jogo, mapa, inimigo e etc, para alivar e organiza o arquivo main.py
     
-    def __init__(self, tela):
+    def __init__(self, tela, modo_teste_combate=False):
         self.tela = tela 
+        self.modo_teste_combate = modo_teste_combate
         self.hud = Hud()
 
 
@@ -104,6 +111,7 @@ class Gamescene:
 
         #carrega a sala
         self._dir_entrada = None
+        self._entrada_lado = None  #lado da sala onde o player entrou (esquerda/direita)
         self._carregar_sala("calabouço_1")
         self.player.defenir_checkpoint("calabouço_1")
 
@@ -115,6 +123,10 @@ class Gamescene:
         #projeteis  
         self.projeteis = []
 
+        #combate centralizado (hitboxes/hurtboxes por máscara)
+        self.combate = CombatSystem()
+        self.debug_combate = False
+
 
 
 
@@ -123,11 +135,79 @@ class Gamescene:
         self._menu_callback = None #sera setado no main
         self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
         self.opçoes_selecionadas = 0
-    
+        self._frame_pausa = 0
 
-    
+        #debug: mostra o que o engine considera plataforma/escada (F3 no jogo)
+        self.debug_tiles = False
 
+        if self.modo_teste_combate:
+            self._iniciar_arena_teste()
 
+    def _iniciar_arena_teste(self):
+        #arena rapida para validar o combate sem depender do progresso do save
+        self.modo_teste_combate = True
+        self.morrendo = False
+        self.timer_morto = 0
+        self.pausado = False
+        self.inventario.fechar()
+        self.menu_fogueira.aberto = False
+
+        self._carregar_sala("calabouço_1")
+        self._configurar_arena_teste()
+        self.hud.mostra_mensagem("MODO TESTE DE COMBATE - F6 reinicia | F4 hitboxes", 300)
+
+    def _configurar_arena_teste(self):
+        #area aberta no canto superior direito do calabouco_1
+        chao = 12 * Tile_size
+        px, py = 25 * Tile_size, 10 * Tile_size
+
+        self.player.defenir_checkpoint(self.sala_atual, x=px, y=py)
+        self.player.respawnar()
+        self.player.hp = self.player.hp_max
+        self.player.stamina = self.player.stamina_max
+        self.player.ecos = 0
+
+        from entities.objetos.item import get_item
+        espada = get_item(1)
+        if espada is not None:
+            self.player.equipar(espada)
+            if espada.id not in self.player.inventario["equipamentos"]:
+                self.player.inventario["equipamentos"].append(espada.id)
+
+        self.inimigos = []
+        self.boss_atual = None
+        self.projeteis = []
+        self.particulas_ecos = []
+        self.drops = []
+        self.drops_ecos = []
+        self.parede_boss = []
+        self.inimigos_morto_por_sala.pop(self.sala_atual, None)
+
+        _tipos_inimigos = {
+            "skeleton": Skeleton,
+            "globin": Globin,
+            "mushroom": Mushroom,
+            "flying_eye": FlyingEye,
+            "esqueleto_boss": EsqueletoBoss,
+        }
+        arena = (
+            ("skeleton", 29 * Tile_size, chao - 48, 160, 320),
+            ("globin", 32 * Tile_size, chao - 44, 160, 320),
+            ("mushroom", 35 * Tile_size, chao - 60, 160, 320),
+            ("flying_eye", 42 * Tile_size, 8 * Tile_size, 100, 200),
+            ("esqueleto_boss", 38 * Tile_size, chao - 90),
+        )
+
+        for dados in arena:
+            tipo = dados[0]
+            classe = _tipos_inimigos[tipo]
+            x, y = dados[1], dados[2]
+            if tipo == "esqueleto_boss":
+                inimigo = classe(x, y, callback_morte=self._abrir_parede_boss)
+                self.boss_atual = inimigo
+            else:
+                inimigo = classe(x, y, dados[3], dados[4])
+            self.inimigos.append(inimigo)
 
     #CARREGA A SALA 
 
@@ -144,26 +224,62 @@ class Gamescene:
             grid = TileMap.carregar_camada_tmx(caminho_tmx, "colisao")
             grid_decoracao = TileMap.carregar_camada_tmx(caminho_tmx, "decoracao")
             grid_fundo = TileMap.carregar_camada_tmx(caminho_tmx, "fundo")
+            grid_escadas = TileMap.carregar_camada_tmx(caminho_tmx, "escadas")
+            grid_plataformas = TileMap.carregar_camada_tmx(caminho_tmx, "plataformas")
             objetos_tmx = TileMap.carregar_objetos_tmx(caminho_tmx, "objetos")
 
 
             if grid is None:
                 logger.warning(f"[MAPA] '{nome_sala}': camada 'colisao' ausente no TMX, caindo para o FALLBACK pythoi")
                 grid = [linha[:] for linha in Salas[nome_sala]]
-           
         else:
             logger.info(f"[MAPA] '{caminho_tmx}' Caminho TMX não encontrado - carregando '{nome_sala}' via PYTHON grid (Fallback)")
             grid = [linha[:] for linha in Salas[nome_sala]]
             grid_decoracao = None
             grid_fundo = None
+            grid_escadas = None
+            grid_plataformas = None
             objetos_tmx = None
         
 
 
 
+
     
         
-        self.mapa = TileMap(grid, grid_decoracao, grid_fundo)
+        self.mapa = TileMap(grid, grid_decoracao, grid_fundo, grid_escadas, grid_plataformas)
+
+
+        #tochas decorativas: uma tocha = um FOGO (linha 0 ou 2 da folha) + a HASTE
+        #logo abaixo (linha seguinte). Só o fogo vira entidade (32x64 já com a haste);
+        #as células do mapa que sobravam (fogo estático + haste) são removidas.
+        self.tochas = []
+        if grid_decoracao is not None:
+            raizes = []
+            for linha_idx_d, linha_d in enumerate(grid_decoracao):
+                for col_idx_d, ref in enumerate(linha_d):
+                    if ref is None or ref.tileset_nome != NOME_TILESET_TOCHA:
+                        continue
+                    if ref.linha in FLAME_ROWS:
+                        raizes.append((col_idx_d, linha_idx_d, ref.linha))
+
+            for col_idx_d, linha_idx_d, linha_folha in raizes:
+                variante = "fraca" if linha_folha == 0 else "forte"
+                self.tochas.append(Tocha(col_idx_d * Tile_size, linha_idx_d * Tile_size,
+                                         col_idx_d, linha_idx_d, variante=variante))
+                grid_decoracao[linha_idx_d][col_idx_d] = None
+                if linha_idx_d + 1 < len(grid_decoracao):
+                    embaixo = grid_decoracao[linha_idx_d + 1][col_idx_d]
+                    if embaixo is not None and embaixo.tileset_nome == NOME_TILESET_TOCHA:
+                        grid_decoracao[linha_idx_d + 1][col_idx_d] = None
+        if objetos_tmx is not None:
+            for obj in objetos_tmx:
+                if obj["tipo"] != "tocha":
+                    continue
+                col_idx, linha_idx = obj["col"], obj["linha"]
+                variante = obj["propriedades"].get("variante", "forte")
+                self.tochas.append(Tocha(col_idx * Tile_size, linha_idx * Tile_size,
+                                         col_idx, linha_idx, variante=variante))
 
 
 
@@ -254,15 +370,12 @@ class Gamescene:
                         callback_descanso=self._descansar_fogueira
                     )
                     fogueira._callback_abrir_menu = self._abrir_menu_fogueira
-                    print(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
+                    logger.debug(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
                     self.fogueiras.append(fogueira)
 
         for fogueira in self.fogueiras:
             if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
                 fogueira.ativa = True
-                for fogueira in self.fogueiras:
-                    if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
-                        fogueira.ativa = True
         
 
 
@@ -273,8 +386,7 @@ class Gamescene:
 
         #drop fixos da sala
         from entities.objetos.drop import Drop
-        from world.rooms import Drops_fixos
-        
+
         for dados in Drops_fixos.get(nome_sala, []):
             id_item, col_drop, lin_drop = dados 
 
@@ -333,10 +445,9 @@ class Gamescene:
         if not respawnando:
             if posiçao_spwan is not None:
                 col, linha = posiçao_spwan
-            elif spwans_tmx.get("default") is not None:
-                col, linha = spwans_tmx["default"]
             else:
-                col, linha = spwans[nome_sala]
+                col, linha = self._resolver_spwan(nome_sala, grid, spwans_tmx)
+                print(f"[SANITY] spawn bruto={spwans_tmx}, resolvido=({col},{linha})")
             self.player.rect.x = col * Tile_size
             self.player.rect.y = linha * Tile_size
             self.player.vel.xy = (0, 0)
@@ -346,9 +457,68 @@ class Gamescene:
 
 
 
-        self._spwanar_inimigos(nome_sala)
-    
-    
+        self.inimigos = []
+        self.boss_atual = None
+
+        _tipos_inimigos = {
+            "skeleton": Skeleton,
+            "globin": Globin,
+            "mushroom": Mushroom,
+            "flying_eye": FlyingEye,
+            "esqueleto_boss": EsqueletoBoss,
+        }
+
+        if objetos_tmx is not None:
+            mortos = self.inimigos_morto_por_sala.get(nome_sala, [])
+
+            for obj in objetos_tmx:
+                if obj["tipo"] != "inimigo":
+                    continue
+
+                tipo = obj["propriedades"].get("tipo")
+                classe = _tipos_inimigos.get(tipo)
+                if not classe:
+                    logger.warning(
+                        f"[MAPA] tipo de inimigo '{tipo}' desconhecido no objeto id={obj['id']}, ignorando"
+                    )
+                    continue
+
+                indice = obj["id"] #id nativo do tiled
+                col_idx, linha_idx = obj["col"], obj["linha"]
+                x, y = col_idx * Tile_size, linha_idx * Tile_size
+
+                if tipo == "esquelo_boss":
+                    if self.sala_atual in self.bosses_derrotados:
+                        continue
+
+                    boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
+                    boss._indice_spawn = indice
+                    self.inimigos.append(boss)
+                    self.boss_atual = boss
+                    continue
+
+                if indice in mortos:
+                    continue
+
+                try:
+                    pat_esq = int(obj["propriedades"].get("patrulha_esq", 0))
+                    pat_dir = int(obj["propriedades"].get("patrulha_dir", 0))
+                except (TypeError, ValueError):
+                    logger.warning(f"[MAPA] patrulha inválida no objeto inimigo id={indice}, usando 0/0")
+                    pat_esq, pat_dir = 0, 0
+
+                inimigo = classe(x, y, pat_esq, pat_dir)
+                inimigo._indice_spawn = indice
+
+                tabela = Drops_inimigos.get(tipo, [])
+                if tabela:
+                    inimigo.callback_morte = self._fazer_callback_drop_inimigo(tabela, self.sala_atual)
+
+                self.inimigos.append(inimigo)
+        else:
+            self._spwanar_inimigos(nome_sala)  # fallback python, comportamento atual intacto
+
+     
          #lista de rects da parede que some apos a derrota do boss
         
         #montar os rects da parede do boss
@@ -362,6 +532,132 @@ class Gamescene:
                             linha_idx * Tile_size,
                             Tile_size, Tile_size
                         ))
+
+    def _fazer_callback_drop_inimigo(self, drops, sala):
+        def _callback(ix, iy):
+            import random
+            from entities.objetos.drop import Drop
+            for chance, id_item in drops:
+                if random.random() < chance:
+                    drop = Drop(ix, iy, id_item)
+                    if sala not in self.drops_por_sala:
+                        self.drops_por_sala[sala] = []
+                    self.drops_por_sala[sala].append(drop)
+                    self.drops = self.drops_por_sala[self.sala_atual]
+        return _callback
+
+
+
+
+
+
+
+
+
+
+    def _resolver_spwan(self, nome_sala, grid, spwans_tmx):
+        #define a posiçao inicial do player ao entrar numa sala
+        #prioriza o spwan do TMX (default ou o do lado onde se entra), 
+        #depois o lado da entrada com a config de fallback
+        # em qualquer caso valida a posição final contra a grade de colisao
+        # pra garantir que o player nasça de pé, nunca enterrado
+
+        lado = getattr(self, "_entrada_lado", None)
+
+        if spwans_tmx:
+            if lado is not None and lado in spwans_tmx:
+                return spwans_tmx[lado]
+            if spwans_tmx.get("default") is not None:
+                return spwans_tmx["default"]
+            else:
+                logger.warning(
+                    f"[SPAWN] '{nome_sala}': TMX tem spawns mas nenhum bate com "
+                    f"lado='{lado}' nem 'default', usando fallback de grade"
+                )
+                col, linha = self._spwanar_fallback(nome_sala, grid, lado)
+        else:
+            logger.warning(
+                f"[SPAWN] '{nome_sala}': sem spawns no TMX (layer 'objetos' ausente "
+                f"ou sem objeto tipo 'spwan'), usando fallback de grade"
+            )
+            col, linha = self._spwanar_fallback(nome_sala, grid, lado)
+
+                        
+        col_final, linha_final = self._spwan_fallback_grid(nome_sala, grid, lado)
+                
+        if (col_final, linha_final) != (col, linha):
+            logger.info(
+                f"[SPAWN] '{nome_sala}': posiçao bruta ({col},{linha}) ajustada "
+                f"para ({col_final},{linha_final}) pelo _spawn_seguro"
+            )
+        else:
+            logger.info(f"[SPAWN] '{nome_sala}': posiçao resolvida ({col_final},{linha_final})")
+
+        return col_final, linha_final
+
+
+    def _spwan_fallback_grid(self, nome_sala, grid, lado):
+        # spwan vindo da grade pythob
+        
+        ponto = spwans.get(nome_sala, (2, 10))
+        if lado == "esquerda":
+            return 2, ponto[1]
+        if lado == "direita":
+            return len(grid[0]) -3, ponto[1]
+        return ponto 
+
+
+    def _spawn_seguro(self, col, linha, grid, max_ajuste=8):
+        # garante que o bloco 2x2 do player (64x64) nasça numa área livre
+        # com chão sólido embaixo - nunca enterrado, nunca dentro de parede,
+        # nunca flutuando sobre um buraco.
+        # aceita tanto grade TMX (celulas TileRef/None) quanto grade fallback
+        # python (celulas int, onde 0 = vazio).
+        altura_mapa = len(grid)
+        largura_mapa = len(grid[0]) if altura_mapa else 0
+
+        def _solido(c, l):
+            if l < 0 or l >= altura_mapa or c < 0 or c >= largura_mapa:
+                return True  # fora do mapa conta como parede, nunca spawna pra fora
+            valor = grid[l][c]
+            if valor is None:
+                return False
+            if isinstance(valor, int):
+                return valor != 0
+            return True  # TileRef presente na camada de colisao = solido
+
+        def _bloco_livre(c, l):
+            # player ocupa colunas c,c+1 e linhas l,l+1 (2x2 tiles = 64x64)
+            return not any(_solido(c + dc, l + dl) for dc in (0, 1) for dl in (0, 1))
+
+        def _tem_chao(c, l):
+            # ha solo logo abaixo do bloco (linha l+2)?
+            return _solido(c, l + 2) or _solido(c + 1, l + 2)
+
+        col = max(0, min(col, largura_mapa - 2))
+        linha_original = linha
+
+        # 1) se nasceu enterrado ou dentro de parede, sobe ate o bloco ficar livre
+        ajustes = 0
+        while not _bloco_livre(col, linha) and ajustes < max_ajuste:
+            linha -= 1
+            ajustes += 1
+
+        # 2) se ficou flutuando sem chao embaixo (ex: caiu num buraco), desce ate achar piso
+        ajustes = 0
+        while _bloco_livre(col, linha) and not _tem_chao(col, linha) and ajustes < max_ajuste:
+            linha += 1
+            ajustes += 1
+
+        if not _bloco_livre(col, linha):
+            logger.warning(
+                f"[SPAWN] não foi possível achar um bloco livre perto de "
+                f"col={col}, linha={linha_original} (tentativas esgotadas); "
+                f"usando ({col},{linha}) mesmo assim"
+            )
+
+        return col, linha
+
 
     def _registrar_drop_fixo_coletado(self, chave):
         if chave:
@@ -380,6 +676,20 @@ class Gamescene:
     def atualizar(self, eventos): 
         teclas = pygame.key.get_pressed()
 
+        #F3 liga/desliga o debug de plataforma/escada
+        reiniciar_teste = False
+        for ev in eventos:
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F3:
+                self.debug_tiles = not self.debug_tiles
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F4:
+                self.debug_combate = not self.debug_combate
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F6:
+                reiniciar_teste = True
+
+        if reiniciar_teste:
+            self._iniciar_arena_teste()
+            return
+
         if self.menu_fogueira.aberto:
             self.menu_fogueira.atualizar(eventos)
             return
@@ -389,21 +699,28 @@ class Gamescene:
             self._atualizar_pausa(eventos)
             
 
-        rects_solidos = self.mapa.rects_solidos + self.parede_boss
+        rects_solidos = self.mapa.rects_solidos + self.parede_boss + [p.rect for p in self.portas if not p.aberta]
         
         if self.inventario.aberto:
             self.inventario.atualizar(eventos, self.player)
+
+        #hitstop: congela o mundo por alguns frames após um acerto confirmado
+        if not self.pausado and self.combate.consumir_hitstop():
+            self.hud.atualizar()
+            return
 
         #atuallizar o checar_morte
         self._checar_morte()
 
         #bloquueia os outros atualizar se o player estiver morto
         if self.morrendo:
-
             #atualizar o player
-            self.player.atualizar(rects_solidos, self.camera)
+            self.player.atualizar(rects_solidos, self.camera,
+                                  rects_plataforma=self.mapa.rects_plataforma,
+                                  rects_escada=self.mapa.rects_escada)
 
             #camera segue o player
+            self._atualizar_zoom_camera()
             self.camera.atualizar(self.player.rect)
 
             #hud
@@ -411,7 +728,9 @@ class Gamescene:
             return
 
         #atualizar o player
-        self.player.atualizar(rects_solidos, self.camera)
+        self.player.atualizar(rects_solidos, self.camera,
+                              rects_plataforma=self.mapa.rects_plataforma,
+                              rects_escada=self.mapa.rects_escada)
 
         #atualizar a transiçao de cena
         self._checar_transiçao()
@@ -435,6 +754,9 @@ class Gamescene:
         for porta in self.portas:
             porta.atualizar(self.player, teclas, self.hud, self.portas_abertas)
 
+        for tocha in self.tochas:
+            tocha.atualizar()
+
         #atualizar os espinhos
         self._checar_espinhos()
 
@@ -456,8 +778,30 @@ class Gamescene:
                 inimigo.projeteis_spawnar.clear()
 
 
-        #verificar combante
-        self._verificar_combante()
+        #atualizar os projeteis (posição do frame antes de resolver o combate)
+        for proj in self.projeteis:
+            proj.atualizar(rects_solidos, self.player)
+
+        #as máscaras refletem a posição final do frame
+        self.player.atualizar_mask()
+        for inimigo in self.inimigos:
+            if inimigo.vivo:
+                inimigo.atualizar_mask()
+
+        #resolver todo o combate do frame (player, inimigos e projéteis)
+        self.combate.resolver(self.player, self.inimigos, self.projeteis, rects_solidos)
+
+        #coleta projéteis spawnados pelos hooks de ataque neste frame
+        for inimigo in self.inimigos:
+            if getattr(inimigo, "bombas_spawnar", None):
+                self.projeteis.extend(inimigo.bombas_spawnar)
+                inimigo.bombas_spawnar.clear()
+            if getattr(inimigo, "esporos_spawnar", None):
+                self.projeteis.extend(inimigo.esporos_spawnar)
+                inimigo.esporos_spawnar.clear()
+            if getattr(inimigo, "projeteis_spawnar", None):
+                self.projeteis.extend(inimigo.projeteis_spawnar)
+                inimigo.projeteis_spawnar.clear()
 
         #remove os imimigos mortos depois de tudo atualiza
         vivos = []
@@ -485,28 +829,29 @@ class Gamescene:
         
         self.particulas_ecos = [p for p in self.particulas_ecos if p.ativo]
         self.inimigos = vivos
-        
-        
-        #camera segue o player
-        self.camera.atualizar(self.player.rect)
-
-        #atualizar os projeteis
-        for proj in self.projeteis:
-            proj.atualizar(rects_solidos, self.player)
 
         #remove os projeteis inativos depois de atualizar
         self.projeteis = [p for p in self.projeteis if p.ativo]
-
+        
+        #camera segue o player
+        self._atualizar_zoom_camera()
+        self.camera.atualizar(self.player.rect)
 
         #hud
         self.hud.atualizar()
+
+
+    def _atualizar_zoom_camera(self):
+        #aproxima a camera no dia a dia; em luta de boss ela desaproxima
+        lutando = self.boss_atual is not None and self.boss_atual.vivo
+        self.camera.zoom_alvo = ZOOM_BOSS if lutando else ZOOM_PADRAO
 
 
     def _atualizar_pausa(self, eventos):
 
 
         pos_mouse = pygame.mouse.get_pos()
-        fonte_opçao = pygame.font.SysFont("Georgia", 30)
+        fonte_opçao = Fonte_texto(28)
 
         itens_com_rect = []
         
@@ -650,29 +995,10 @@ class Gamescene:
 
 
     def _abrir_menu_fogueira(self):
-        print("abrindo menu fogueira")
+        logger.info("abrindo menu fogueira")
         self.menu_fogueira.abrir()
         
 
-
-    def _verificar_combante(self):
-        #checa se o player acertou algum inimigo
-        rect_ataque = self.player.get_rect_ataque()
-        if rect_ataque is None:
-            return
-
-        for inimigo in self.inimigos:
-            if not inimigo.vivo:
-                continue
-
-            if inimigo in self.player._alvos_atingidos:
-                continue #o inimigo ja foi acertado por esse golpe
-            
-            if inimigo.colide_mask_com_rect(rect_ataque):
-                direçao = 1 if self.player.olhando_dir else -1
-                inimigo.receber_hit(self.player.calcular_dano(), direçao)
-                self.player._alvos_atingidos.add(inimigo)
-    
 
     def _registrar_bau_aberto(self, col, linha):
         self.baus_abertos.add((col, linha))    
@@ -709,7 +1035,8 @@ class Gamescene:
                 
                 self.player.respawnar()
                 self._carregar_sala(self.player.checkpoint_sala, respawnando=True)
-                
+                if self.modo_teste_combate:
+                    self._configurar_arena_teste()
 
                 self.morrendo = False
 
@@ -732,8 +1059,8 @@ class Gamescene:
         if self.player.rect.right >= self.largura_mapa:
             proxima = conexoes_sala.get("direita")
             if proxima:
-                linha_spwan = spwans[proxima][1]
-                self._carregar_sala(proxima, posiçao_spwan=(2, linha_spwan))
+                self._entrada_lado = "esquerda"  # entrando na proxima sala pela esquerda
+                self._carregar_sala(proxima)
                 self._dir_entrada = "direita"
                 self._cooldown_transiçao = 60
                 return
@@ -742,10 +1069,8 @@ class Gamescene:
         elif self.player.rect.left <= 0:
             proxima = conexoes_sala.get("esquerda")
             if proxima:
-                grid = Salas[proxima]
-                ultima_col = len(grid[0]) - 3
-                linha_spwan = spwans[proxima][1]
-                self._carregar_sala(proxima, posiçao_spwan=(ultima_col, linha_spwan))
+                self._entrada_lado = "direita"  # entrando na proxima sala pela direita
+                self._carregar_sala(proxima)
                 self._dir_entrada = "esquerda"
                 self._cooldown_transiçao = 60
                 return
@@ -844,128 +1169,138 @@ class Gamescene:
     #DESENHAR   
     
     def desenhar(self):
-        self.mapa.desenhar(self.tela, self.camera)
+        self._frame_pausa += 1
+
+        #a cena do mundo é desenhada numa superficie do tamanho da area visivel
+        #(Screen / zoom) e depois escalada pra tela - é isso que aproxima a camera
+        vw = max(1, int(round(Screen_widht / self.camera.zoom)))
+        vh = max(1, int(round(Screen_height / self.camera.zoom)))
+        vista = pygame.Surface((vw, vh))
+        vista.fill((0, 0, 0))
+
+        self.mapa.desenhar(vista, self.camera)
+
+        for tocha in self.tochas:
+            tocha.desenhar(vista, self.camera)
 
         for inimigo in self.inimigos:
-            inimigo.desenhar(self.tela, self.camera)
+            inimigo.desenhar(vista, self.camera)
 
 
-            #debug do ngc do globin
-            sr_inimigo = self.camera.aplicar(inimigo.rect)
-            pygame.draw.rect(self.tela, (255, 0, 0), sr_inimigo, 2)
+            if DEBUG:
+                #debug: rect lógico do inimigo (vermelho) — hitbox real de combate
+                sr_inimigo = self.camera.aplicar(inimigo.rect)
+                pygame.draw.rect(vista, (255, 0, 0), sr_inimigo, 2)
 
-            #mostra o mask esta(ngxc azul)
-            if getattr(inimigo, "mask", None) and hasattr(inimigo, "_mask_pos"):
-                mx, my = inimigo._mask_pos
-                pontos = inimigo.mask.outline(2)
-                if pontos:
-                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
-                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
-            
-             #DEBUG: contorno real da mask do player
-            if getattr(self.player, "mask", None) and hasattr(self.player, "_mask_pos"):
-                mx, my = self.player._mask_pos
-                pontos = self.player.mask.outline(2)
-                if pontos:
-                    pontos_tela = [self.camera.aplicar(pygame.Rect(mx + px, my + py, 1, 1)).topleft for px, py in pontos]
-                    pygame.draw.polygon(self.tela, (0, 200, 255), pontos_tela, 1)
+                #debug: zona de conexão do golpe em curso — verde se conecta no player, laranja se não
+                zona = inimigo.rect_golpe_debug()
+                if zona is not None:
+                    cor_zona = (0, 255, 0) if zona.colliderect(self.player.rect) else (255, 150, 0)
+                    pygame.draw.rect(vista, cor_zona, self.camera.aplicar(zona), 2)
 
-        for r in self.parede_boss:
-            pygame.draw.rect(self.tela, (255, 80, 0), self.camera.aplicar(r), 2)
+        if DEBUG:
+            #debug: rect lógico do player (verde) e hitbox do ataque (amarelo)
+            pygame.draw.rect(vista, (0, 255, 0), self.camera.aplicar(self.player.rect), 2)
+            rect_ataque_debug = self.player.get_rect_ataque()
+            if rect_ataque_debug is not None:
+                pygame.draw.rect(vista, (255, 230, 0), self.camera.aplicar(rect_ataque_debug), 2)
+
+            for r in self.parede_boss:
+                pygame.draw.rect(vista, (255, 80, 0), self.camera.aplicar(r), 2)
 
 
-  
 
         for proj in self.projeteis:
-            proj.desenhar(self.tela, self.camera)
+            proj.desenhar(vista, self.camera)
 
         for p in self.particulas_ecos:
-            p.desenhar(self.tela, self.camera)
-
-        self.player.desenhar(self.tela, self.camera)
-        sr_player = self.camera.aplicar(self.player.rect)
-
-        for bau in self.baus:
-            bau.desenhar(self.tela, self.camera)  
-
-        for drop in self.drops:
-            drop.desenhar(self.tela, self.camera)
-
-        for drop in self.drops_ecos:
-            drop.desenhar(self.tela, self.camera)
-
-        for fogueira in self.fogueiras:
-            fogueira.desenhar(self.tela, self.camera)
+            p.desenhar(vista, self.camera)
 
         for porta in self.portas:
-            porta.desenhar(self.tela, self.camera)
+            porta.desenhar(vista, self.camera)
 
+        self.player.desenhar(vista, self.camera)
+        sr_player = self.camera.aplicar(self.player.rect)
+
+        if self.debug_tiles:
+            #verde = o que o engine considera plataforma one-way
+            for r in self.mapa.rects_plataforma:
+                sr = self.camera.aplicar(r)
+                over = pygame.Surface((sr.width, sr.height), pygame.SRCALPHA)
+                over.fill((0, 255, 0, 60))
+                vista.blit(over, sr)
+                pygame.draw.rect(vista, (0, 255, 0), sr, 2)
+            #amarelo = celulas de escada
+            for r in self.mapa.rects_escada:
+                sr = self.camera.aplicar(r)
+                over = pygame.Surface((sr.width, sr.height), pygame.SRCALPHA)
+                over.fill((255, 220, 0, 45))
+                vista.blit(over, sr)
+                pygame.draw.rect(vista, (255, 220, 0), sr, 2)
+            #marcador magenta nos pes = esta de pe em uma plataforma (pronto p/ S+Espaço)
+            if self.player._sobre_plataforma:
+                pe = pygame.Rect(self.player.rect.centerx - 3, self.player.rect.bottom - 3, 6, 6)
+                pygame.draw.rect(vista, (255, 0, 255), self.camera.aplicar(pe))
+
+        for bau in self.baus:
+            bau.desenhar(vista, self.camera)  
+
+        for drop in self.drops:
+            drop.desenhar(vista, self.camera)
+
+        for drop in self.drops_ecos:
+            drop.desenhar(vista, self.camera)
+
+        for fogueira in self.fogueiras:
+            fogueira.desenhar(vista, self.camera)
+
+        if DEBUG:
+            pygame.draw.rect(vista, (0, 255, 0), sr_player, 2)
+
+        if self.debug_combate:
+            desenhar_hurtbox(vista, self.camera, self.player)
+            desenhar_hitboxes_ativas(vista, self.camera, self.player)
+            for inimigo in self.inimigos:
+                desenhar_hurtbox(vista, self.camera, inimigo)
+                desenhar_hitboxes_ativas(vista, self.camera, inimigo)
+            for proj in self.projeteis:
+                for hitbox in proj.hitboxes_ativas():
+                    pygame.draw.rect(vista, (255, 0, 255), self.camera.aplicar(hitbox.rect), 1)
+
+        #escala a cena do mundo para a tela (com zoom aplicado)
+        pygame.transform.scale(vista, (Screen_widht, Screen_height), self.tela)
+
+        #a partir daqui tudo é desenhado na resolução nativa (HUD, menus...)
         if self.menu_fogueira.aberto:
             self.menu_fogueira.desenhar()
-        
-
-        pygame.draw.rect(self.tela, (0, 255, 0), sr_player, 2)
 
         self.inventario.desenhar(self.player)
 
         self.hud.desenhar(self.tela, self.player, self.boss_atual)  
 
+        #overlay de debug (F3): estado de plataformas/escadas direto na tela
+        if self.debug_tiles:
+            linhas_info = []
+            if self.player._sobre_plataforma:
+                linhas_info.append("SOBRE PLATAFORMA -> S+espaco (ou seta+espaco) para descer")
+            if self.player._timer_atravessar > 0:
+                linhas_info.append("DESCENDO PELA PLATAFORMA...")
+            if self.player._escalando:
+                linhas_info.append("ESCALANDO (W sobe / S desce)")
+            if not linhas_info:
+                linhas_info.append("F3: plat=verde escada=amarelo (nenhuma condicao ativa)")
+            fonte_debug = pygame.font.SysFont(None, 24)
+            for i, msg in enumerate(linhas_info):
+                txt = fonte_debug.render(msg, True, (255, 255, 255), (0, 0, 0))
+                self.tela.blit(txt, (10, 8 + i * 26))  
+
         #tela de morte - desenhada por cima de tudo
         if self.morrendo:
-            self._desenhar_tela_morte()
+            progresso = 1 - (self.timer_morto / self.duraçao_morte)
+            desenhar_tela_morte(self.tela, progresso)
 
 
         #tela de menu
         if self.pausado:
-            self._desenhar_pausa()
-
-
-
-    def _desenhar_tela_morte(self):
-        #fade escuro com o texto voce morreu centralizado
-
-        progresso = 1 - (self.timer_morto / self.duraçao_morte)
-        alpha = int(progresso * 200) #maximo 200 de 255, pra tela nao ficar toda preta
-
-        #superfice transparente
-        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0 , alpha))
-        self.tela.blit(overlay, (0, 0))
-
-        #texto so aparece depois do fade ta na metade
-        if progresso > 0.4:
-            fonte = pygame.font.SysFont("Georgia", 64, bold=True)
-            texto = fonte.render("VOCÊ MORREU", True, Vermelho_sangue)
-            x = Screen_widht // 2 - texto.get_width() // 2
-            y = Screen_height // 2 - texto.get_height() // 2
-            self.tela.blit(texto, (x, y))
-
-    def _desenhar_pausa(self):
-        #fundo semitrasnparente
-        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0 , 160))
-        self.tela.blit(overlay, (0, 0))
-
-
-        fonte_titulo = pygame.font.SysFont("Georgia", 48, bold=True)
-        fonte_opçao = pygame.font.SysFont("Georgia", 30)
-
-        #titulo
-        titulo = fonte_titulo.render("PAUSA", True, Dourado)
-        self.tela.blit(titulo, (Screen_widht // 2 - titulo.get_width() // 2, 220))
-        
-
-        #opçoes
-        for i, opçao in enumerate(self.opçoes_pause):
-            selecionado = i == self.opçoes_selecionadas
-            cor = Dourado if selecionado else Branco
-            texto = fonte_opçao.render(opçao, True, cor)
-            x = Screen_widht // 2 - texto.get_width() // 2
-            y = 320 + i * 50
-
-            #seta indicando a opçao selecionada
-            if selecionado:
-                seta = fonte_opçao.render("▶", True, Dourado)
-                self.tela.blit(seta, (x - 30, y))
-
-            self.tela.blit(texto, (x, y))
+            desenhar_tela_pausa(self.tela, self._frame_pausa,
+                                self.opçoes_pause, self.opçoes_selecionadas)

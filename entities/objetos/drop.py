@@ -1,5 +1,9 @@
 import pygame
+import logging
+from settings import Tile_size
 from entities.objetos.item import get_item
+
+logger = logging.getLogger(__name__)
 
 class Drop:
 
@@ -10,13 +14,17 @@ class Drop:
     def __init__(self, x, y, id_item):
         self.id_item = id_item
         self.item = get_item(id_item)
-        print(f"Drop criado: id_item={id_item}, item={self.item}")
         self.ativo = True
+
+        logger.debug(f"Drop criado: id_item={id_item}, item={self.item}")
 
         #rect para centralizar o ponto do drop
         self.rect = pygame.Rect(0, 0, self.Raio * 2, self.Raio * 2)
         self.rect.centerx = x
         self.rect.centery = y
+
+        #area de interaçao com folga - pega quando o player passa por cima/encostado
+        self.interacao = self.rect.inflate(Tile_size // 2, Tile_size // 2)
 
         self._timer = 0
 
@@ -30,11 +38,11 @@ class Drop:
         
         self._timer += 1
 
-        dist = abs(player.rect.centerx - self.rect.centerx)
+        colide = player.rect.colliderect(self.interacao)
         quantidade = player.inventario["materiais"].get(str(self.item.id),
                                                         player.inventario["itens"].get(str(self.item.id), 1))
-        if dist < self.Alcance_coleta:
-            hud.mostra_mensagem(f"E -- Pegar {self.item.nome}")
+        if colide:
+            hud.mostrar_prompt(f"E -- Pegar {self.item.nome}")
 
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 player.adicionar_ao_inventario(self.item)
@@ -46,7 +54,10 @@ class Drop:
                 player.cooldown_interaçao = 30
                 if self.callback_coletado:
                     self.callback_coletado(self.chave_fixa)
+                hud.limpar_prompt()
                 hud.mostrar_item_coletado(self.item, quantidade)
+        else:
+            hud.limpar_prompt()
 
     def desenhar(self, tela, camera):
         if not self.ativo:

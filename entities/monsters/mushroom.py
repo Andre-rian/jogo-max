@@ -3,26 +3,34 @@ import random
 import math
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec, ModoMovimento
 
 class Mushroom(InimigoBase):
+
+    USAR_MOVIMENTO_SUBPIXEL = True
 
     Dano_normal = 12
     Dano_forte = 20
     Dano_esporo = 8
 
-    #knockback
+    #knockback curto: 2 px por tick durante 4 ticks = 8 px no total
     KB_FORCA_X = 2
     KB_FORCA_Y = -1
-    KB_FRAMES = 18
-    HITSTUN_FRAMES = 16
+    KB_FRAMES = 4
+    RECUPERACAO_HIT_FRAMES = 0
+    RETOMADA_FRAMES = 8  # ~133 ms em velocidade de patrulha antes da perseguição plena
 
 
-    Vel_patrulha = 1.0
-    Vel_perseguir = 2.0
+    Vel_patrulha = 0.8
+    Vel_perseguir = 1.5
 
     Alcance_detec = 250
     Alcance_ataq_perto = 50
     Alcance_ataq_esporo = 180
+
+    #alcance real do golpe por distância de borda (gap)
+    Alcance_conectar = 25
+    Alcance_conectar_forte = 30
 
     Cooldown_ataq = 120
     Cooldown_forte_max = 200
@@ -34,6 +42,7 @@ class Mushroom(InimigoBase):
 
         self.vel.x = self.Vel_patrulha
         self.ecos_drop = 25
+        self._timer_retomada = 0
 
         self.cooldown_forte = 0
         self.cooldown_esporo = 0
@@ -45,18 +54,59 @@ class Mushroom(InimigoBase):
         self.animaçoes = {
             self.Patrulha:  AnimatedSprite(Mush + "Idle.png",   150, 150, velocidade=10, escala=2, n_frames=4),
             self.Perseguir: AnimatedSprite(Mush + "Run.png",    150, 150, velocidade=6,  escala=2, n_frames=8),
-            self.Atacando:  AnimatedSprite(Mush + "Attack.png", 150, 150, velocidade=5,  escala=2, n_frames=8),
+            self.Atacando:  AnimatedSprite(Mush + "Attack.png", 150, 150, velocidade=5,  escala=2, n_frames=8, loop=False),
             self.Morto:     AnimatedSprite(Mush + "Death.png",  150, 150, velocidade=8,  escala=2, n_frames=4),
         }
-        self.anim_attack2 = AnimatedSprite(Mush + "Attack2.png", 150, 150, velocidade=5, escala=2, n_frames=8)
-        self.anim_attack3 = AnimatedSprite(Mush + "Attack3.png", 150, 150, velocidade=5, escala=2, n_frames=11)
-        self.anim_hit = AnimatedSprite(Mush + "Take Hit.png", 150, 150, velocidade=4, escala=2, n_frames=4)
+        self.anim_attack2 = AnimatedSprite(Mush + "Attack2.png", 150, 150, velocidade=5, escala=2, n_frames=8, loop=False)
+        self.anim_attack3 = AnimatedSprite(Mush + "Attack3.png", 150, 150, velocidade=5, escala=2, n_frames=11, loop=False)
+        self.anim_hit = AnimatedSprite(Mush + "Take Hit.png", 150, 150, velocidade=5, escala=2, n_frames=4, loop=False)
+        self.anim_patrulha = AnimatedSprite(Mush + "Run.png", 150, 150, velocidade=11, escala=2, n_frames=8)
         self.anim_atual = self.animaçoes[self.Patrulha]
 
-    #knockback
+        self._configurar_ataques()
 
-    def receber_hit(self, dano, direçao_knockback):
-        super().receber_hit(dano, direçao_knockback)
+    def _configurar_ataques(self):
+        dano_normal = DanoSpec(
+            dano_base=self.Dano_normal,
+            knockback=KnockbackSpec(forca_x=3, forca_y=-1, frames=10),
+            duracao_hit=14,
+            frames_invenc=15,
+        )
+        dano_forte = DanoSpec(
+            dano_base=self.Dano_forte,
+            knockback=KnockbackSpec(forca_x=5, forca_y=-1, frames=12),
+            duracao_hit=16,
+            frames_invenc=20,
+        )
+        self._registrar_ataque(
+            "normal",
+            self.animaçoes[self.Atacando],
+            [self._criar_janela("golpe", 6, 7)],
+            dano_normal,
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=12,
+        )
+        self._registrar_ataque(
+            "forte",
+            self.anim_attack2,
+            [self._criar_janela("golpe_forte", 6, 7)],
+            dano_forte,
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=12,
+        )
+        self._registrar_ataque(
+            "esporo",
+            self.anim_attack3,
+            [],
+            DanoSpec(),
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=12,
+        )
+
+    def _resetar_flags_ataque(self):
+        self._esporo_spawnado = False
+        self._esporo_direçao = 1
+        self._esporo_player = None
 
     #IA
 
@@ -65,11 +115,12 @@ class Mushroom(InimigoBase):
 
         if player.vivo and dist < self.Alcance_detec:
             if dist < self.Alcance_ataq_perto:
-                self.estado = self.Atacando
                 self.vel.x = 0
                 if self.cooldown_ataq <= 0:
                     self._tentar_atacar(dist, player)
-                # se o cooldown ainda não zerou, só fica parado "encarando"
+                else:
+                    #em cooldown fica em idle, sem pose de ataque sem golpe ativo
+                    self.estado = self.Patrulha
 
             elif dist < self.Alcance_ataq_esporo:
                 if self.cooldown_esporo <= 0 and self.cooldown_ataq <= 0:
@@ -85,19 +136,47 @@ class Mushroom(InimigoBase):
         return 0
 
     def _perseguir(self, player):
-        self.estado = self.Perseguir
         direçao = 1 if player.rect.centerx > self.rect.centerx else -1
-        self.vel.x = self.Vel_perseguir * direçao
         self.olhando_dir = direçao > 0
+        if self._timer_retomada > 0:
+            #retomada em dois estágios: patrulha -> perseguição plena
+            self.estado = self.Patrulha
+            self.vel.x = self.Vel_patrulha * direçao
+            self._timer_retomada -= 1
+        else:
+            self.estado = self.Perseguir
+            self.vel.x = self.Vel_perseguir * direçao
 
     def _patrulhar(self):
         self.estado = self.Patrulha
+        self._timer_retomada = 0
         if self.rect.left <= self.patrulha_esq:
-            self.vel.x = self.Vel_patrulha
             self.olhando_dir = True
         elif self.rect.right >= self.patrulha_dir:
-            self.vel.x = -self.Vel_patrulha
             self.olhando_dir = False
+
+        direcao = 1 if self.olhando_dir else -1
+        self.vel.x = self.Vel_patrulha * direcao
+
+    def _animacao_extra_hook(self):
+        if self.estado != self.Patrulha:
+            return
+
+        if self.vel.x != 0:
+            if self.anim_atual is not self.anim_patrulha:
+                self.anim_patrulha.resetar()
+            self.anim_atual = self.anim_patrulha
+        else:
+            anim_idle = self.animaçoes[self.Patrulha]
+            if self.anim_atual is not anim_idle:
+                anim_idle.resetar()
+            self.anim_atual = anim_idle
+
+    def _ao_terminar_hit(self):
+        self._timer_retomada = self.RETOMADA_FRAMES
+
+    def _ao_terminar_recuperacao(self):
+        self._timer_retomada = self.RETOMADA_FRAMES
 
     #Ataques
 
@@ -121,51 +200,17 @@ class Mushroom(InimigoBase):
                 self.cooldown_esporo = self.Cooldown_esporo_max
 
     def _iniciar_ataque(self, tipo, direçao=1, player=None):
-        self._ataque_atual = tipo
-        self._animando_ataque = True
-        self._esporo_spawnado = False
+        if not self.iniciar_ataque(tipo, player):
+            return
+        self.vel.x = 0
+        self._timer_retomada = 0
+        self._esporo_direçao = direçao
+        self._esporo_player = player
 
-        if tipo == "normal":
-            self.anim_atual = self.animaçoes[self.Atacando]
-            self.anim_atual.resetar()
-        elif tipo == "forte":
-            self.anim_atual = self.anim_attack2
-            self.anim_atual.resetar()
-        elif tipo == "esporo":
-            self.anim_atual = self.anim_attack3
-            self.anim_atual.resetar()
-            self._esporo_direçao = direçao
-            self._esporo_player = player
-
-    def _atualizar_animacao_ataque(self, player):
-        self.anim_atual.atualizar()
-
-        if self._ataque_atual == "normal":
-            if self.anim_atual._frame_idx == 5 and not hasattr(self, "_dano_normal_ap"):
-                self._dano_normal_ap = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_perto + 10:
-                    player.receber_dano(self.Dano_normal, frames_invenc=15)
-
-        elif self._ataque_atual == "forte":
-            if self.anim_atual._frame_idx == 6 and not hasattr(self, "_dano_forte_ap"):
-                self._dano_forte_ap = True
-                dist = abs(player.rect.centerx - self.rect.centerx)
-                if dist < self.Alcance_ataq_perto + 15:
-                    player.receber_dano(self.Dano_forte, frames_invenc=20)
-
-        elif self._ataque_atual == "esporo":
-            if self.anim_atual._frame_idx >= 6 and not self._esporo_spawnado:
-                self._esporo_spawnado = True
-                self._spawnar_esporos(player)
-
-        if self.anim_atual.terminou:
-            self._animando_ataque = False
-            self._ataque_atual = None
-            for attr in ("_dano_normal_ap", "_dano_forte_ap"):
-                if hasattr(self, attr):
-                    delattr(self, attr)
-            self._resetar_para_estado_atual()
+    def _ao_tick_ataque(self, player, frame):
+        if self._ataque_atual == "esporo" and frame >= 6 and not self._esporo_spawnado:
+            self._esporo_spawnado = True
+            self._spawnar_esporos(player)
 
     def _spawnar_esporos(self, player):
         from entities.projeteis.esporo_mushroom import EsporoMushroom

@@ -1,6 +1,10 @@
+import logging
 import pygame
-from settings import Tile_size
+from settings import Tile_size, DEBUG
 from entities.objetos.item import get_item
+from core.recursos import carregar_imagem, criar_placeholder
+
+logger = logging.getLogger(__name__)
 
 class Bau:
 
@@ -23,6 +27,9 @@ class Bau:
 
         self.rect = pygame.Rect(x  , y - 22, Tile_size * 1.2, Tile_size * 2)
 
+        #area de interaçao com folga de meio tile - aceita o player encostado
+        self.interacao = self.rect.inflate(Tile_size // 2, Tile_size // 2)
+
         self.aberto = False
         self.ativo = True #false o item ja foi coletado e a animação termina
 
@@ -32,7 +39,13 @@ class Bau:
 
 
         #carrega o spritesheet inteiro e so carrega a linha do bau selecionado
-        sheet = pygame.image.load("assets/sprites/objetos/baus/Chests.png").convert_alpha()
+        sheet = carregar_imagem("assets/sprites/objetos/baus/Chests.png")
+        if sheet.get_width() < self.Frame_w or sheet.get_height() < self.Frame_h * 2:
+            logger.warning(
+                f"[Bau] spritesheet de baú muito pequena ({sheet.get_width()}x{sheet.get_height()}) "
+                "— usando placeholder magenta"
+            )
+            sheet = criar_placeholder((self.Frame_w, self.Frame_h * 2))
         
         self._frames_fechado = []
         self._frames_aberto = []
@@ -63,10 +76,10 @@ class Bau:
             return
         
 
-        #mostra a mensagem quando o player esta perto 
-        dist = abs(player.rect.centerx - self.rect.centerx)
-        if dist < 10 and not self.aberto:
-            hud.mostra_mensagem("pressione E para abrir")
+        #mostra a mensagem apenas enquanto o player colide com a hitbox do bau
+        colide = player.rect.colliderect(self.interacao)
+        if colide and not self.aberto:
+            hud.mostrar_prompt("pressione E para abrir")
 
             #player pressinou a tecla
             if teclas[pygame.K_e] and not self._anim_tocando and player.cooldown_interaçao <= 0:
@@ -74,6 +87,8 @@ class Bau:
                 self._frame_idx = 0
                 self._contador = 0
                 self.cooldown_interaçao = 30
+        else:
+            hud.limpar_prompt()
 
         #tocar a animação antes de abrir
         if self._anim_tocando:
@@ -94,6 +109,7 @@ class Bau:
     def _dar_item(self, player, hud):
             
         player.adicionar_ao_inventario(self.item)
+        hud.limpar_prompt()
         hud.mostrar_item_coletado(self.item)
         if self.callback_aberto:
             self.callback_aberto(self.col, self.linha)
@@ -116,4 +132,5 @@ class Bau:
         tela.blit(frame, sr)
 
         #debug
-        pygame.draw.rect(tela, (220, 180, 60), sr, 2)
+        if DEBUG:
+            pygame.draw.rect(tela, (220, 180, 60), sr, 2)

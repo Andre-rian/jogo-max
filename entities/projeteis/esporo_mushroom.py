@@ -2,6 +2,7 @@ import pygame
 import math
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 
 class EsporoMushroom(Projetil):
 
@@ -10,7 +11,7 @@ class EsporoMushroom(Projetil):
     Timer_vida = 180 #tempo de vida do esporo em frames
 
     def __init__(self, x, y, vel_x, vel_y, dano=8):
-        super().__init__(x, y, vel_x, vel_y, dano=dano, tem_gravidade=False)
+        super().__init__(x, y, vel_x, vel_y, dano=dano, tem_gravidade=False, frames_invenc=15)
         self.rect = pygame.Rect(x, y, 12, 12)  #tamanho do hitbox do esporo
         self.timer_vida = self.Timer_vida
         self._timer_delay = 15 #delay antes de começar a perseguir o alvo
@@ -61,10 +62,19 @@ class EsporoMushroom(Projetil):
                     self.ativo = False
                     return
                 
-            #colisao com o player
-            if player.vivo and self.rect.colliderect(player.rect):
-                player.receber_dano(self.dano, frames_invenc=15)
-                self.ativo = False
-                return
             self.anim.atualizar()
+
+    def hitboxes_ativas(self):
+        if self._timer_delay > 0:
+            return ()
+        return super().hitboxes_ativas()
+
+    def dano_spec(self):
+        return DanoSpec(
+            dano_base=self.dano,
+            knockback=KnockbackSpec(forca_x=3, forca_y=-1, frames=8),
+            stagger=True,
+            duracao_hit=10,
+            frames_invenc=self.frames_invenc,
+        )
         

@@ -2,9 +2,19 @@ import pygame
 import logging
 log = logging.getLogger("inventario")
 
-from settings import Screen_widht, Screen_height, Dourado, Branco, Preto
+from settings import Screen_widht, Screen_height
 from entities.objetos.item import get_item
-from core.menu_navegavel import hover_index 
+from core.navegacao import hover_index 
+from ui.icones import desenhar_icone_item
+from ui.estilo import (
+    Fonte_titulo, Fonte_texto,
+    Roxo_espectral, Roxo_profundo, Azul_espectral, Azul_claro,
+    Branco_texto, Cinza_texto, Cinza_texto_escuro, Vermelho_ritual,
+    Cinza_carvao, Cinza_azulado,
+    desenhar_overlay, desenhar_painel, desenhar_botao,
+    desenhar_eco_profano, desenhar_linha_ornamental,
+    adicionar_brilho, escurecer, misturar
+)
 
 
 class Inventario:
@@ -14,10 +24,11 @@ class Inventario:
         self.aberto = False
 
         pygame.font.init()
-        self.fonte_titulo = pygame.font.SysFont("Georgia", 20, bold=True)
-        self.fonte_normal = pygame.font.SysFont("Georgia", 15)
-        self.fonte_pequena = pygame.font.SysFont("Georgia", 13)
+        self.fonte_titulo = Fonte_titulo(21, negrito=True)
+        self.fonte_normal = Fonte_texto(16)
+        self.fonte_pequena = Fonte_texto(14)
 
+        self._frame = 0
 
         #abas de navegaçao
         self.abas = ["Equipamentos", "Itens", "Chaves", "materias"]
@@ -138,7 +149,6 @@ class Inventario:
             aba_y = py - 36
             rect_aba = pygame.Rect(aba_x, aba_y, aba_w - 2, 36)
             if rect_aba.collidepoint(pos_mouse):
-                #so mudar a aba no houve/ clique para confirma a mudança'
                 pass
 
         
@@ -401,7 +411,6 @@ class Inventario:
 
 
 
-
             #remove do inventario
             for lista in ["equipamentos", "chaves"]:
                 if item.id in player.inventario[lista]:
@@ -427,23 +436,19 @@ class Inventario:
         if not self.aberto:
             return
         
+        self._frame += 1
         px, py = self.painel_x, self.painel_y
         pw, ph = self.painel_w, self.painel_h
 
 
         #fundo semitrasparente
-        overlay = pygame.Surface((Screen_widht, Screen_height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 140))
-        self.tela.blit(overlay, (0, 0))
+        desenhar_overlay(self.tela, 150)
 
 
         #painel principal
-        pygame.draw.rect(self.tela, (20, 15, 10),
-                         (px, py, pw, ph), border_radius=6)
-        
-        pygame.draw.rect(self.tela, (100, 80, 50),
-                         (px, py, pw, ph), 2, border_radius=6)
-        
+        desenhar_painel(self.tela, pygame.Rect(px, py, pw, ph),
+                        self._frame, cor_borda=Azul_espectral)
+
 
         #abas
         aba_w = pw // len(self.abas)
@@ -451,29 +456,18 @@ class Inventario:
             aba_x = px + i * aba_w
             aba_y = py - 36
             selecionada = i == self.aba_atual
-            cor_fundo = (50, 40, 25) if selecionada else (25, 20, 12)
-            cor_borda = Dourado if selecionada else (80, 60, 35)
+            rect_aba = pygame.Rect(aba_x, aba_y, aba_w - 2, 36)
+            desenhar_botao(self.tela, rect_aba, aba, selecionada, self._frame,
+                           fonte_btn=self.fonte_normal, marcador=False)
 
-            pygame.draw.rect(self.tela, cor_fundo,
-                             (aba_x, aba_y, aba_w - 2, 36), border_radius=4)
-            
-            pygame.draw.rect(self.tela, cor_borda, 
-                             (aba_x, aba_y, aba_w - 1, 36), 1, border_radius=4)
-            
-            txt = self.fonte_normal.render(aba, True,
-                                           Dourado if selecionada else (160, 130, 80))
-            self.tela.blit(txt, (aba_x + aba_w // 2 - txt.get_width() // 2,
-                                 aba_y + 10))
-            
         #divisorias internas
-        #colunas esquerda - slots equipados / centro - grid / direita - descriçao
         col1_x = px + 180
         col2_x = px + 480
-        pygame.draw.line(self.tela, (80, 60, 35), 
+        pygame.draw.line(self.tela, escurecer(Azul_espectral, 0.6),
                          (col1_x, py + 10), (col1_x, py + ph - 10))
         
         #coluna esquerda
-        self._desenhar_slots_equipados(player, px + 10, py + 10, 160)
+        self._desenhar_slots_equipados(player, px + 10, py + 20, 160)
         #coluna central
         self._desenhar_grid(player, col1_x + 10, py + 10, 
                             col2_x - col1_x - 20)
@@ -484,8 +478,8 @@ class Inventario:
         
         #instruçoes na base 
         inst = self.fonte_pequena.render(
-            "← → ↑ ↓  navegar    TAB  trocar aba    ESC  fechar MOUSE hover/clique",
-            True, (100, 80, 50))
+            "← → ↑ ↓  navegar    TAB  trocar aba    ESC  fechar",
+            True, Cinza_texto_escuro)
         self.tela.blit(inst, (px + pw // 2 - inst.get_width() // 2,
                               py + ph - 20))
            
@@ -507,28 +501,22 @@ class Inventario:
         menu_h = len(opcoes) * opcao_h + 8
 
 
-        #fundo do menu
-        pygame.draw.rect(self.tela, (25, 20, 12),
+        pygame.draw.rect(self.tela, Cinza_carvao,
                          (mx, my, menu_w, menu_h), border_radius=4)
-        
-
-        pygame.draw.rect(self.tela, Dourado,
+        pygame.draw.rect(self.tela, escurecer(Azul_espectral, 0.35),
                          (mx, my, menu_w, menu_h), 1, border_radius=4)
-
-        pos_mouse = pygame.mouse.get_pos()
 
         for i, opcao in enumerate(opcoes):
             oy = my + 4 + i * opcao_h
             rect_opcao = pygame.Rect(mx, oy, menu_w, opcao_h)
 
-            #hover
-
             if i == self.opcao_contexto_selecionada:
-                pygame.draw.rect(self.tela, (50, 40, 25), rect_opcao, border_radius=3)
+                pygame.draw.rect(self.tela, Cinza_azulado, rect_opcao, border_radius=3)
+                pygame.draw.rect(self.tela, Azul_claro, rect_opcao, 1, border_radius=3)
 
-            txt = self.fonte_normal.render(opcao, True, Branco)
+            cor_txt = Azul_claro if i == self.opcao_contexto_selecionada else Branco_texto
+            txt = self.fonte_normal.render(opcao, True, cor_txt)
             self.tela.blit(txt, (mx + 10, oy + 6))   
-    
     
     
     
@@ -542,7 +530,7 @@ class Inventario:
     
     #slots equipados
     def _desenhar_slots_equipados(self, player, x, y, largura):
-        titulo = self.fonte_normal.render("Equipado", True, Dourado)
+        titulo = self.fonte_normal.render("Equipado", True, Roxo_espectral)
         self.tela.blit(titulo, (x, y))
 
        
@@ -556,7 +544,7 @@ class Inventario:
 
 
         for i, (label, chave) in enumerate(slots):
-            sy = y + 30 + i * 70
+            sy = y + 26 + i * 70
 
 
             item_id = player.inventario.get(chave)
@@ -565,29 +553,29 @@ class Inventario:
 
             
             #fundo do slot
-            pygame.draw.rect(self.tela, (35, 28, 18),
+            pygame.draw.rect(self.tela, escurecer(Cinza_carvao, 0.15),
                              (x, sy, largura, 58), border_radius=4)
-            pygame.draw.rect(self.tela, (80, 60, 35),
+            pygame.draw.rect(self.tela, escurecer(Azul_espectral, 0.5),
                              (x, sy, largura, 58), 1, border_radius=4)
             
             #label
-            lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
+            lbl = self.fonte_pequena.render(label, True, Cinza_texto)
             self.tela.blit(lbl, (x + 6, sy + 4))
 
 
             #item ou vazio
             if item:
 
-                nome = self.fonte_normal.render(item.nome, True, Branco)
+                nome = self.fonte_normal.render(item.nome, True, Branco_texto)
                 self.tela.blit(nome, (x + 6, sy + 22))
                 
                 if hasattr(item, "dano"):
                     dano = self.fonte_pequena.render(f"Dano: {item.dano}",
-                                                     True, (180, 160, 100))
+                                                     True, Azul_claro)
                     self.tela.blit(dano, (x + 6, sy + 40))
 
             else:
-                vazio = self.fonte_pequena.render("- Vazio -", True, Branco)
+                vazio = self.fonte_pequena.render("- Vazio -", True, Cinza_texto_escuro)
                 self.tela.blit(vazio, (x + 6, sy + 28))
 
  
@@ -606,8 +594,13 @@ class Inventario:
 
 
             selecionado =  self.slot_selecionado is not None and i == self.slot_selecionado
-            cor_borda = Dourado if selecionado else (80, 60, 35)
-            cor_fundo = (50, 40, 25) if selecionado else (30, 24, 15)
+            cor_borda = Azul_claro if selecionado else escurecer(Azul_espectral, 0.5)
+            cor_fundo = Cinza_azulado if selecionado else escurecer(Cinza_carvao, 0.15)
+
+            if selecionado:
+                adicionar_brilho(self.tela, sx + slot_size // 2, sy + slot_size // 2,
+                                 slot_size // 2 + 6, Roxo_profundo, self._frame,
+                                 intensidade=0.22)
 
             #checar se o item esta equipado
             slots_equipados = [
@@ -629,103 +622,34 @@ class Inventario:
             cx = sx + slot_size // 2
             cy = sy + slot_size // 2
 
-            self._desenhar_icone(item, cx, cy, sx, sy, slot_size)\
+            desenhar_icone_item(self.tela, item, cx, cy, sx, sy, slot_size,
+                                self.fonte_pequena)
 
             if esta_equipado:
-                pygame.draw.circle(self.tela, Dourado,
-                                   (sx + slot_size - 8, sy + 8), 5)
-                pygame.draw.circle(self.tela, (20, 15, 10),
-                                   (sx + slot_size - 8, sy + 8), 3)
+                desenhar_eco_profano(self.tela, sx + slot_size - 10,
+                                     sy + 10, 6, self._frame)
 
             #aviso de requisitos de status nao cumprido
             from entities.objetos.item import Arma
             if isinstance(item, Arma) and not item.pode_equipar(player):
-                txt = self.fonte_pequena.render("❗", True, (255, 60, 60))
-                self.tela.blit(txt, (sx + 4, sy + 4))
+                pontos = [(sx + 8, sy + 4), (sx + 13, sy + 9),
+                          (sx + 8, sy + 14), (sx + 3, sy + 9)]
+                pygame.draw.polygon(self.tela, Vermelho_ritual, pontos)
 
             if hasattr(item, "id") and item.id in player.itens_novos:
-                txt = self.fonte_pequena.render("!", True, (255, 80, 80))
-                self.tela.blit(txt, (sx + slot_size - 10, sy + 4))
+                pontos = [(sx + slot_size - 10, sy + 7), (sx + slot_size - 5, sy + 12),
+                          (sx + slot_size - 10, sy + 17), (sx + slot_size - 15, sy + 12)]
+                pygame.draw.polygon(self.tela, Roxo_espectral, pontos)
 
 
         if not itens:
-            msg = self.fonte_normal.render("Nenhum item", True, (80, 65, 40))
+            msg = self.fonte_normal.render("Nenhum item", True, Cinza_texto_escuro)
             self.tela.blit(msg, (x + largura // 2 - msg.get_width() // 2, 
                                  y + 80))
             
     
 
-    def _desenhar_icone(self, item, cx, cy, sx, sy, slot_size):
-        if item.icone == "espada":
-            # lamina longa apontando para baixo
-            pygame.draw.polygon(self.tela, (200, 190, 150), [
-                (cx,      cy + 22),  # ponta
-                (cx - 3,  cy - 4),   # base esquerda
-                (cx + 3,  cy - 4),   # base direita
-            ])
-            # detalhe central da lamina
-            pygame.draw.line(self.tela, (160, 150, 110),
-                             (cx, cy + 22), (cx, cy - 4), 1)
-            # guarda longa
-            pygame.draw.line(self.tela, (180, 150, 60),
-                             (cx - 12, cy - 5), (cx + 12, cy - 5), 3)
-            # ponta da guarda esquerda
-            pygame.draw.circle(self.tela, (160, 130, 50),
-                               (cx - 12, cy - 5), 2)
-            # ponta da guarda direita
-            pygame.draw.circle(self.tela, (160, 130, 50),
-                               (cx + 12, cy - 5), 2)
-            # cabo
-            pygame.draw.line(self.tela, (120, 80, 40),
-                             (cx, cy - 5), (cx, cy - 16), 4)
-            # punho redondo
-            pygame.draw.circle(self.tela, (150, 110, 60),
-                               (cx, cy - 18), 4)
-            pygame.draw.circle(self.tela, (180, 140, 80),
-                               (cx, cy - 18), 4, 1)
-            
-        elif item.icone == "machado":
-            # cabo
-            pygame.draw.line(self.tela, (160, 120, 60),
-                             (cx + 8, cy + 14), (cx - 6, cy - 10), 3)
-            # lamina
-            pygame.draw.polygon(self.tela, (200, 180, 100), [
-                (cx - 6, cy - 10),
-                (cx - 16, cy - 4),
-                (cx - 8, cy + 6),
-            ])
-
-        elif item.icone == "pocao":
-            pygame.draw.ellipse(self.tela, (160, 10, 20),
-                                (cx - 10, cy - 5, 20, 18))
-            pygame.draw.rect(self.tela, (190, 180, 190),
-                             (cx - 4, cy - 14, 8, 10), border_radius=2)
-            cargas_txt = self.fonte_pequena.render(
-                str(item.cargas if item.cargas is not None else item.quantidade),
-                True, Branco)
-            self.tela.blit(cargas_txt, (sx + slot_size - 16, sy + slot_size - 18))
-
-        elif item.icone == "raiz":
-            # haste
-            pygame.draw.line(self.tela, (100, 160, 80),
-                             (cx, cy + 12), (cx, cy - 4), 2)
-            # folhas
-            pygame.draw.ellipse(self.tela, (80, 180, 60),
-                                (cx - 10, cy - 12, 12, 8))
-            pygame.draw.ellipse(self.tela, (80, 180, 60),
-                                (cx - 2, cy - 16, 12, 8))
-            cargas_txt = self.fonte_pequena.render(
-                str(item.quantidade), True, Branco)
-            self.tela.blit(cargas_txt, (sx + slot_size - 16, sy + slot_size - 18))
-
-        else:  # generico
-            pygame.draw.circle(self.tela, Dourado, (cx, cy), 12, 2)
-            pygame.draw.line(self.tela, Dourado,
-                             (cx, cy - 8), (cx, cy + 8), 2)
-
-
-
-    #desenhar a DESCRRIÇAO e o status do player
+#desenhar a DESCRRIÇao e o status do player
     def _desenhar_detalhes(self, player, x, y, largura):
         itens = self._itens_da_aba(player)
 
@@ -733,7 +657,7 @@ class Inventario:
         if itens and self.slot_selecionado is not None and self.slot_selecionado< len(itens):
             item = itens[self.slot_selecionado]
 
-            nome = self.fonte_titulo.render(item.nome, True, Dourado)
+            nome = self.fonte_titulo.render(item.nome, True, Azul_claro)
             self.tela.blit(nome, (x, y))
 
             #descriçao com a quebra de linha
@@ -743,10 +667,10 @@ class Inventario:
             
             for palavra in palavras:
                 teste = linhas_txt + palavra + " "
-                surf = self.fonte_pequena.render(teste, True, Branco)
+                surf = self.fonte_pequena.render(teste, True, Branco_texto)
                 if surf.get_width() > largura - 10:
                     rendered = self.fonte_pequena.render(linhas_txt,
-                                                         True, (180, 160, 120))
+                                                         True, Cinza_texto)
                     self.tela.blit(rendered, (x, linha_y))
                     linha_y += 18
                     linhas_txt = palavra + " "
@@ -754,7 +678,7 @@ class Inventario:
                     linhas_txt = teste
             if linhas_txt:
                 rendered = self.fonte_pequena.render(linhas_txt,
-                                                     True, (180, 160, 120))
+                                                     True, Cinza_texto)
                 self.tela.blit(rendered, (x, linha_y))
                 linha_y += 18
                 linhas_txt = palavra + " "
@@ -763,9 +687,9 @@ class Inventario:
 
             #stats do item
             linha_y += 8
-            pygame.draw.line(self.tela, (80, 60, 35),
-                             (x, linha_y), (x + largura - 10, linha_y))
-            linha_y += 8 
+            desenhar_linha_ornamental(self.tela, x + largura // 2, linha_y,
+                                      largura // 2 - 10, Azul_espectral)
+            linha_y += 12 
 
             if hasattr(item, "dano"):
                 #mostra o string do escalonamento
@@ -785,8 +709,8 @@ class Inventario:
                 ]
 
                 for label, valor in stats:
-                    lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
-                    val = self.fonte_pequena.render(valor, True, Branco)
+                    lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+                    val = self.fonte_pequena.render(valor, True, Branco_texto)
                     self.tela.blit(lbl, (x, linha_y))
                     self.tela.blit(val, (x + largura - val.get_width() - 10,
                                          linha_y))
@@ -798,8 +722,8 @@ class Inventario:
                     ("Cargas",  f"{item.cargas} / {item.cargas_max}"),
                 ]
                 for label, valor in stats:
-                    lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
-                    val = self.fonte_pequena.render(valor, True, Branco)
+                    lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+                    val = self.fonte_pequena.render(valor, True, Branco_texto)
                     self.tela.blit(lbl, (x, linha_y))
                     self.tela.blit(val, (x + largura - val.get_width() - 10,
                                          linha_y))
@@ -811,8 +735,8 @@ class Inventario:
 
                 ]
                 for label, valor in stats:
-                    lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
-                    val = self.fonte_pequena.render(valor, True, Branco)
+                    lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+                    val = self.fonte_pequena.render(valor, True, Branco_texto)
                     
                     self.tela.blit(lbl, (x, linha_y))
                     self.tela.blit(val, (x + largura - val.get_width() - 10, linha_y))
@@ -821,11 +745,11 @@ class Inventario:
         #stats do player
         #linha separadora
         status_y = y + 260
-        pygame.draw.line(self.tela, (80, 60, 35),
-                         (x, status_y), (x + largura - 10, status_y))
-        status_y += 10
+        desenhar_linha_ornamental(self.tela, x + largura // 2, status_y,
+                                  largura // 2 - 10, Azul_espectral)
+        status_y += 14
 
-        titulo_status = self.fonte_normal.render("Status", True, Dourado)
+        titulo_status = self.fonte_normal.render("Status", True, Roxo_espectral)
         self.tela.blit(titulo_status, (x, status_y))
         status_y += 22
 
@@ -838,8 +762,8 @@ class Inventario:
             ("Destreza",str(player.destreza)),       
         ]
         for label, valor in stats_player:
-            lbl = self.fonte_pequena.render(label, True, (120, 100, 60))
-            val = self.fonte_pequena.render(valor, True, Branco)
+            lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+            val = self.fonte_pequena.render(valor, True, Branco_texto)
             self.tela.blit(lbl, (x, status_y))
             self.tela.blit(val, (x + largura - val.get_width() - 10, status_y))
             status_y += 18

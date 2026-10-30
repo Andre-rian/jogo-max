@@ -1,6 +1,7 @@
 import pygame
 import logging
-from settings import Tile_size
+from settings import Tile_size, DEBUG
+from core.recursos import carregar_imagem
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,16 @@ class Porta:
 
         self.rect = pygame.Rect(x, y, Tile_size, Tile_size * 2)
 
+        #area de interaçao maior que a hitbox: a porta é sólida no mapa (player é
+        #bloqueado na frente dela e nunca sobrepõe o rect), então a interação aceita
+        #o player encostado (~1 tile além da porta).
+        self.interacao = self.rect.inflate(Tile_size * 2, Tile_size * 2)
+
         self.aberta = False
 
         #carrega as duas imagens estaticasd (sem spritesheet, sem frames)
-        img_fechada = pygame.image.load("assets/sprites/objetos/portas/porta_fechada.png").convert_alpha()
-        img_aberta = pygame.image.load("assets/sprites/objetos/portas/porta_aberta.png").convert_alpha()
+        img_fechada = carregar_imagem("assets/sprites/objetos/portas/porta_fechada.png")
+        img_aberta = carregar_imagem("assets/sprites/objetos/portas/porta_aberta.png")
 
 
         #escala mantendo a proproçao de cada imagem
@@ -34,13 +40,13 @@ class Porta:
 
 
     def atualizar(self, player, teclas, hud, portas_abertas):
-        dist = abs(player.rect.centerx - self.rect.centerx)
+        colide = player.rect.colliderect(self.interacao)
 
-        if dist < 60:
+        if colide:
             if not self.aberta:
-                hud.mostra_mensagem("Pressione E para abrir")
+                hud.mostrar_prompt("Pressione E para abrir")
             else:
-                hud.mostra_mensagem("Pressione E para Fechar")
+                hud.mostrar_prompt("Pressione E para Fechar")
 
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 self.aberta = not self.aberta
@@ -55,7 +61,9 @@ class Porta:
                     portas_abertas.discard((self.col, self.linha))
                     logger.debug(f"porta ({self.col},{self.linha}) fechada")
 
-                hud.limpar_mensagem()
+                hud.limpar_prompt()
+        else:
+            hud.limpar_prompt()
 
     def desenhar(self, tela, camera):
         sr = camera.aplicar(self.rect)
@@ -66,5 +74,6 @@ class Porta:
         tela.blit(img, destino)
 
         #debug
-        pygame.draw.rect(tela, (120, 90, 60), sr, 1)
+        if DEBUG:
+            pygame.draw.rect(tela, (120, 90, 60), sr, 1)
 

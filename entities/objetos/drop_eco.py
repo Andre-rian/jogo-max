@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from settings import Tile_size
 
 class DropEco:
 
@@ -15,6 +16,9 @@ class DropEco:
 
         self.rect = pygame.Rect(int(x) - 16, int(y) - 16, 32, 32)
 
+        #area de interaçao com folga - pega quando o player passa por cima/encostado
+        self.interacao = self.rect.inflate(Tile_size // 2, Tile_size // 2)
+
         self._timer = 0
         self._fragmentos = []
 
@@ -22,7 +26,7 @@ class DropEco:
         for i in range(6):
             angulo = (i / 6) * math.pi * 2
             vel = random.uniform(0.01, 0.03)
-            dist = random.uniform(10, 18)
+            dist = random.uniform(4, 7)
             cor = random.choice([
                 (100, 60, 180),
                 (140, 80, 220),
@@ -34,7 +38,7 @@ class DropEco:
                 "vel": vel,             
                 "dist": dist,
                 "cor": cor,
-                "raio": random.randint(2, 4)
+                "raio": 1
             })
 
         #particulas subindo
@@ -53,9 +57,9 @@ class DropEco:
             f["angulo"] += f["vel"]
 
         # spwana as particulas subindo
-        if self._timer * 8 == 0:
+        if self._timer % 8 == 0:
             self._particulas.append({
-                "x": self.x + random.uniform(-8, 8),
+                "x": self.x + random.uniform(-3, 3),
                 "y": self.y,
                 "vel_y": random.uniform(-0.3, -0.8),
                 "alpha": 255,
@@ -70,13 +74,16 @@ class DropEco:
 
 
         #checar a coleta
-        dist = abs(player.rect.centerx - self.rect.centerx)
-        if dist < self.Alcance_coleta:
-            hud.mostra_mensagem("E - para recupera Ecos perdidos")
+        colide = player.rect.colliderect(self.interacao)
+        if colide:
+            hud.mostrar_prompt("E - para recupera Ecos perdidos")
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 player.ecos += self.quantidade
                 player.cooldown_interaçao = 30
                 self.ativo = False
+                hud.limpar_prompt()
+        else:
+            hud.limpar_prompt()
         
 
     def desenhar(self, tela, camera):
@@ -91,12 +98,12 @@ class DropEco:
         #pulsar o chao abaixo
 
         pulso = abs((self._timer % 90) - 45) / 45
-        raio_nucleo = int(10 + pulso * 3)
+        raio_nucleo = int(4 + pulso * 1.5)
 
         #escure o chao abaixo
-        sombra = pygame.Surface((60, 20), pygame.SRCALPHA)
+        sombra = pygame.Surface((30, 10), pygame.SRCALPHA)
         sombra.fill((20, 0, 40, 80))
-        tela.blit(sombra, (cx - 30, cy + 10))
+        tela.blit(sombra, (cx - 15, cy + 6))
 
 
         #nucleo vazio escuro
@@ -115,5 +122,5 @@ class DropEco:
         for p in self._particulas:
             pos = camera.aplicar(pygame.Rect(int(p["x"]), int(p["y"]), 1, 1))
             alpha_cor = tuple(int(c * p["alpha"] / 255) for c in p["cor"])
-            pygame.draw.circle(tela, alpha_cor, (pos.x, pos.y), 2)
+            pygame.draw.circle(tela, alpha_cor, (pos.x, pos.y), 1)
 

@@ -3,6 +3,8 @@ from settings import Gravidade, Max_Fall_Speed
 
 class Entity(pygame.sprite.Sprite):
 
+    USAR_MOVIMENTO_SUBPIXEL = False
+
     #Classe base para todas as entidades do game player,inimigo, boss e ect
     #possui a responsabilidade de guarda vida,velocidade, aplicar gravidade e ect
 
@@ -16,6 +18,7 @@ class Entity(pygame.sprite.Sprite):
         self.olhando_dir = True
         #velocidade em pixeis 
         self.vel = pygame.Vector2(0,0)
+        self._residual_x = 0.0
 
         #vida 
         self.hp_max = hp_max
@@ -45,6 +48,7 @@ class Entity(pygame.sprite.Sprite):
 
         #mask, começando a implementaçõa 
         self.mask = None
+        self._mask_pos = self.rect.topleft
 
         #plataformas one-way: True quando os pés estão apoiados em uma
         self._sobre_plataforma = False
@@ -68,7 +72,21 @@ class Entity(pygame.sprite.Sprite):
 
         #eixo x
 
-        self.rect.x += int(self.vel.x)
+        if self.vel.x == 0:
+            self._residual_x = 0.0
+            passo_x = 0
+        elif self.USAR_MOVIMENTO_SUBPIXEL:
+            movimento_x = self.vel.x + self._residual_x
+            ajuste = 1e-9 if movimento_x >= 0 else -1e-9
+            passo_x = int(movimento_x + ajuste)
+            self._residual_x = movimento_x - passo_x
+            if abs(self._residual_x) < 1e-9:
+                self._residual_x = 0.0
+        else:
+            self._residual_x = 0.0
+            passo_x = int(self.vel.x)
+
+        self.rect.x += passo_x
 
         for tile in rects_solidos:
             if self.rect.colliderect(tile):
@@ -83,6 +101,7 @@ class Entity(pygame.sprite.Sprite):
                 else:
                     self.rect.left = tile.right
                 self.vel.x = 0
+                self._residual_x = 0.0
                 #resolve só o 1º solido por frame (evita cascata de 32px por tile)
                 break 
 
@@ -167,11 +186,11 @@ class Entity(pygame.sprite.Sprite):
     #Dano/combante
     def receber_dano(self, quantidade, frames_invenc=None):
         #Reduz o hp. se tiver invencivel = ignora. apos levar dano = frames de invecibilidade
+        #frames_invenc=0 desativa os i-frames desse golpe (inimigos comuns por padrão)
 
         if self.invencivel or not self.vivo:
-            
-            return
-        
+            return False
+
         self.hp -= quantidade
 
         if self.hp <= 0:
@@ -180,9 +199,32 @@ class Entity(pygame.sprite.Sprite):
             if self.callback_morte:
                 self.callback_morte(self.rect.centerx, self.rect.bottom)
         else:
-            #ativar os frames de invencibilidade
-            self.invencivel = True
-            self.timer_invenc = frames_invenc if frames_invenc is not None else self.Frames_ivenc 
+            frames_invenc = self.Frames_ivenc if frames_invenc is None else frames_invenc
+            if frames_invenc > 0:
+                self.invencivel = True
+                self.timer_invenc = frames_invenc
+
+        return True
+
+    def receber_evento(self, evento):
+        #ponto único de entrada de dano do sistema de combate
+        aplicado = self.receber_dano(
+            evento.dano,
+            frames_invenc=evento.frames_invenc,
+        )
+        if not aplicado:
+            return False
+
+        if self.vivo and evento.knockback is not None:
+            kb = evento.knockback
+            if kb.forca_x or kb.forca_y:
+                self.aplicar_knockback(
+                    evento.direcao,
+                    forca_x=kb.forca_x,
+                    forca_y=kb.forca_y,
+                    frames=kb.frames or 1,
+                )
+        return True
 
     def atualizar_invencibilidade(self):
         #conta a quantidade de frames da invencibilidade
@@ -197,6 +239,7 @@ class Entity(pygame.sprite.Sprite):
         
         self.vel.x = direçao * forca_x
         self.vel.y = forca_y
+        self._residual_x = 0.0
         self.timer_knockback = frames
         self.recebendo_knockback = True
 
@@ -208,16 +251,15 @@ class Entity(pygame.sprite.Sprite):
             self.aplicar_gravidade()
             self.mover_com_colisão(rects_solidos)
         else:
-            #inimigos que voam
-            self.rect.x += int(self.vel.x)
-            self.rect.y += int(self.vel.y)
+            #inimigos que voam também respeitam paredes/chão no knockback
+            self.mover_com_colisão(rects_solidos)
             self.vel.x *= 0.85
             self.vel.y *= 0.85
 
-        self.atualizar_invencibilidade()
-
         if self.timer_knockback <= 0:
             self.recebendo_knockback = False
+            #sem deslize residual no hitstun: o empurrão termina junto do knockback
+            self.vel.x = 0
 
 
     def _offset_mask(self):
@@ -226,9 +268,13 @@ class Entity(pygame.sprite.Sprite):
     
 
     def atualizar_mask(self):
-        if getattr(self, "anim_atual", None):
-            self.mask = pygame.mask.from_surface(self.anim_atual.frame_atual)
-            self._mask_pos = self._offset_mask() #guarda onde a mask realmente está no mundo
+        anim = getattr(self, "anim_atual", None)
+        if anim is not None:
+            self.mask = anim.mascara_frame(
+                anim.frame_index,
+                espelhado=not self.olhando_dir,
+            )
+            self._mask_pos = self._offset_mask()  #guarda onde a mask realmente está no mundo
 
 
 

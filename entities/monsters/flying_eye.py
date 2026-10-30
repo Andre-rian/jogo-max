@@ -3,6 +3,7 @@ import math
 import random
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, FaseAtaque, HitboxSpec, KnockbackSpec
 from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 
 
@@ -23,13 +24,13 @@ class FlyingEye(InimigoBase):
 
     Alcance_detec = 350
     Alcence_perto = 60
-    Alcance_medio = 200
+    Alcance_medio = 120
 
     #knockback
     KB_FORCA_X = 6
     KB_FORCA_Y = -3
     KB_FRAMES = 14
-    HITSTUN_FRAMES = 12
+    HITSTUN_FRAMES = 12  # 4 frames de hit a 3 ticks = ~200 ms (reação completa)
     
     Cooldown_ataque = 150
     Cooldown_projetil_max = 350
@@ -48,24 +49,67 @@ class FlyingEye(InimigoBase):
 
         self._fase_ataque = False
         self._vel_ataque = pygame.Vector2(0, 0)
+        self._lunge_restante = 0.0
         self.projeteis_spawnar = []
 
         Eye = "assets/sprites/enemies/monsters/flying_eye/"
         self.animaçoes = {
             self.Voando:    AnimatedSprite(Eye + "Flight.png", 150, 150, velocidade=6, escala=2, n_frames=8),
-            self.Atacando:  AnimatedSprite(Eye + "Attack.png", 150, 150, velocidade=5, escala=2, n_frames=8),
-            self.Morto:     AnimatedSprite(Eye + "Death.png",  150, 150, velocidade=6, escala=2, n_frames=4),
+            self.Atacando:  AnimatedSprite(Eye + "Attack.png", 150, 150, velocidade=5, escala=2, n_frames=8, loop=False),
+            self.Morto:     AnimatedSprite(Eye + "Death.png",  150, 150, velocidade=6, escala=2, n_frames=4, loop=False),
         }
-        self.anim_attack2 = AnimatedSprite(Eye + "Attack2.png", 150, 150, velocidade=4, escala=2, n_frames=8)
-        self.anim_attac3 = AnimatedSprite(Eye + "Attack3.png", 150, 150, velocidade=4, escala=2, n_frames=6)
-        self.anim_hit = AnimatedSprite(Eye + "Take Hit.png", 150, 150, velocidade=6, escala=2, n_frames=4)
+        self.anim_attack2 = AnimatedSprite(Eye + "Attack2.png", 150, 150, velocidade=4, escala=2, n_frames=8, loop=False)
+        self.anim_attac3 = AnimatedSprite(Eye + "Attack3.png", 150, 150, velocidade=4, escala=2, n_frames=6, loop=False)
+        self.anim_hit = AnimatedSprite(Eye + "Take Hit.png", 150, 150, velocidade=3, escala=2, n_frames=4, loop=False)
         self.anim_atual = self.animaçoes[self.Voando]
 
         self.ecos_drop = 15
 
-   
-    def mover_com_colisão(self, rects_solidos):
-        pass
+        self._configurar_ataques()
+
+    def _configurar_ataques(self):
+        contato = HitboxSpec(
+            usar_mascara_animacao=False,
+            inflar_rect=(self.Folga_contato_x, self.Folga_contato_y),
+        )
+        dano_mordida = DanoSpec(
+            dano_base=self.Dano_mordida,
+            knockback=KnockbackSpec(forca_x=4, forca_y=-2, frames=12),
+            duracao_hit=12,
+            frames_invenc=25,
+        )
+        dano_dash = DanoSpec(
+            dano_base=self.Dano_dash,
+            knockback=KnockbackSpec(forca_x=5, forca_y=-1, frames=10),
+            duracao_hit=10,
+            frames_invenc=20,
+        )
+        self._registrar_ataque(
+            "mordida",
+            self.animaçoes[self.Atacando],
+            [self._criar_janela("mordida", 3, 7, hitbox=contato)],
+            dano_mordida,
+            recuperacao_ticks=8,
+        )
+        self._registrar_ataque(
+            "dash",
+            self.anim_attack2,
+            [self._criar_janela("investida", 6, 7, hitbox=contato)],
+            dano_dash,
+            recuperacao_ticks=8,
+        )
+        self._registrar_ataque(
+            "projetil",
+            self.anim_attac3,
+            [],
+            DanoSpec(),
+            recuperacao_ticks=8,
+        )
+
+    def _resetar_flags_ataque(self):
+        self._fase_ataque = None
+        self._lunge_restante = 0.0
+        self._projetil_spawnado = False
 
     #IA
 
@@ -78,7 +122,7 @@ class FlyingEye(InimigoBase):
             if dist < self.Alcence_perto and self.cooldown_ataq <= 0:
                 direçao = 1 if player.rect.centerx > self.rect.centerx else -1
                 self.olhando_dir = direçao > 0
-                self._iniciar_ataque("mordida" if random.random() < 0.6 else "dash", player)
+                self._iniciar_ataque("mordida", player)
 
             elif dist < self.Alcance_medio and self.cooldown_ataq <= 0:
                 direçao = 1 if player.rect.centerx > self.rect.centerx else -1
@@ -90,13 +134,13 @@ class FlyingEye(InimigoBase):
                 self.olhando_dir = direçao > 0
                 self._iniciar_ataque("projetil", player)
         else:
+            self.vel.y = 0
             if self.rect.left <= self.patrulha_esq:
                 self.vel.x = 1.5
                 self.olhando_dir = True
             elif self.rect.right >= self.patrulha_dir:
                 self.vel.x = -1.5
                 self.olhando_dir = False
-            self.rect.x += int(self.vel.x)
             self.estado = self.Voando
 
         return 0
@@ -112,120 +156,98 @@ class FlyingEye(InimigoBase):
         self.vel.y = math.copysign(self.Vel_voo * 0.7, dy) if abs(dy) > 4 else 0
 
         self.estado = self.Voando
-
-        self.rect.x += int(self.vel.x)
-        for tile in rects_solidos:
-            if self.rect.colliderect(tile):
-                if self.vel.x > 0:
-                    self.rect.right = tile.left
-                elif self.vel.x < 0:
-                    self.rect.left = tile.right
-                self.vel.x = 0
-
-        self.rect.y += int(self.vel.y)
-        for tile in rects_solidos:
-            if self.rect.colliderect(tile):
-                if self.vel.y < 0:
-                    self.rect.top = tile.bottom
-                    self.vel.y = 0
+        #o deslocamento real acontece no mover_com_colisão() do InimigoBase
 
     #Ataques 
 
-    def _contato_com(self, player):
-        #hit por rect (inflado pequeno), nao por mascara de sprite gigante
-        return self.golpe_acerta(player)
-
-    def rect_do_golpe(self):
-        #o olho conecta por contato — zona = rect lógico inflado (frente/trás e une altura)
-        if not (getattr(self, "_animando_ataque", False) and self._ataque_atual):
-            return None
-        return self.rect.inflate(self.Folga_contato_x, self.Folga_contato_y)
-
     def _iniciar_ataque(self, tipo, player):
-        self._ataque_atual = tipo
-        self._animando_ataque = True
-        self._dano_aplicado = False
+        if not self.iniciar_ataque(tipo, player):
+            return
 
         direçao = 1 if player.rect.centerx > self.rect.centerx else -1
 
         if tipo == "mordida":
             self.cooldown_ataq = self.Cooldown_ataque
+            self._lunge_restante = 30.0
             dx = player.rect.centerx - self.rect.centerx
             dy = player.rect.centery - self.rect.centery
             dist = math.hypot(dx, dy)
             if dist > 0:
-                # FIX: era self._vel_ataque (sempre 0,0) — agora usa a constante Vel_ataque
                 self._vel_ataque = pygame.Vector2(
-                    (dx / dist) * self.Vel_ataque,
-                    (dy / dist) * self.Vel_ataque
+                    (dx / dist) * (self.Vel_ataque * 0.5),
+                    (dy / dist) * (self.Vel_ataque * 0.5)
                 )
             else:
-                self._vel_ataque = pygame.Vector2(0, self.Vel_ataque)
-
+                self._vel_ataque = pygame.Vector2(0, self.Vel_ataque * 0.5)
             self._fase_ataque = "descendo"
-            self.anim_atual = self.animaçoes[self.Atacando]
-            self.anim_atual.resetar()
 
         elif tipo == "dash":
             self.cooldown_ataq = self.Cooldown_ataque
             self._vel_ataque = pygame.Vector2(direçao * self.Vel_ataque * 1.5, 0)
             self._fase_ataque = "dashando"
             self._dash_timer = 20
-            self.anim_atual = self.anim_attack2
-            self.anim_atual.resetar()
 
         elif tipo == "projetil":
             self.cooldown_ataq = self.Cooldown_ataque
             self.cooldown_projetil = self.Cooldown_projetil_max
             self._fase_ataque = "atirando"
             self._projetil_player = player
-            self._projetil_spwanado = False
-            self.anim_atual = self.anim_attac3
-            self.anim_atual.resetar()
 
-    def _atualizar_animacao_ataque(self, player):
-        self.anim_atual.atualizar()
+    def _atualizar_ataque_em_curso(self, rects_solidos, player):
+        frame = self.ataque_ativo.frame if self.ataque_ativo is not None else 0
+
+        if self.ataque_ativo is not None and self.ataque_ativo.fase == FaseAtaque.RECOVERY:
+            self.vel.x = 0
+            self.vel.y = 0
+            self._vel_ataque = pygame.Vector2(0, 0)
+            self._decrementar_cooldowns()
+            return 0
 
         if self._ataque_atual == "mordida":
             if self._fase_ataque == "descendo":
-                self.rect.x += int(self._vel_ataque.x)
-                self.rect.y += int(self._vel_ataque.y)
-
-                if not self._dano_aplicado and self._contato_com(player):
-                    self._dano_aplicado = True
-                    player.receber_dano(self.Dano_mordida, frames_invenc=25)
-
-                if self.anim_atual._frame_idx >= 7 or self._dano_aplicado:
+                self._mover_ataque(rects_solidos, limitar=True)
+                if frame >= 7:
                     self._fase_ataque = "subindo"
                     self._vel_ataque = pygame.Vector2(0, -self.Vel_ataque)
-
             elif self._fase_ataque == "subindo":
-                self.rect.y += int(self._vel_ataque.y)
+                self._mover_ataque(rects_solidos)
                 self._vel_ataque *= 0.9
 
         elif self._ataque_atual == "dash":
             if self._fase_ataque == "dashando":
-                self.rect.x += int(self._vel_ataque.x)
+                self._mover_ataque(rects_solidos)
                 self._vel_ataque.x *= 0.92
-                if not self._dano_aplicado and self._contato_com(player):
-                    self._dano_aplicado = True
-                    player.receber_dano(self.Dano_dash, frames_invenc=20)
-
                 self._dash_timer -= 1
                 if self._dash_timer <= 0:
                     self._vel_ataque.x = 0
 
-        elif self._ataque_atual == "projetil":
-            if self.anim_atual._frame_idx >= 3 and not self._projetil_spwanado:
-                self._projetil_spwanado = True
-                self._spawnar_projetil(self._projetil_player)
+        self._decrementar_cooldowns()
+        return 0
 
-        if self.anim_atual.terminou:
-            self._animando_ataque = False
-            self._ataque_atual = None
-            self._fase_ataque = None
-            self.estado = self.Voando
-            self._resetar_para_estado_atual()
+    def _mover_ataque(self, rects_solidos, limitar=False):
+        #usa a colisão da Entity para o ataque não atravessar paredes
+        vel = self._vel_ataque.copy()
+
+        if limitar:
+            if self._lunge_restante <= 0:
+                return
+            dist = vel.length()
+            if dist <= 0:
+                return
+            consumido = min(dist, self._lunge_restante)
+            if consumido < dist:
+                vel = vel.normalize() * consumido
+            self._lunge_restante -= consumido
+
+        self.vel.x, self.vel.y = vel.x, vel.y
+        self.mover_com_colisão(rects_solidos)
+        self._vel_ataque.x, self._vel_ataque.y = self.vel.x, self.vel.y
+
+    def _ao_tick_ataque(self, player, frame):
+        if self._ataque_atual == "projetil":
+            if frame >= 3 and not self._projetil_spawnado:
+                self._projetil_spawnado = True
+                self._spawnar_projetil(player)
 
     def _spawnar_projetil(self, player):
         dx = player.rect.centerx - self.rect.centerx
@@ -241,10 +263,6 @@ class FlyingEye(InimigoBase):
 
         proj = ProjetilFlyingEye(self.rect.centerx, self.rect.centery, vel_x, vel_y, self.Dano_projetil)
         self.projeteis_spawnar.append(proj)
-
-    def receber_hit(self, dano, direçao_knockback):
-        super().receber_hit(dano, direçao_knockback)
-        self._fase_ataque = None
 
     def _offset_desenho(self, sr):
         sprite_w = self.anim_atual.largura

@@ -2,11 +2,12 @@ import pygame
 import math
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
+from core.combat import DanoSpec, KnockbackSpec
 
 class ProjetilFlyingEye(Projetil):
 
     def __init__(self, x, y, vel_x, vel_y, dano=15):
-        super().__init__(x, y, vel_x=vel_x, vel_y=vel_y, dano=dano, tem_gravidade=False)
+        super().__init__(x, y, vel_x=vel_x, vel_y=vel_y, dano=dano, tem_gravidade=False, frames_invenc=20)
         self.rect = pygame.Rect(x, y, 16, 16)
         self._timer_vida = 300  # 5 segundos
 
@@ -35,11 +36,16 @@ class ProjetilFlyingEye(Projetil):
                 self.ativo = False
                 return
 
-        if player.vivo and self.rect.colliderect(player.rect):
-            player.receber_dano(self.dano, frames_invenc=20)
-            self.ativo = False
-
         self.anim.atualizar()
+
+    def dano_spec(self):
+        return DanoSpec(
+            dano_base=self.dano,
+            knockback=KnockbackSpec(forca_x=4, forca_y=-2, frames=10),
+            stagger=True,
+            duracao_hit=12,
+            frames_invenc=self.frames_invenc,
+        )
 
     def desenhar(self, tela, camera):
         if not self.ativo:

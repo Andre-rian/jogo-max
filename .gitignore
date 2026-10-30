@@ -23,6 +23,9 @@ jogo.log.*
 sdlaudio.raw
 *.raw
 
+# Instruções locais de combate
+combate/
+
 # IDE / sistema
 .vscode/
 .idea/

@@ -16,6 +16,8 @@ from world.rooms import Salas
 from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos
 
 from core.camera import Camera
+from core.combat import CombatSystem
+from core.combat.debug import desenhar_hitboxes_ativas, desenhar_hurtbox
 
 from entities.projeteis.bomba import Bomba
 from entities.projeteis.esporo_mushroom import EsporoMushroom
@@ -59,8 +61,9 @@ def _nome_arquivo_normalizado(nome):
 class Gamescene:
     #centraliza toda a logica do jogo, mapa, inimigo e etc, para alivar e organiza o arquivo main.py
     
-    def __init__(self, tela):
+    def __init__(self, tela, modo_teste_combate=False):
         self.tela = tela 
+        self.modo_teste_combate = modo_teste_combate
         self.hud = Hud()
 
 
@@ -120,6 +123,10 @@ class Gamescene:
         #projeteis  
         self.projeteis = []
 
+        #combate centralizado (hitboxes/hurtboxes por máscara)
+        self.combate = CombatSystem()
+        self.debug_combate = False
+
 
 
 
@@ -132,11 +139,75 @@ class Gamescene:
 
         #debug: mostra o que o engine considera plataforma/escada (F3 no jogo)
         self.debug_tiles = False
-    
 
-    
+        if self.modo_teste_combate:
+            self._iniciar_arena_teste()
 
+    def _iniciar_arena_teste(self):
+        #arena rapida para validar o combate sem depender do progresso do save
+        self.modo_teste_combate = True
+        self.morrendo = False
+        self.timer_morto = 0
+        self.pausado = False
+        self.inventario.fechar()
+        self.menu_fogueira.aberto = False
 
+        self._carregar_sala("calabouço_1")
+        self._configurar_arena_teste()
+        self.hud.mostra_mensagem("MODO TESTE DE COMBATE - F6 reinicia | F4 hitboxes", 300)
+
+    def _configurar_arena_teste(self):
+        #area aberta no canto superior direito do calabouco_1
+        chao = 12 * Tile_size
+        px, py = 25 * Tile_size, 10 * Tile_size
+
+        self.player.defenir_checkpoint(self.sala_atual, x=px, y=py)
+        self.player.respawnar()
+        self.player.hp = self.player.hp_max
+        self.player.stamina = self.player.stamina_max
+        self.player.ecos = 0
+
+        from entities.objetos.item import get_item
+        espada = get_item(1)
+        if espada is not None:
+            self.player.equipar(espada)
+            if espada.id not in self.player.inventario["equipamentos"]:
+                self.player.inventario["equipamentos"].append(espada.id)
+
+        self.inimigos = []
+        self.boss_atual = None
+        self.projeteis = []
+        self.particulas_ecos = []
+        self.drops = []
+        self.drops_ecos = []
+        self.parede_boss = []
+        self.inimigos_morto_por_sala.pop(self.sala_atual, None)
+
+        _tipos_inimigos = {
+            "skeleton": Skeleton,
+            "globin": Globin,
+            "mushroom": Mushroom,
+            "flying_eye": FlyingEye,
+            "esqueleto_boss": EsqueletoBoss,
+        }
+        arena = (
+            ("skeleton", 29 * Tile_size, chao - 48, 160, 320),
+            ("globin", 32 * Tile_size, chao - 44, 160, 320),
+            ("mushroom", 35 * Tile_size, chao - 60, 160, 320),
+            ("flying_eye", 42 * Tile_size, 8 * Tile_size, 100, 200),
+            ("esqueleto_boss", 38 * Tile_size, chao - 90),
+        )
+
+        for dados in arena:
+            tipo = dados[0]
+            classe = _tipos_inimigos[tipo]
+            x, y = dados[1], dados[2]
+            if tipo == "esqueleto_boss":
+                inimigo = classe(x, y, callback_morte=self._abrir_parede_boss)
+                self.boss_atual = inimigo
+            else:
+                inimigo = classe(x, y, dados[3], dados[4])
+            self.inimigos.append(inimigo)
 
     #CARREGA A SALA 
 
@@ -606,9 +677,18 @@ class Gamescene:
         teclas = pygame.key.get_pressed()
 
         #F3 liga/desliga o debug de plataforma/escada
+        reiniciar_teste = False
         for ev in eventos:
             if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F3:
                 self.debug_tiles = not self.debug_tiles
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F4:
+                self.debug_combate = not self.debug_combate
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F6:
+                reiniciar_teste = True
+
+        if reiniciar_teste:
+            self._iniciar_arena_teste()
+            return
 
         if self.menu_fogueira.aberto:
             self.menu_fogueira.atualizar(eventos)
@@ -623,6 +703,11 @@ class Gamescene:
         
         if self.inventario.aberto:
             self.inventario.atualizar(eventos, self.player)
+
+        #hitstop: congela o mundo por alguns frames após um acerto confirmado
+        if not self.pausado and self.combate.consumir_hitstop():
+            self.hud.atualizar()
+            return
 
         #atuallizar o checar_morte
         self._checar_morte()
@@ -693,8 +778,30 @@ class Gamescene:
                 inimigo.projeteis_spawnar.clear()
 
 
-        #verificar combante
-        self._verificar_combante()
+        #atualizar os projeteis (posição do frame antes de resolver o combate)
+        for proj in self.projeteis:
+            proj.atualizar(rects_solidos, self.player)
+
+        #as máscaras refletem a posição final do frame
+        self.player.atualizar_mask()
+        for inimigo in self.inimigos:
+            if inimigo.vivo:
+                inimigo.atualizar_mask()
+
+        #resolver todo o combate do frame (player, inimigos e projéteis)
+        self.combate.resolver(self.player, self.inimigos, self.projeteis, rects_solidos)
+
+        #coleta projéteis spawnados pelos hooks de ataque neste frame
+        for inimigo in self.inimigos:
+            if getattr(inimigo, "bombas_spawnar", None):
+                self.projeteis.extend(inimigo.bombas_spawnar)
+                inimigo.bombas_spawnar.clear()
+            if getattr(inimigo, "esporos_spawnar", None):
+                self.projeteis.extend(inimigo.esporos_spawnar)
+                inimigo.esporos_spawnar.clear()
+            if getattr(inimigo, "projeteis_spawnar", None):
+                self.projeteis.extend(inimigo.projeteis_spawnar)
+                inimigo.projeteis_spawnar.clear()
 
         #remove os imimigos mortos depois de tudo atualiza
         vivos = []
@@ -722,19 +829,13 @@ class Gamescene:
         
         self.particulas_ecos = [p for p in self.particulas_ecos if p.ativo]
         self.inimigos = vivos
-        
+
+        #remove os projeteis inativos depois de atualizar
+        self.projeteis = [p for p in self.projeteis if p.ativo]
         
         #camera segue o player
         self._atualizar_zoom_camera()
         self.camera.atualizar(self.player.rect)
-
-        #atualizar os projeteis
-        for proj in self.projeteis:
-            proj.atualizar(rects_solidos, self.player)
-
-        #remove os projeteis inativos depois de atualizar
-        self.projeteis = [p for p in self.projeteis if p.ativo]
-
 
         #hud
         self.hud.atualizar()
@@ -899,25 +1000,6 @@ class Gamescene:
         
 
 
-    def _verificar_combante(self):
-        #checa se o player acertou algum inimigo
-        rect_ataque = self.player.get_rect_ataque()
-        if rect_ataque is None:
-            return
-
-        for inimigo in self.inimigos:
-            if not inimigo.vivo:
-                continue
-
-            if inimigo in self.player._alvos_atingidos:
-                continue #o inimigo ja foi acertado por esse golpe
-            
-            if inimigo.rect.colliderect(rect_ataque):
-                direçao = 1 if self.player.olhando_dir else -1
-                inimigo.receber_hit(self.player.calcular_dano(), direçao)
-                self.player._alvos_atingidos.add(inimigo)
-    
-
     def _registrar_bau_aberto(self, col, linha):
         self.baus_abertos.add((col, linha))    
 
@@ -953,7 +1035,8 @@ class Gamescene:
                 
                 self.player.respawnar()
                 self._carregar_sala(self.player.checkpoint_sala, respawnando=True)
-                
+                if self.modo_teste_combate:
+                    self._configurar_arena_teste()
 
                 self.morrendo = False
 
@@ -1173,6 +1256,16 @@ class Gamescene:
 
         if DEBUG:
             pygame.draw.rect(vista, (0, 255, 0), sr_player, 2)
+
+        if self.debug_combate:
+            desenhar_hurtbox(vista, self.camera, self.player)
+            desenhar_hitboxes_ativas(vista, self.camera, self.player)
+            for inimigo in self.inimigos:
+                desenhar_hurtbox(vista, self.camera, inimigo)
+                desenhar_hitboxes_ativas(vista, self.camera, inimigo)
+            for proj in self.projeteis:
+                for hitbox in proj.hitboxes_ativas():
+                    pygame.draw.rect(vista, (255, 0, 255), self.camera.aplicar(hitbox.rect), 1)
 
         #escala a cena do mundo para a tela (com zoom aplicado)
         pygame.transform.scale(vista, (Screen_widht, Screen_height), self.tela)

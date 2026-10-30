@@ -13,6 +13,7 @@ log.debug("Logging inicializado")
 
 
 from settings import *
+from core.audio import audio
 from core.menu import MenuInicial
 from core.game_scene import Gamescene
 from save_manager import Savemaneger
@@ -21,7 +22,9 @@ from save_manager import Savemaneger
 
 class Jogo:
     def __init__(self, modo_teste_combate=False):
+        pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
+        audio.inicializar()
         self.Criar_janela()
         self.clock = pygame.time.Clock()
         self.save_manager = Savemaneger()
@@ -102,6 +105,7 @@ class Jogo:
 
     def _sair(self):
         self.save_manager.fechar()
+        audio.stop_all_sfx()
         pygame.quit()
         sys.exit()
 

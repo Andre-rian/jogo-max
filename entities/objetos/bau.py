@@ -1,6 +1,7 @@
 import logging
 import pygame
 from settings import Tile_size, DEBUG
+from core.audio import audio
 from entities.objetos.item import get_item
 from core.recursos import carregar_imagem, criar_placeholder
 
@@ -87,6 +88,7 @@ class Bau:
                 self._frame_idx = 0
                 self._contador = 0
                 self.cooldown_interaçao = 30
+                audio.play_sfx("chest_open")
         else:
             hud.limpar_prompt()
 
@@ -109,6 +111,7 @@ class Bau:
     def _dar_item(self, player, hud):
             
         player.adicionar_ao_inventario(self.item)
+        audio.play_sfx("item_pickup")
         hud.limpar_prompt()
         hud.mostrar_item_coletado(self.item)
         if self.callback_aberto:

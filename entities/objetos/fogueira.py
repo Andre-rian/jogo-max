@@ -1,6 +1,7 @@
 import pygame
 import logging
 logger = logging.getLogger("fogueira")
+from core.audio import audio
 from settings import Tile_size, DEBUG
 
 class Fogueira:
@@ -49,6 +50,7 @@ class Fogueira:
                 if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                     logger.debug(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
                     self.ativa = True
+                    audio.play_sfx("campfire_light")
                     fogueiras_ativas.add((self.col, self.linha)) #registra a fogueira como ativa
                     player.defenir_checkpoint(sala_atual, x=self.rect.centerx, y=self.rect.centery)
                     player.cooldown_interaçao = 60

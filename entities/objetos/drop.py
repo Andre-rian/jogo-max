@@ -1,6 +1,7 @@
 import pygame
 import logging
 from settings import Tile_size
+from core.audio import audio
 from entities.objetos.item import get_item
 
 logger = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ class Drop:
 
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 player.adicionar_ao_inventario(self.item)
+                audio.play_sfx("item_pickup")
                 player.iniciar_pegar_item()
 
                 

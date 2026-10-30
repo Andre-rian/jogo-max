@@ -1,5 +1,6 @@
 import pygame
 from settings import DEBUG
+from core.audio import audio
 from entities.projeteis.projetil import Projetil
 from core.animated_sprite import AnimatedSprite
 from core.combat import DanoSpec, Hitbox, JanelaGolpe, KnockbackSpec, PoliticaHit
@@ -85,10 +86,13 @@ class Bomba(Projetil):
 
 
     def _iniciar_explosao(self):
+        if self.explodindo:
+            return
 
         self.explodindo = True
         self.vel = pygame.Vector2(0, 0) #para a bomba no ar
         self.anim_explosao.definir_frame(self.N_frames_voando) #começa a animação de explosão
+        audio.play_sfx("bomb_explosion")
 
 
     def _atualizar_explosao(self, player):

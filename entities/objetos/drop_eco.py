@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from core.audio import audio
 from settings import Tile_size
 
 class DropEco:
@@ -79,6 +80,7 @@ class DropEco:
             hud.mostrar_prompt("E - para recupera Ecos perdidos")
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 player.ecos += self.quantidade
+                audio.play_sfx("eco_pickup")
                 player.cooldown_interaçao = 30
                 self.ativo = False
                 hud.limpar_prompt()

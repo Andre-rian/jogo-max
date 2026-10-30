@@ -24,7 +24,7 @@ sdlaudio.raw
 *.raw
 
 # Instruções locais de combate
-combate/
+fontes/
 
 # IDE / sistema
 .vscode/

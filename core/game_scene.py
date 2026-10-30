@@ -16,6 +16,7 @@ from world.rooms import Salas
 from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos
 
 from core.camera import Camera
+from core.audio import audio
 from core.combat import CombatSystem
 from core.combat.debug import desenhar_hitboxes_ativas, desenhar_hurtbox
 
@@ -789,7 +790,10 @@ class Gamescene:
                 inimigo.atualizar_mask()
 
         #resolver todo o combate do frame (player, inimigos e projéteis)
-        self.combate.resolver(self.player, self.inimigos, self.projeteis, rects_solidos)
+        eventos_combate = self.combate.resolver(
+            self.player, self.inimigos, self.projeteis, rects_solidos
+        )
+        self._processar_audio_combate(eventos_combate)
 
         #coleta projéteis spawnados pelos hooks de ataque neste frame
         for inimigo in self.inimigos:
@@ -874,9 +878,11 @@ class Gamescene:
 
                 if evento.key == pygame.K_UP:
                     self.opçoes_selecionadas = (self.opçoes_selecionadas - 1) % len(self.opçoes_pause)
+                    audio.play_sfx("ui_move")
                 
                 elif evento.key == pygame.K_DOWN:
                     self.opçoes_selecionadas = (self.opçoes_selecionadas + 1) % len(self.opçoes_pause)
+                    audio.play_sfx("ui_move")
 
                 elif evento.key == pygame.K_RETURN:
                     self._confirma_opçao_pausa()
@@ -890,18 +896,21 @@ class Gamescene:
         opçao = self.opçoes_pause[self.opçoes_selecionadas]
 
         if opçao == "Continuar":
-            self.pausado = False
+            self._fechar_pausa()
         elif opçao == "Salvar":
             if self._save_callback:
                 self._save_callback()
         elif opçao == "Menu principal":
+            audio.play_sfx("ui_confirm")
+            self._fechar_pausa(tocar_som=False)
             if self._menu_callback:
                 self._menu_callback()
         elif opçao == "Inventário":
+             self._fechar_pausa(tocar_som=False)
              self.inventario.abrir()
-             self.pausado = False
 
         elif opçao == "Sair":
+            audio.play_sfx("ui_confirm")
             pygame.quit()
             sys.exit()
 
@@ -978,6 +987,7 @@ class Gamescene:
 
 
     def _descansar_fogueira(self):
+        audio.play_sfx("campfire_rest")
         #reseta os inimigos das salas ja visitadas
         self.inimigos_morto_por_sala.clear()
 
@@ -1007,6 +1017,26 @@ class Gamescene:
 
     
 
+    def _processar_audio_combate(self, eventos):
+        for evento in eventos:
+            alvo = evento.alvo
+            atacante = evento.atacante
+
+            if alvo is self.player:
+                if evento.aplicado and self.player.vivo:
+                    audio.play_sfx("player_hurt")
+                continue
+
+            if atacante is not self.player:
+                continue
+
+            if getattr(alvo, "_escudo_ativo", False) and not evento.aplicado:
+                audio.play_sfx("block")
+            elif not getattr(alvo, "vivo", False):
+                audio.play_sfx("enemy_death")
+            elif evento.aplicado:
+                audio.play_sfx("hit")
+
     def _checar_morte(self):
         #dectetar se o player morreu, se sim colocar o "voce morreu" na tela tipo dark souls
 
@@ -1014,6 +1044,7 @@ class Gamescene:
             #inicia o timer de morte
             self.morrendo = True
             self.timer_morto = self.duraçao_morte
+            audio.play_sfx("player_death")
 
 
             #cria o drop dos ecos no lugar da morte
@@ -1114,9 +1145,20 @@ class Gamescene:
         
         self.drops.append(drop)
 
+    def _fechar_pausa(self, tocar_som=True):
+        if not self.pausado:
+            return
+        self.pausado = False
+        if tocar_som:
+            audio.play_sfx("ui_pause_close")
+
     def alternar_pausa(self):
-        self.pausado = not self.pausado
-        self.opçoes_selecionadas = 0 #reseta ao sair do menu
+        if self.pausado:
+            self._fechar_pausa()
+        else:
+            self.pausado = True
+            self.opçoes_selecionadas = 0 #reseta ao sair do menu
+            audio.play_sfx("ui_pause_open")
     
     def carregar_save(self, dados):
         self.fogueiras_ativas = dados["fogueiras_ativas"]
@@ -1158,11 +1200,13 @@ class Gamescene:
             if inimigo.vivo:
                 dist = abs(inimigo.rect.centerx - self.player.rect.centerx)
                 if dist < 300:
+                    audio.play_sfx("ui_error")
                     self.hud.mostra_mensagem("Não é possivel salvar em combate")
                     return False
                 
 
         save_manager.salvar(slot, self)
+        audio.play_sfx("ui_save")
         self.hud.mostra_mensagem("Jogo salvo")
         return True
     

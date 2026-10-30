@@ -1,4 +1,5 @@
 import pygame
+from core.audio import audio
 from entities.entity import Entity
 from core.combat import (
     DanoSpec,
@@ -165,6 +166,7 @@ class InimigoBase(Entity):
         self.estado = self.Atacando
         self._resetar_flags_ataque()
         self._lunge_restante = definicao.lunge
+        audio.play_sfx("enemy_attack")
         return True
 
     def encerrar_ataque(self):

@@ -3,6 +3,8 @@ from settings import Gravidade, Max_Fall_Speed
 
 class Entity(pygame.sprite.Sprite):
 
+    USAR_MOVIMENTO_SUBPIXEL = False
+
     #Classe base para todas as entidades do game player,inimigo, boss e ect
     #possui a responsabilidade de guarda vida,velocidade, aplicar gravidade e ect
 
@@ -16,6 +18,7 @@ class Entity(pygame.sprite.Sprite):
         self.olhando_dir = True
         #velocidade em pixeis 
         self.vel = pygame.Vector2(0,0)
+        self._residual_x = 0.0
 
         #vida 
         self.hp_max = hp_max
@@ -69,7 +72,21 @@ class Entity(pygame.sprite.Sprite):
 
         #eixo x
 
-        self.rect.x += int(self.vel.x)
+        if self.vel.x == 0:
+            self._residual_x = 0.0
+            passo_x = 0
+        elif self.USAR_MOVIMENTO_SUBPIXEL:
+            movimento_x = self.vel.x + self._residual_x
+            ajuste = 1e-9 if movimento_x >= 0 else -1e-9
+            passo_x = int(movimento_x + ajuste)
+            self._residual_x = movimento_x - passo_x
+            if abs(self._residual_x) < 1e-9:
+                self._residual_x = 0.0
+        else:
+            self._residual_x = 0.0
+            passo_x = int(self.vel.x)
+
+        self.rect.x += passo_x
 
         for tile in rects_solidos:
             if self.rect.colliderect(tile):
@@ -84,6 +101,7 @@ class Entity(pygame.sprite.Sprite):
                 else:
                     self.rect.left = tile.right
                 self.vel.x = 0
+                self._residual_x = 0.0
                 #resolve só o 1º solido por frame (evita cascata de 32px por tile)
                 break 
 
@@ -221,6 +239,7 @@ class Entity(pygame.sprite.Sprite):
         
         self.vel.x = direçao * forca_x
         self.vel.y = forca_y
+        self._residual_x = 0.0
         self.timer_knockback = frames
         self.recebendo_knockback = True
 
@@ -239,6 +258,8 @@ class Entity(pygame.sprite.Sprite):
 
         if self.timer_knockback <= 0:
             self.recebendo_knockback = False
+            #sem deslize residual no hitstun: o empurrão termina junto do knockback
+            self.vel.x = 0
 
 
     def _offset_mask(self):

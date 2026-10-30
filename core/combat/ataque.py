@@ -17,6 +17,8 @@ class InstanciaAtaque:
 
     @property
     def fase(self):
+        if self.tick >= self.definicao.duracao_animacao_ticks:
+            return FaseAtaque.RECOVERY
         return self.definicao.fase_em(self.frame)
 
     @property
@@ -30,6 +32,8 @@ class InstanciaAtaque:
         return min(1.0, self.tick / self.definicao.duracao_ticks)
 
     def janelas_ativas(self):
+        if self.fase == FaseAtaque.RECOVERY:
+            return ()
         return self.definicao.janelas_no_frame(self.frame)
 
     def avancar(self):

@@ -32,6 +32,18 @@ class KnockbackSpec:
 
 
 @dataclass(frozen=True)
+class ReacaoDano:
+    knockback: KnockbackSpec = field(default_factory=KnockbackSpec)
+    duracao_hit: int = 0
+    recuperacao: int = 0
+    invencibilidade_stagger: int = 0
+    animacao: object | None = None
+    interrompe_ataque: bool = True
+    ignora_hyper_armor: bool = False
+    flash_guarda: int = 0
+
+
+@dataclass(frozen=True)
 class DanoSpec:
     dano_base: int = 0
     multiplicador: float = 1.0
@@ -81,6 +93,7 @@ class DefinicaoAtaque:
     dano: DanoSpec = field(default_factory=DanoSpec)
     prioridade: int = 0
     cancelavel_apos_frame: int | None = None
+    recuperacao_ticks: int = 0
 
     @property
     def total_frames(self):
@@ -91,8 +104,12 @@ class DefinicaoAtaque:
         return self.animacao.velocidade
 
     @property
-    def duracao_ticks(self):
+    def duracao_animacao_ticks(self):
         return self.total_frames * self.velocidade
+
+    @property
+    def duracao_ticks(self):
+        return self.duracao_animacao_ticks + self.recuperacao_ticks
 
     @property
     def primeiro_frame_ativo(self):

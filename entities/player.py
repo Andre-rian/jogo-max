@@ -288,7 +288,7 @@ class Player(Entity):
                     dano = DanoSpec(
                         dano_base=0,
                         knockback=KnockbackSpec(forca_x=4, forca_y=-2, frames=12),
-                        hitstop=2 if tier == "combo" else 1,
+                        hitstop=4 if tier == "combo" else 3,
                         stagger=True,
                         duracao_hit=12,
                         frames_invenc=0,

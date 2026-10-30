@@ -1,13 +1,15 @@
 import pygame
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
-from core.combat import DanoSpec, KnockbackSpec
+from core.combat import DanoSpec, KnockbackSpec, ModoMovimento
 
 class Skeleton(InimigoBase):
 
+    USAR_MOVIMENTO_SUBPIXEL = True
+
     Dano = 15
-    Vel_patrulha = 1.5
-    Vel_perseguir = 3.0
+    Vel_patrulha = 1.0
+    Vel_perseguir = 2.0
     Alcance_detec = 250
     Alcance_ataq = 48
     Cooldown_ataq = 90
@@ -17,7 +19,8 @@ class Skeleton(InimigoBase):
     Alcance_conectar = 20
 
     Duracao_morte = 90
-    HITSTUN_FRAMES = 16  # 8 frames de hit a 2 ticks = ~267 ms (reação completa)
+    HITSTUN_FRAMES = None  # derivado de anim_hit: 8 frames × 3 = 24 ticks
+    RECUPERACAO_HIT_FRAMES = 6  # ~100 ms parado antes de voltar à IA
 
     def __init__(self, x, y, patrulha_esq, patrulha_dir):
         super().__init__(x, y, largura=30, altura=48, hp_max=60, patrulha_esq=patrulha_esq, patrulha_dir=patrulha_dir)
@@ -28,12 +31,12 @@ class Skeleton(InimigoBase):
 
         Skel = "assets/sprites/enemies/monsters/skeleton/"
         self.animaçoes = {
-            self.Patrulha:  AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=8, escala=3, n_frames=11),
+            self.Patrulha:  AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=10, escala=3, n_frames=11),
             self.Perseguir: AnimatedSprite(Skel + "Skeleton Walk.png",   22, 33, velocidade=5, escala=3, n_frames=11),
             self.Atacando:  AnimatedSprite(Skel + "Skeleton Attack.png", 43, 37, velocidade=4, escala=3, n_frames=18, loop=False),
-            self.Morto:     AnimatedSprite(Skel + "Skeleton Dead.png",   33, 32, velocidade=6, escala=3, n_frames=15),
+            self.Morto:     AnimatedSprite(Skel + "Skeleton Dead.png",   33, 32, velocidade=6, escala=3, n_frames=15, loop=False),
         }
-        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=2, escala=3, n_frames=8)
+        self.anim_hit = AnimatedSprite(Skel + "Skeleton Hit.png", 30, 32, velocidade=3, escala=3, n_frames=8, loop=False)
         self.anim_idle = AnimatedSprite(Skel + "Skeleton Idle.png", 24, 32, velocidade=8, escala=3, n_frames=11)
         self.anim_atual = self.animaçoes[self.Patrulha]
 
@@ -52,6 +55,8 @@ class Skeleton(InimigoBase):
             self.animaçoes[self.Atacando],
             [janela],
             dano,
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=8,
         )
 
     def _ia(self, rects_solidos, player):
@@ -74,12 +79,12 @@ class Skeleton(InimigoBase):
 
             self.estado = self.Patrulha
             if self.rect.left <= self.patrulha_esq:
-                self.vel.x = self.Vel_patrulha
                 self.olhando_dir = True
-            
             elif self.rect.right >= self.patrulha_dir:
-                self.vel.x = -self.Vel_patrulha
                 self.olhando_dir = False
+
+            direcao = 1 if self.olhando_dir else -1
+            self.vel.x = self.Vel_patrulha * direcao
 
         return 0
     
@@ -87,6 +92,7 @@ class Skeleton(InimigoBase):
         if self.cooldown_ataq > 0:
             return 0
         self.cooldown_ataq = self.Cooldown_ataq
+        self.vel.x = 0
         self.iniciar_ataque("normal", player)
         return 0
 

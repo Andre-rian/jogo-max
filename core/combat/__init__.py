@@ -11,6 +11,7 @@ from core.combat.tipos import (
     KnockbackSpec,
     ModoMovimento,
     PoliticaHit,
+    ReacaoDano,
 )
 
 __all__ = [
@@ -26,6 +27,7 @@ __all__ = [
     "KnockbackSpec",
     "ModoMovimento",
     "PoliticaHit",
+    "ReacaoDano",
     "RegistroDano",
     "construir_hitbox",
     "construir_hitboxes",

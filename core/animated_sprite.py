@@ -129,6 +129,11 @@ class AnimatedSprite:
         return self._frame_idx == len(self.frames) - 1 and self._contador >= self.velocidade - 1
 
     @property
+    def duracao_ticks(self):
+        #tempo total para percorrer todos os frames uma vez
+        return len(self.frames) * self.velocidade
+
+    @property
     def largura(self):
         return self.frames[0].get_width()
     

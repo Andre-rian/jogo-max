@@ -3,24 +3,26 @@ import random
 import math
 from entities.inimigo_base import InimigoBase
 from core.animated_sprite import AnimatedSprite
-from core.combat import DanoSpec, KnockbackSpec
+from core.combat import DanoSpec, KnockbackSpec, ModoMovimento
 
 class Mushroom(InimigoBase):
+
+    USAR_MOVIMENTO_SUBPIXEL = True
 
     Dano_normal = 12
     Dano_forte = 20
     Dano_esporo = 8
 
-    #knockback
+    #knockback curto: 2 px por tick durante 4 ticks = 8 px no total
     KB_FORCA_X = 2
     KB_FORCA_Y = -1
-    KB_FRAMES = 18
-    HITSTUN_FRAMES = 16  # 4 frames de hit a 4 ticks = ~267 ms (reação completa)
-    RECUPERACAO_HIT_FRAMES = 24  # ~400 ms parado antes de voltar a perseguir
+    KB_FRAMES = 4
+    RECUPERACAO_HIT_FRAMES = 0
+    RETOMADA_FRAMES = 8  # ~133 ms em velocidade de patrulha antes da perseguição plena
 
 
-    Vel_patrulha = 1.0
-    Vel_perseguir = 2.0
+    Vel_patrulha = 0.8
+    Vel_perseguir = 1.5
 
     Alcance_detec = 250
     Alcance_ataq_perto = 50
@@ -40,6 +42,7 @@ class Mushroom(InimigoBase):
 
         self.vel.x = self.Vel_patrulha
         self.ecos_drop = 25
+        self._timer_retomada = 0
 
         self.cooldown_forte = 0
         self.cooldown_esporo = 0
@@ -56,7 +59,8 @@ class Mushroom(InimigoBase):
         }
         self.anim_attack2 = AnimatedSprite(Mush + "Attack2.png", 150, 150, velocidade=5, escala=2, n_frames=8, loop=False)
         self.anim_attack3 = AnimatedSprite(Mush + "Attack3.png", 150, 150, velocidade=5, escala=2, n_frames=11, loop=False)
-        self.anim_hit = AnimatedSprite(Mush + "Take Hit.png", 150, 150, velocidade=4, escala=2, n_frames=4)
+        self.anim_hit = AnimatedSprite(Mush + "Take Hit.png", 150, 150, velocidade=5, escala=2, n_frames=4, loop=False)
+        self.anim_patrulha = AnimatedSprite(Mush + "Run.png", 150, 150, velocidade=11, escala=2, n_frames=8)
         self.anim_atual = self.animaçoes[self.Patrulha]
 
         self._configurar_ataques()
@@ -79,14 +83,25 @@ class Mushroom(InimigoBase):
             self.animaçoes[self.Atacando],
             [self._criar_janela("golpe", 6, 7)],
             dano_normal,
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=12,
         )
         self._registrar_ataque(
             "forte",
             self.anim_attack2,
             [self._criar_janela("golpe_forte", 6, 7)],
             dano_forte,
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=12,
         )
-        self._registrar_ataque("esporo", self.anim_attack3, [], DanoSpec())
+        self._registrar_ataque(
+            "esporo",
+            self.anim_attack3,
+            [],
+            DanoSpec(),
+            movimento=ModoMovimento.TRAVADO,
+            recuperacao_ticks=12,
+        )
 
     def _resetar_flags_ataque(self):
         self._esporo_spawnado = False
@@ -121,19 +136,47 @@ class Mushroom(InimigoBase):
         return 0
 
     def _perseguir(self, player):
-        self.estado = self.Perseguir
         direçao = 1 if player.rect.centerx > self.rect.centerx else -1
-        self.vel.x = self.Vel_perseguir * direçao
         self.olhando_dir = direçao > 0
+        if self._timer_retomada > 0:
+            #retomada em dois estágios: patrulha -> perseguição plena
+            self.estado = self.Patrulha
+            self.vel.x = self.Vel_patrulha * direçao
+            self._timer_retomada -= 1
+        else:
+            self.estado = self.Perseguir
+            self.vel.x = self.Vel_perseguir * direçao
 
     def _patrulhar(self):
         self.estado = self.Patrulha
+        self._timer_retomada = 0
         if self.rect.left <= self.patrulha_esq:
-            self.vel.x = self.Vel_patrulha
             self.olhando_dir = True
         elif self.rect.right >= self.patrulha_dir:
-            self.vel.x = -self.Vel_patrulha
             self.olhando_dir = False
+
+        direcao = 1 if self.olhando_dir else -1
+        self.vel.x = self.Vel_patrulha * direcao
+
+    def _animacao_extra_hook(self):
+        if self.estado != self.Patrulha:
+            return
+
+        if self.vel.x != 0:
+            if self.anim_atual is not self.anim_patrulha:
+                self.anim_patrulha.resetar()
+            self.anim_atual = self.anim_patrulha
+        else:
+            anim_idle = self.animaçoes[self.Patrulha]
+            if self.anim_atual is not anim_idle:
+                anim_idle.resetar()
+            self.anim_atual = anim_idle
+
+    def _ao_terminar_hit(self):
+        self._timer_retomada = self.RETOMADA_FRAMES
+
+    def _ao_terminar_recuperacao(self):
+        self._timer_retomada = self.RETOMADA_FRAMES
 
     #Ataques
 
@@ -159,6 +202,8 @@ class Mushroom(InimigoBase):
     def _iniciar_ataque(self, tipo, direçao=1, player=None):
         if not self.iniciar_ataque(tipo, player):
             return
+        self.vel.x = 0
+        self._timer_retomada = 0
         self._esporo_direçao = direçao
         self._esporo_player = player
 

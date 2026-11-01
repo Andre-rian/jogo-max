@@ -6,6 +6,9 @@ from core.combat import DanoSpec, KnockbackSpec, ModoMovimento
 
 class Globin(InimigoBase):
 
+    SOM_ID = "globin"
+    MATERIAL = "carne"
+
     USAR_MOVIMENTO_SUBPIXEL = True
 
     Dano_normal = 10

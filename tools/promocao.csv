@@ -1,0 +1,21 @@
+origem,destino,inicio_s,fim_s,pitch,dur_max_s,fade_out_ms,autor,url,licenca,atribuicao
+skeleton-hit-pesado,sfx/inimigos/skeleton/hit/_default/hit_{n}.wav,,,,,,,,VERIFICAR,
+161381,sfx/inimigos/skeleton/hit/_default/hit_{n}.wav,,,,,,,,VERIFICAR,
+369601,sfx/inimigos/skeleton/hit/_default/hit_{n}.wav,,,,,,,,VERIFICAR,
+869107,sfx/inimigos/skeleton/hit/_default/hit_{n}.wav,,,,,,,,VERIFICAR,
+147993,sfx/inimigos/skeleton/hit/soco/hit_{n}.wav,,,,,,,,VERIFICAR,
+192146,sfx/inimigos/skeleton/hit/soco/hit_{n}.wav,,,,,,,,VERIFICAR,
+718259,sfx/materiais/carne/espada_longa/hit_{n}.wav,,,,,,,,VERIFICAR,
+733887,sfx/materiais/carne/_default/hit_{n}.wav,,,,,,,,VERIFICAR,
+#fx_005_footstep_stone_l,sfx/player/movimento/passos/pedra/step_{n}.wav,,,1.00,0.30,60,d00121058,https://freesound.org/people/d00121058/sounds/390764/,CC0,"FX_005_footstep_stone_l.wav by d00121058 (Freesound 390764), CC0"
+#fx_005_footstep_stone_l,sfx/player/movimento/passos/pedra/step_{n}.wav,,,0.94,0.30,60,d00121058,https://freesound.org/people/d00121058/sounds/390764/,CC0,"FX_005_footstep_stone_l.wav by d00121058 (Freesound 390764), CC0"
+#fx_005_footstep_stone_l,sfx/player/movimento/passos/pedra/step_{n}.wav,,,1.06,0.30,60,d00121058,https://freesound.org/people/d00121058/sounds/390764/,CC0,"FX_005_footstep_stone_l.wav by d00121058 (Freesound 390764), CC0"
+#stone_footstep_5,sfx/player/movimento/passos/pedra/step_{n}.wav,,,1.00,0.30,60,laurenmg95,https://freesound.org/people/laurenmg95/sounds/386693/,CC BY 4.0,"stone_footstep_5.wav by laurenmg95 (Freesound 386693), CC BY 4.0"
+#stone_footstep_5,sfx/player/movimento/passos/pedra/step_{n}.wav,,,0.94,0.30,60,laurenmg95,https://freesound.org/people/laurenmg95/sounds/386693/,CC BY 4.0,"stone_footstep_5.wav by laurenmg95 (Freesound 386693), CC BY 4.0"
+#stone_footstep_5,sfx/player/movimento/passos/pedra/step_{n}.wav,,,1.06,0.30,60,laurenmg95,https://freesound.org/people/laurenmg95/sounds/386693/,CC BY 4.0,"stone_footstep_5.wav by laurenmg95 (Freesound 386693), CC BY 4.0"
+#422753,sfx/player/movimento/pouso/pedra/land_{n}.wav,,,1.00,0.50,80,KieranKeegan,https://freesound.org/people/kierankeegan/sounds/422753/,CC0,"Landing_Stone_1.wav by KieranKeegan (Freesound 422753), CC0"
+#422753,sfx/player/movimento/pouso/pedra/land_{n}.wav,,,0.92,0.50,80,KieranKeegan,https://freesound.org/people/kierankeegan/sounds/422753/,CC0,"Landing_Stone_1.wav by KieranKeegan (Freesound 422753), CC0"
+#422753,sfx/player/movimento/pouso/pedra/land_{n}.wav,,,1.08,0.50,80,KieranKeegan,https://freesound.org/people/kierankeegan/sounds/422753/,CC0,"Landing_Stone_1.wav by KieranKeegan (Freesound 422753), CC0"
+861361,sfx/ui/confirmar/confirmar_{n}.wav,,,,0.80,150,,,VERIFICAR,
+873650,sfx/ui/confirmar/confirmar_{n}.wav,,,,0.80,150,,,VERIFICAR,
+skeleton-morrendo-sound,sfx/inimigos/skeleton/morte/morte_{n}.wav,,1.5,,,300,,,VERIFICAR,

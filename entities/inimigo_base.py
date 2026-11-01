@@ -166,7 +166,10 @@ class InimigoBase(Entity):
         self.estado = self.Atacando
         self._resetar_flags_ataque()
         self._lunge_restante = definicao.lunge
-        audio.play_sfx("enemy_attack")
+        if hasattr(audio, "play_enemy_attack"):
+            audio.play_enemy_attack(getattr(self, "SOM_ID", "_default"))
+        else:
+            audio.play_sfx("enemy_attack")
         return True
 
     def encerrar_ataque(self):

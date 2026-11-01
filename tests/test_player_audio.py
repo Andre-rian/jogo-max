@@ -50,80 +50,112 @@ def test_pocao_abre_e_bebe(audio_falso, jogador):
     assert audio_falso.chamadas == ["potion_open", "potion_drink"]
 
 
-def test_passos_por_distancia_no_chao(audio_falso, jogador):
+def _preparar_corrida(jogador):
     jogador.no_chao = True
-    jogador.rect.x += jogador.Distancia_passo
-    jogador._atualizar_audio_movimento(True, 1, jogador.rect.x - jogador.Distancia_passo)
-    assert audio_falso.chamadas == ["player_step"]
+    jogador.estado = Player.Correndo
+    jogador.anim_atual = jogador.animacoes[Player.Correndo]
+    jogador.anim_atual.resetar()
 
 
-def test_passos_somam_distancia_entre_frames(audio_falso, jogador):
-    jogador.no_chao = True
-    metade = jogador.Distancia_passo // 2
-    x_inicial = jogador.rect.x
+def test_passo_toca_ao_entrar_no_frame_de_contato(audio_falso, jogador):
+    _preparar_corrida(jogador)
+    jogador.anim_atual.definir_frame(1)
 
-    for _ in range(2):
-        jogador.rect.x += metade
-        jogador._atualizar_audio_movimento(True, 1, jogador.rect.x - metade)
-
-    assert audio_falso.chamadas == ["player_step"]
-
-
-def test_passos_resetam_ao_parar(audio_falso, jogador):
-    jogador.no_chao = True
-    metade = jogador.Distancia_passo // 2
-    jogador.rect.x += metade
-    jogador._atualizar_audio_movimento(True, 1, jogador.rect.x - metade)
-
-    x_parado = jogador.rect.x
-    jogador._atualizar_audio_movimento(True, 1, x_parado)
-    jogador.rect.x += jogador.Distancia_passo
-    jogador._atualizar_audio_movimento(True, 1, jogador.rect.x - jogador.Distancia_passo)
+    jogador._atualizar_audio_passos(frame_antes=0, deslocamento=4)
 
     assert audio_falso.chamadas == ["player_step"]
 
 
-@pytest.mark.parametrize(
-    "estado",
-    ["em_dahs", "atacando", "_em_hit", "_pegando", "_bebendo", "_escalando"],
-)
-def test_passos_suprimidos_em_estados_incompativeis(audio_falso, jogador, estado):
-    jogador.no_chao = True
-    setattr(jogador, estado, True)
-    jogador.rect.x += jogador.Distancia_passo
-    jogador._atualizar_audio_movimento(True, 1, jogador.rect.x - jogador.Distancia_passo)
+def test_passo_nao_repete_enquanto_fica_no_frame_de_contato(audio_falso, jogador):
+    _preparar_corrida(jogador)
+    jogador.anim_atual.definir_frame(1)
+
+    jogador._atualizar_audio_passos(frame_antes=1, deslocamento=4)
+
     assert audio_falso.chamadas == []
 
 
-def test_sem_passo_no_ar(audio_falso, jogador):
+def test_passo_nao_toca_fora_dos_frames_de_contato(audio_falso, jogador):
+    _preparar_corrida(jogador)
+    jogador.anim_atual.definir_frame(2)
+
+    jogador._atualizar_audio_passos(frame_antes=1, deslocamento=4)
+
+    assert audio_falso.chamadas == []
+
+
+def test_passo_nao_toca_sem_deslocamento(audio_falso, jogador):
+    _preparar_corrida(jogador)
+    jogador.anim_atual.definir_frame(1)
+
+    jogador._atualizar_audio_passos(frame_antes=0, deslocamento=0)
+
+    assert audio_falso.chamadas == []
+
+
+def test_passo_nao_toca_fora_do_estado_correndo(audio_falso, jogador):
+    _preparar_corrida(jogador)
+    jogador.estado = Player.Parado
+    jogador.anim_atual.definir_frame(1)
+
+    jogador._atualizar_audio_passos(frame_antes=0, deslocamento=4)
+
+    assert audio_falso.chamadas == []
+
+
+def test_passo_nao_toca_no_ar(audio_falso, jogador):
+    _preparar_corrida(jogador)
     jogador.no_chao = False
-    jogador.rect.x += jogador.Distancia_passo
-    jogador._atualizar_audio_movimento(False, 6, jogador.rect.x - jogador.Distancia_passo)
+    jogador.anim_atual.definir_frame(1)
+
+    jogador._atualizar_audio_passos(frame_antes=0, deslocamento=4)
+
     assert audio_falso.chamadas == []
+
+
+def test_passo_suprimido_apos_respawn(audio_falso, jogador):
+    _preparar_corrida(jogador)
+    jogador._audio_suprimir_pouso = True
+    jogador.anim_atual.definir_frame(1)
+
+    jogador._atualizar_audio_passos(frame_antes=0, deslocamento=4)
+
+    assert audio_falso.chamadas == []
+
+
+def test_animacao_de_corrida_toca_dois_passos_por_ciclo(audio_falso, jogador):
+    _preparar_corrida(jogador)
+
+    for _ in range(60):
+        frame_antes = jogador.anim_atual.frame_index
+        jogador.anim_atual.atualizar()
+        jogador._atualizar_audio_passos(frame_antes, deslocamento=4)
+
+    assert audio_falso.chamadas == ["player_step", "player_step"]
 
 
 def test_pouso_toca_na_transicao_para_o_chao(audio_falso, jogador):
     jogador.no_chao = True
-    jogador._atualizar_audio_movimento(False, 6, jogador.rect.x)
+    jogador._atualizar_audio_movimento(False, 6)
     assert audio_falso.chamadas == ["player_land"]
 
 
 def test_pouso_ignora_queda_pequena(audio_falso, jogador):
     jogador.no_chao = True
-    jogador._atualizar_audio_movimento(False, 2, jogador.rect.x)
+    jogador._atualizar_audio_movimento(False, 2)
     assert audio_falso.chamadas == []
 
 
 def test_pouso_suprimido_durante_drop(audio_falso, jogador):
     jogador.no_chao = True
     jogador._timer_atravessar = 8
-    jogador._atualizar_audio_movimento(False, 6, jogador.rect.x)
+    jogador._atualizar_audio_movimento(False, 6)
     assert audio_falso.chamadas == []
 
 
 def test_pouso_suprimido_apos_respawn(audio_falso, jogador):
     jogador.respawnar()
     jogador.no_chao = True
-    jogador._atualizar_audio_movimento(False, 6, jogador.rect.x)
+    jogador._atualizar_audio_movimento(False, 6)
     assert audio_falso.chamadas == []
     assert jogador._audio_suprimir_pouso is False

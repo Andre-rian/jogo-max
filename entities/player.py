@@ -75,7 +75,7 @@ class Player(Entity):
     Stamina_delay   = 30
 
     #audio
-    Distancia_passo = 48
+    Frames_contato_passo = (1, 6)
     Queda_minima_pouso = 4
 
     def __init__(self, x, y):
@@ -197,8 +197,8 @@ class Player(Entity):
         self.checkpoint_sala = 'calabouço_1' 
 
         #audio de movimento
-        self._distancia_passos = 0.0
         self._audio_suprimir_pouso = False
+        self.material_piso = "pedra"
 
 
         # animações
@@ -322,6 +322,16 @@ class Player(Entity):
     def arma_equipada(self):
         id_ = self.inventario["mao_direita"]
         return get_item(id_) if id_ else None
+
+    @property
+    def arma_id(self):
+        arma = self.arma_equipada
+        if arma is None:
+            return "soco"
+        return {
+            "espada": "espada_longa",
+            "machado": "machado_guerra",
+        }.get(arma.icone, "soco")
     
     @property
     def tem_arma_equipada(self):
@@ -405,7 +415,8 @@ class Player(Entity):
         self.aplicar_gravidade()
         velocidade_queda = self.vel.y
         self.mover_com_colisão(rects_solidos, rects_plataforma)
-        self._atualizar_audio_movimento(estava_no_chao, velocidade_queda, x_antes_movimento)
+        deslocamento = abs(self.rect.x - x_antes_movimento)
+        self._atualizar_audio_movimento(estava_no_chao, velocidade_queda)
         #diagnostico: avisa quando o player fica de pe numa plataforma (uma vez so por pouso)
         if self._sobre_plataforma and not self._debug_plat_prev:
             logger.info(f"[DROPLOG] DE PE em plataforma (bottom={self.rect.bottom})")
@@ -425,7 +436,9 @@ class Player(Entity):
             self._estado_anterior = self.estado
 
         #avançar o frame da animaçao atual
+        frame_antes = self.anim_atual.frame_index
         self.anim_atual.atualizar()
+        self._atualizar_audio_passos(frame_antes, deslocamento)
 
 
         #salvar teclas para o proximo frame
@@ -687,7 +700,10 @@ class Player(Entity):
 
         custo = self.Stamina_combo if tier == "combo" else self.Stamina_ataque
         self._gastar_stamina(custo)
-        audio.play_sfx("player_attack")
+        if hasattr(audio, "play_swing"):
+            audio.play_swing(self.arma_id)
+        else:
+            audio.play_sfx("player_attack")
 
     def encerrar_ataque(self):
         self.ataque_ativo = None
@@ -948,43 +964,37 @@ class Player(Entity):
         self.timer_hit = 0
         self._segurando_ataque = False
         self._timer_hold = 0
-        self._distancia_passos = 0.0
         self._audio_suprimir_pouso = True
 
-    def _atualizar_audio_movimento(self, estava_no_chao, velocidade_queda, x_antes_movimento):
+    def _atualizar_audio_movimento(self, estava_no_chao, velocidade_queda):
         pousou = self.no_chao and not estava_no_chao
         if pousou:
-            self._distancia_passos = 0.0
             if self._audio_suprimir_pouso:
                 self._audio_suprimir_pouso = False
             elif velocidade_queda >= self.Queda_minima_pouso and not self._atravessando():
-                audio.play_sfx("player_land")
+                if hasattr(audio, "play_land"):
+                    audio.play_land(self.material_piso)
+                else:
+                    audio.play_sfx("player_land")
 
         if self._audio_suprimir_pouso and not pousou:
             self._audio_suprimir_pouso = False
 
-        if (
-            self.vivo
-            and self.no_chao
-            and not self._audio_suprimir_pouso
-            and not self.em_dahs
-            and not self.atacando
-            and not self._em_hit
-            and not self._pegando
-            and not self._bebendo
-            and not self._escalando
-            and not self.recebendo_knockback
-        ):
-            deslocamento = abs(self.rect.x - x_antes_movimento)
-            if deslocamento == 0:
-                self._distancia_passos = 0.0
-            else:
-                self._distancia_passos += deslocamento
-                while self._distancia_passos >= self.Distancia_passo:
-                    self._distancia_passos -= self.Distancia_passo
-                    audio.play_sfx("player_step")
+    def _atualizar_audio_passos(self, frame_antes, deslocamento):
+        if self.estado != self.Correndo:
+            return
+        if not self.vivo or not self.no_chao or deslocamento <= 0:
+            return
+        if self._audio_suprimir_pouso:
+            return
+        if self.anim_atual.frame_index == frame_antes:
+            return
+        if self.anim_atual.frame_index not in self.Frames_contato_passo:
+            return
+        if hasattr(audio, "play_step"):
+            audio.play_step(self.material_piso)
         else:
-            self._distancia_passos = 0.0
+            audio.play_sfx("player_step")
 
     def receber_evento(self, evento):
         aplicado = self.receber_dano(evento.dano, frames_invenc=evento.frames_invenc)

@@ -9,6 +9,9 @@ from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 
 class FlyingEye(InimigoBase):
 
+    SOM_ID = "flying_eye"
+    MATERIAL = "etereo"
+
     Voando = "voando"          
     ESTADO_PADRAO = "Voando"
     TEM_GRAVIDADE = False

@@ -13,10 +13,10 @@ from core.navegacao import hover_index
 
 from world.tile_map import TileMap
 from world.rooms import Salas
-from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos
+from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos, MATERIAL_PISO
 
 from core.camera import Camera
-from core.audio import audio
+from core.audio import audio, resolver_arma_id
 from core.combat import CombatSystem
 from core.combat.debug import desenhar_hitboxes_ativas, desenhar_hurtbox
 
@@ -216,6 +216,7 @@ class Gamescene:
         #carrega um novo mapa e reposiciona o player
 
         self.sala_atual = nome_sala
+        self.player.material_piso = MATERIAL_PISO.get(nome_sala, "pedra")
 
         #se existe um tmx para aquela sala usa ele, senao pular
         import os 
@@ -1030,12 +1031,25 @@ class Gamescene:
             if atacante is not self.player:
                 continue
 
+            inimigo = getattr(alvo, "SOM_ID", "_default")
+            material = getattr(alvo, "MATERIAL", "_default")
+            arma = resolver_arma_id(atacante)
+
             if getattr(alvo, "_escudo_ativo", False) and not evento.aplicado:
-                audio.play_sfx("block")
+                if hasattr(audio, "play_block"):
+                    audio.play_block(inimigo)
+                else:
+                    audio.play_sfx("block")
             elif not getattr(alvo, "vivo", False):
-                audio.play_sfx("enemy_death")
+                if hasattr(audio, "play_hit"):
+                    audio.play_hit(inimigo, arma, material, kill=True)
+                else:
+                    audio.play_sfx("enemy_death")
             elif evento.aplicado:
-                audio.play_sfx("hit")
+                if hasattr(audio, "play_hit"):
+                    audio.play_hit(inimigo, arma, material)
+                else:
+                    audio.play_sfx("hit")
 
     def _checar_morte(self):
         #dectetar se o player morreu, se sim colocar o "voce morreu" na tela tipo dark souls

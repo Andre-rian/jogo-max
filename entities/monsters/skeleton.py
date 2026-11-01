@@ -5,6 +5,9 @@ from core.combat import DanoSpec, KnockbackSpec, ModoMovimento
 
 class Skeleton(InimigoBase):
 
+    SOM_ID = "skeleton"
+    MATERIAL = "osso"
+
     USAR_MOVIMENTO_SUBPIXEL = True
 
     Dano = 15

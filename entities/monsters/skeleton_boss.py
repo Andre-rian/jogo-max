@@ -8,6 +8,9 @@ from entities.projeteis.projetil_boss import ProjetilBoss
 
 class EsqueletoBoss(InimigoBase):
 
+    SOM_ID = "boss_carrasco"
+    MATERIAL = "osso"
+
     ESTADO_PADRAO = "Perseguir"   
     Duracao_morte = 120
 

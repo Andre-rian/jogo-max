@@ -1,0 +1,22 @@
+{
+  "master": 0.8,
+  "sfx": 1.0,
+  "categorias": {
+    "combat": 0.8,
+    "player": 0.9,
+    "interaction": 0.7,
+    "ui": 0.7
+  },
+  "eventos": {
+    "hit": {"cooldown_ms": 60, "max_instancias": 3, "volume": 1.0},
+    "kill": {"cooldown_ms": 40, "max_instancias": 2, "volume": 1.0},
+    "block": {"cooldown_ms": 60, "max_instancias": 2, "volume": 1.0},
+    "swing": {"cooldown_ms": 0, "max_instancias": 1, "volume": 0.65},
+    "enemy_attack": {"cooldown_ms": 80, "max_instancias": 3, "volume": 1.0},
+    "step": {"cooldown_ms": 90, "max_instancias": 2, "volume": 1.0},
+    "land": {"cooldown_ms": 80, "max_instancias": 1, "volume": 1.0},
+    "player_hurt": {"cooldown_ms": 40, "max_instancias": 1, "volume": 1.0},
+    "player_death": {"cooldown_ms": 0, "max_instancias": 1, "volume": 1.0},
+    "projectile": {"cooldown_ms": 50, "max_instancias": 3, "volume": 0.85}
+  }
+}

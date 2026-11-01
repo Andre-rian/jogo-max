@@ -3,6 +3,8 @@
 > Data: 2026-10-30  
 > Origem: avaliação de escuta do usuário após a integração dos SFX.  
 > Status: opiniões registradas; nenhuma alteração de áudio foi feita nesta etapa.
+>
+> Este documento recebe rodadas de escuta. Quando uma avaliação nova contradiz uma anterior, a mais recente passa a valer como direção atual.
 
 ## 1. Passos do jogador
 
@@ -94,3 +96,52 @@ Direção sugerida:
 ## 6. Observação
 
 Este documento registra percepções de escuta. As soluções dependem de novos assets ou de edição dos arquivos existentes, o que está fora da integração inicial de SFX.
+
+---
+
+## 7. Segunda rodada de escuta
+
+### 7.1 Som de movimentação
+
+- Os passos foram considerados ruins nesta rodada.
+- A direção atual é substituir o efeito por outro som, além da questão de material já registrada na primeira rodada.
+
+### 7.2 Poção
+
+- O som da poção está bom.
+- Manter como está.
+
+### 7.3 Ataque com espada
+
+- O som do ataque com espada está adequado.
+- Manter como está.
+
+### 7.4 Morte
+
+- O som citado como “música de morte” está bom.
+- Manter como está.
+
+### 7.5 Inimigos
+
+- Os efeitos atuais dos inimigos não agradaram.
+- O usuário pretende procurar opções melhores para substituí-los.
+- Esta avaliação substitui o comentário positivo genérico da primeira rodada.
+
+### 7.6 Escudo do Boss
+
+- O som ao atingir o escudo do Boss está bom.
+- Manter como está.
+
+### 7.7 Murro
+
+- Problema identificado: o ataque de murro reproduz o mesmo som do ataque com espada.
+- É necessário criar ou configurar um efeito específico para o murro, diferenciando os dois ataques.
+- Hoje o jogador dispara o evento genérico `player_attack`; o sistema não distingue o tipo visual/de combate do golpe para escolher o som.
+
+## 8. Prioridades consolidadas após a segunda rodada
+
+1. Substituir o som de passos.
+2. Criar/configurar som específico para o murro.
+3. Substituir os efeitos dos inimigos quando novas opções forem escolhidas.
+4. Manter poção, espada, morte e escudo do Boss sem alterações.
+5. Reavaliar os demais pontos da primeira rodada somente se continuarem válidos após as substituições.

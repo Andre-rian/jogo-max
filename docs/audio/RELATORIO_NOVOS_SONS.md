@@ -3,6 +3,8 @@
 > Data: 2026-10-31  
 > Pasta analisada: `assets/sons/_entrada/` (antiga `novos_sons/`, 343,2 MiB, 63 arquivos de áudio)  
 > Objetivo: inventariar os candidatos, indicar destino na nova árvore de áudio e separar o que já pode ser promovido do que ainda precisa de edição.
+>
+> **Nota (2026-11-07):** o `_entrada/` foi reorganizado por categoria/prioridade. Os nomes de pasta citados abaixo são históricos; o mapa antigo → novo está em `assets/sons/_entrada/LEIA-ME.md`.
 
 ## 1. Resumo executivo
 

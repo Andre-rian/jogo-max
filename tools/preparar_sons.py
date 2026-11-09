@@ -334,9 +334,11 @@ def cmd_promover(args) -> int:
             meta = derivar_fonte(fonte)
             autor = (l.get("autor") or meta["autor"]).strip()
             url = (l.get("url") or meta["url"]).strip()
-            licenca = (l.get("licenca") or "").strip()
-            if not args.dry_run and (not autor or not url or licenca.upper() in ("", "VERIFICAR")):
-                raise ValueError("preencha autor, url e licenca na tabela antes de promover")
+            # Licença livre: autor e URL são opcionais. Quando não informados,
+            # registra "LIVRE" e ainda tenta deduzir a fonte pelo nome do arquivo.
+            licenca = (l.get("licenca") or "").strip() or "LIVRE"
+            if licenca.upper() == "VERIFICAR":
+                licenca = "LIVRE"
             flt = lambda k, d=None: float(l[k]) if (l.get(k) or "").strip() else d  # noqa: E731
             y = processar(
                 carregar(fonte),

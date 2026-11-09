@@ -18,6 +18,18 @@ Preencha uma linha para cada arquivo baixado antes de integrar ao jogo.
 
 Atribuição obrigatória da licença CC BY 4.0: `stone_footstep_5.wav` by laurenmg95, disponível em https://freesound.org/people/laurenmg95/sounds/386693/, licenciado sob CC BY 4.0. O registro central fica em `../_config/LICENCAS.csv`.
 
+## Músicas
+
+O projeto é um trabalho acadêmico **sem fins comerciais**. As músicas têm licenças
+próprias (não são MIT) e os créditos/licenças completos estão em
+`sons_faltando/musicas/LEIA-ME.md`, junto com os textos originais de cada pacote.
+
+| Pacote | Autor | Licença | Atribuição |
+|---|---|---|---|
+| Loop bundles 1/2/3 | Abstraction / Tallbeard Studios | CC0 1.0 | não obrigatória |
+| Fantasy RPG Music Vol. 2 | AlkaKrab | AlkaKrab Music License | apreciada |
+| TopfHelm Medieval RPG Music Pack | TopfHelm | Free Non-Commercial | **obrigatória** (`Music by TopfHelm — https://topfhelm.com`) |
+
 ## Licenças comuns
 
 - **CC0**: uso livre, sem necessidade de atribuição.

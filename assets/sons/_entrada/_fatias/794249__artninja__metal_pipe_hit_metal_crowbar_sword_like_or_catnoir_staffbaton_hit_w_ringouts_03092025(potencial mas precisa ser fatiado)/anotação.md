@@ -1,0 +1,1 @@
+se assemelham ao som de uma arma de metal recebendo um impacto, nao forte, como uma espada sendo forgada, ou recebendo marteladas, podem  ser alternandos entre si e acredito que vão ser uteis, melhor guarda-los

@@ -10,6 +10,7 @@ class EsqueletoBoss(InimigoBase):
 
     SOM_ID = "boss_carrasco"
     MATERIAL = "osso"
+    TEM_PASSOS = False
 
     ESTADO_PADRAO = "Perseguir"   
     Duracao_morte = 120

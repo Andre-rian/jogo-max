@@ -67,7 +67,7 @@ def test_play_hit_usa_fallback_generico_real():
     manager = AudioManager()
     assert manager.inicializar()
 
-    assert manager.play_hit("skeleton", "espada_longa", "osso")
+    assert manager.play_hit("globin", "espada_longa", "etereo")
     assert "sfx/combate/generico" in Path(manager._ativos[-1].chave).as_posix()
 
 
@@ -93,6 +93,22 @@ def test_play_step_material_vazio_cai_para_madeira():
 
     assert manager.play_step("metal")
     assert "sfx/player/movimento/passos/madeira" in Path(manager._ativos[-1].chave).as_posix()
+
+
+def test_play_enemy_step_usa_pasta_do_inimigo():
+    manager = AudioManager()
+    assert manager.inicializar()
+
+    assert manager.play_enemy_step("globin")
+    assert "sfx/inimigos/globin/passos" in Path(manager._ativos[-1].chave).as_posix()
+
+
+def test_play_enemy_step_cai_para_default():
+    manager = AudioManager()
+    assert manager.inicializar()
+
+    assert manager.play_enemy_step("skeleton")
+    assert "sfx/inimigos/_default/passos" in Path(manager._ativos[-1].chave).as_posix()
 
 
 def test_play_land_pedra_encontra_som_de_pedra():

@@ -553,6 +553,15 @@ class AudioManager:
         ]
         return self._tocar_cascata(pastas, "step", "step", "player")
 
+    def play_enemy_step(self, inimigo):
+        pastas = [
+            f"sfx/inimigos/{inimigo}/passos",
+            "sfx/inimigos/_default/passos",
+        ]
+        return self._tocar_cascata(
+            pastas, "enemy_step", "enemy_step", "combat"
+        )
+
     def play_land(self, material):
         pastas = [
             f"sfx/player/movimento/pouso/{material}",

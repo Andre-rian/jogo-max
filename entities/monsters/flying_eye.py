@@ -15,6 +15,7 @@ class FlyingEye(InimigoBase):
     Voando = "voando"          
     ESTADO_PADRAO = "Voando"
     TEM_GRAVIDADE = False
+    TEM_PASSOS = False
 
     Dano_mordida = 15
     Dano_dash = 12

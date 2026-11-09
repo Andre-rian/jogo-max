@@ -157,7 +157,7 @@ As fatias já estão em `assets/sons/_entrada/_fatias/<arquivo>/`. Para promover
 1. **Filtre antes de baixar**: duração < 2 s, 44,1 kHz, mono, sem reverb longo.
 2. **Não solte compilação**: o jogo sorteia o arquivo inteiro por pasta. Fatie primeiro.
 3. **Padrão de saída**: WAV PCM 16-bit, 44,1 kHz, mono, pico entre -3 e -1 dBFS. UI ≤ 0,6 s; SFX ≤ 1,5 s; música/ambiência em OGG.
-4. **Nomes**: ASCII minúsculo e numerado (`hit_01.wav`, `swing_01.wav`, `step_01.wav`). É só soltar na pasta certa — o `AudioManager` indexa no boot, sem mexer no código.
+4. **Nomes**: ASCII minúsculo e numerado com o contexto completo (`carne_soco_hit_01.wav`, `movimento_passos_pedra_step_01.wav`, `armas_espada_longa_swing_03.wav`). É só soltar na pasta certa — o `AudioManager` indexa no boot, sem mexer no código. Pendentes em triagem: `assets/sons/_entrada/sons_faltando/CONTEXTO.md`.
 5. **Valide em jogo** com o áudio ligado e confira o log `[AUDIO]`.
 
 ## Licença

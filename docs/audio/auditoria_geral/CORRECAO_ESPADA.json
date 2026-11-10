@@ -1,0 +1,9 @@
+{
+  "original": "assets/sons/sfx/player/armas/espada_longa/armas_espada_longa_swing_02.mp3",
+  "sha256_original": "a1e50fe89564b1fb59c4110b0482b5ccbc40571a3c2692e420b1e1351018dbf2",
+  "corrigido": "assets/sons/sfx/player/armas/espada_longa/armas_espada_longa_swing_02.wav",
+  "sha256_corrigido": "91962c0d58c4a1c084f0ee72a240c75be9bf6971df397cdf5332bfe7a69ac321",
+  "duracao_antes_s": 2.3500226757369616,
+  "duracao_depois_s": 1.8043764172335601,
+  "edicao": "Remocao de silencio inicial, DC, fades de 2/40 ms e pico -3 dBFS; mono PCM 16-bit 44100 Hz. Licenca original continua pendente."
+}

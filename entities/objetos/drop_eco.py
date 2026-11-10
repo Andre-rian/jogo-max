@@ -80,7 +80,11 @@ class DropEco:
             hud.mostrar_prompt("E - para recupera Ecos perdidos")
             if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
                 player.ecos += self.quantidade
-                audio.play_sfx("eco_pickup")
+                tocar_eco = getattr(audio, "play_eco_profano", None)
+                if tocar_eco is not None:
+                    tocar_eco()
+                else:
+                    audio.play_sfx("eco_pickup")
                 player.cooldown_interaçao = 30
                 self.ativo = False
                 hud.limpar_prompt()

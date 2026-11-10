@@ -6,6 +6,8 @@ from core.combat import DanoSpec, KnockbackSpec
 
 class EsporoMushroom(Projetil):
 
+    SOM_PROJETIL = "esporo"
+
     Velocida = 4 #velocidade do esporo
     Raio_curva = 0.08  #quanto ele corrige a direção por frame — baixo = menos preciso
     Timer_vida = 180 #tempo de vida do esporo em frames
@@ -29,6 +31,8 @@ class EsporoMushroom(Projetil):
     def atualizar(self, rects_solidos, player):
         if not self.ativo:
             return
+
+        self._atualizar_som_voo()
 
         self.timer_vida -= 1
         if self.timer_vida <= 0:
@@ -59,6 +63,7 @@ class EsporoMushroom(Projetil):
             #colisao com as paredes
             for tile in rects_solidos:
                 if self.rect.colliderect(tile):
+                    self._tocar_som_projetil("impacto")
                     self.ativo = False
                     return
                 

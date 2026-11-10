@@ -37,7 +37,7 @@ O número no início indica a prioridade no `docs/audio/SONS_FALTANDO.md`. A pas
 ## Fluxo
 
 1. Jogue os arquivos novos em `_inbox/` (sem editar).
-2. Ouvir o candidato e confirmar a licença em `CREDITOS_E_LICENCAS.md` (licença livre dispensa autor).
+2. Ouvir o candidato e confirmar a licença, autor e URL da fonte em `CREDITOS_E_LICENCAS.md`.
 3. Editar/cortar para um efeito curto e normalizar para WAV 44,1 kHz mono.
 4. Renomear no padrão de **contexto completo**: `<contexto>_<ação>_<NN>.wav` (ex.: `carne_soco_hit_01.wav`, `movimento_passos_pedra_step_01.wav`). Os sons ainda em triagem seguem o mesmo padrão; ver `sons_faltando/CONTEXTO.md`.
 5. Mover para `../sfx/...`, `../ambiencia/...` ou `../musica/...`.
@@ -70,7 +70,7 @@ O inventário técnico de cada arquivo continua em `docs/audio/RELATORIO_NOVOS_S
 
 - Não promover compilações longas sem cortar. O jogo sorteia o arquivo inteiro.
 - Evitar nomes com espaços, acentos, parênteses ou maiúsculas na pasta final.
-- Licença livre não exige autor/URL; o registro em `LICENCAS.csv` é opcional.
+- Registrar licença exata, autor e URL em `LICENCAS.csv`, inclusive para CC0. `LIVRE`, `VERIFICAR` e campos vazios não comprovam a licença e são rejeitados pelo script.
 - Em caso de dúvida, manter em `_revisar/`.
 
 ## Triagem aplicada em 2026-11-07

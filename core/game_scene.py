@@ -54,6 +54,12 @@ def _nome_arquivo_normalizado(nome):
     return ''.join(c for c in nfdk if not unicodedata.combining(c))
 
 
+AMBIENCIA_POR_SALA = {
+    "calabouço_4": "sala_descanso",
+    "calabouço_5": "arena_boss",
+}
+
+
 
 
 
@@ -206,9 +212,12 @@ class Gamescene:
             if tipo == "esqueleto_boss":
                 inimigo = classe(x, y, callback_morte=self._abrir_parede_boss)
                 self.boss_atual = inimigo
+                self._tocar_entrada_boss(inimigo)
             else:
                 inimigo = classe(x, y, dados[3], dados[4])
             self.inimigos.append(inimigo)
+
+        self._atualizar_audio_sala()
 
     #CARREGA A SALA 
 
@@ -217,6 +226,10 @@ class Gamescene:
 
         self.sala_atual = nome_sala
         self.player.material_piso = MATERIAL_PISO.get(nome_sala, "pedra")
+
+        parar_mundo = getattr(audio, "stop_world_sfx", None)
+        if parar_mundo is not None:
+            parar_mundo()
 
         #se existe um tmx para aquela sala usa ele, senao pular
         import os 
@@ -489,7 +502,7 @@ class Gamescene:
                 col_idx, linha_idx = obj["col"], obj["linha"]
                 x, y = col_idx * Tile_size, linha_idx * Tile_size
 
-                if tipo == "esquelo_boss":
+                if tipo == "esqueleto_boss":
                     if self.sala_atual in self.bosses_derrotados:
                         continue
 
@@ -497,6 +510,7 @@ class Gamescene:
                     boss._indice_spawn = indice
                     self.inimigos.append(boss)
                     self.boss_atual = boss
+                    self._tocar_entrada_boss(boss)
                     continue
 
                 if indice in mortos:
@@ -534,6 +548,27 @@ class Gamescene:
                             linha_idx * Tile_size,
                             Tile_size, Tile_size
                         ))
+
+        self._atualizar_audio_sala()
+
+    def _atualizar_audio_sala(self):
+        tocar_ambiente = getattr(audio, "play_ambiente", None)
+        if tocar_ambiente is not None:
+            tocar_ambiente(AMBIENCIA_POR_SALA.get(self.sala_atual, "calabouco"))
+        tocar_tochas = getattr(audio, "play_tochas", None)
+        if tocar_tochas is not None:
+            tocar_tochas(bool(getattr(self, "tochas", [])))
+        tocar_musica = getattr(audio, "play_music", None)
+        if tocar_musica is not None:
+            boss = getattr(self, "boss_atual", None)
+            menu = getattr(self, "menu_fogueira", None)
+            if boss is not None and boss.vivo:
+                contexto = "boss"
+            elif (menu is not None and menu.aberto) or AMBIENCIA_POR_SALA.get(self.sala_atual) == "sala_descanso":
+                contexto = "descanso"
+            else:
+                contexto = "exploracao"
+            tocar_musica(contexto)
 
     def _fazer_callback_drop_inimigo(self, drops, sala):
         def _callback(ix, iy):
@@ -699,6 +734,7 @@ class Gamescene:
 
         if self.pausado:
             self._atualizar_pausa(eventos)
+            return
             
 
         rects_solidos = self.mapa.rects_solidos + self.parede_boss + [p.rect for p in self.portas if not p.aberta]
@@ -951,6 +987,7 @@ class Gamescene:
                 boss._indice_spawn = i  #marca o boss com um indice para rastrear se ele morreu
                 self.inimigos.append(boss)
                 self.boss_atual = boss
+                self._tocar_entrada_boss(boss)
 
             else:
                 if i in mortos:
@@ -1003,11 +1040,13 @@ class Gamescene:
     def _fechar_menu_fogueira(self):
         self.menu_fogueira.aberto = False
         self.pausado = False
+        self._atualizar_audio_sala()
 
 
     def _abrir_menu_fogueira(self):
         logger.info("abrindo menu fogueira")
         self.menu_fogueira.abrir()
+        self._atualizar_audio_sala()
         
 
 
@@ -1128,10 +1167,19 @@ class Gamescene:
                 break 
     
 
+    def _tocar_entrada_boss(self, boss):
+        tocar = getattr(audio, "play_enemy_entrada", None)
+        if tocar is not None:
+            tocar(boss.SOM_ID)
+
     def _abrir_parede_boss(self, x, y):
         self.parede_boss = []
         self.boss_atual = None
         self.bosses_derrotados.add(self.sala_atual)
+        self._atualizar_audio_sala()
+        tocar_mecanismo = getattr(audio, "play_mecanismo", None)
+        if tocar_mecanismo is not None:
+            tocar_mecanismo()
         self.hud.mostra_mensagem("O caminho esta livre")
 
 

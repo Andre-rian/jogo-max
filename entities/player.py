@@ -580,6 +580,9 @@ class Player(Entity):
             self._escalando = False
             self._bloqueio_escalada = 12  #nao pega escada subindo (pulo limpo)
             self._gastar_stamina(self.Stamina_pulo)
+            tocar_pulo = getattr(audio, "play_jump", None)
+            if tocar_pulo is not None:
+                tocar_pulo()
 
     #ESCADA - subir/descer segurando W e S
     def _escalar(self, teclas, rects_escada=None):

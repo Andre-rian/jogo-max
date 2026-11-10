@@ -36,6 +36,7 @@ class Jogo:
 
         self.menu = MenuInicial(self.tela, self.save_manager)
         self.menu.callback_iniciar = self._iniciar_jogo
+        audio.play_music("menu")
 
         if self.modo_teste_combate:
             self._iniciar_jogo(None, None)
@@ -74,7 +75,8 @@ class Jogo:
 
 
     def _voltar_menu(self):
-        
+        audio.stop_all_sfx()
+        audio.play_music("menu")
         self.estado = "menu"
         self.scene = None
         self.slot_atual = None
@@ -106,6 +108,7 @@ class Jogo:
     def _sair(self):
         self.save_manager.fechar()
         audio.stop_all_sfx()
+        audio.stop_music()
         pygame.quit()
         sys.exit()
 

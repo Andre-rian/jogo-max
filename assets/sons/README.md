@@ -68,3 +68,10 @@ Passos e pouso usam o material do piso da sala (`MATERIAL_PISO` em `world/niveis
 ## Configuração
 
 `_config/audio.json` concentra volumes e limites. `_config/LICENCAS.csv` deve ser preenchido antes de qualquer arquivo novo entrar no jogo.
+
+Na promoção por CSV, informe licença exata, autor e URL da fonte. Licença vazia,
+`LIVRE`, `VERIFICAR` e `PENDENTE` são recusadas; CC BY também exige atribuição.
+O campo opcional `pico_db` ajusta o pico de um arquivo (por exemplo, `-12` para
+um impacto mais baixo). O padrão continua sendo `-3`.
+
+Estado atual e pendências verificadas: [STATUS_SONS.md](../../docs/audio/STATUS_SONS.md).

@@ -228,6 +228,22 @@ def _norm(h: str) -> str:
     return unicodedata.normalize("NFKD", h).encode("ascii", "ignore").decode().strip().lower()
 
 
+def validar_licenca(linha: dict, fonte: Path) -> dict:
+    """Exige uma licença identificada; nome de arquivo não comprova permissão."""
+    licenca = (linha.get("licenca") or "").strip()
+    if _norm(licenca) in {"", "livre", "verificar", "pendente", "desconhecida", "a confirmar"}:
+        raise ValueError("licença não confirmada; informe a licença exata, autor e URL da fonte")
+    meta = derivar_fonte(fonte)
+    autor = (linha.get("autor") or meta["autor"]).strip()
+    url = (linha.get("url") or meta["url"]).strip()
+    atribuicao = (linha.get("atribuicao") or "").strip()
+    if not autor or not url.startswith(("https://", "http://")):
+        raise ValueError("registre autor e URL da fonte que comprova a licença")
+    if "ccby" in re.sub(r"[^a-z0-9]", "", _norm(licenca)) and not atribuicao:
+        raise ValueError("licença CC BY exige texto de atribuição")
+    return {"autor": autor, "url": url, "licenca": licenca, "atribuicao": atribuicao}
+
+
 def registrar_licencas(linhas: list[dict]) -> None:
     LICENCAS.parent.mkdir(parents=True, exist_ok=True)
     cabecalho = ["arquivo", "origem", "autor", "url", "licenca", "atribuicao", "data"]
@@ -318,8 +334,9 @@ def cmd_fatiar(args) -> int:
 
 def cmd_promover(args) -> int:
     tabela = Path(args.tabela)
+    delimitador = _delim(tabela)
     with open(tabela, newline="", encoding="utf-8-sig") as f:
-        linhas = list(csv.DictReader(f, delimiter=_delim(tabela)))
+        linhas = list(csv.DictReader(f, delimiter=delimitador))
     registros, feitos, erros = [], [], 0
     hoje = date.today().isoformat()
     for i, l in enumerate(linhas, 2):
@@ -328,30 +345,23 @@ def cmd_promover(args) -> int:
             continue
         try:
             fonte = resolver_origem(origem_txt)
+            meta = validar_licenca(l, fonte)
             destino = proximo_livre(destino_txt)
             if destino.exists() and not args.sobrescrever:
                 raise FileExistsError(f"já existe: {destino.relative_to(SONS)} (use --sobrescrever)")
-            meta = derivar_fonte(fonte)
-            autor = (l.get("autor") or meta["autor"]).strip()
-            url = (l.get("url") or meta["url"]).strip()
-            # Licença livre: autor e URL são opcionais. Quando não informados,
-            # registra "LIVRE" e ainda tenta deduzir a fonte pelo nome do arquivo.
-            licenca = (l.get("licenca") or "").strip() or "LIVRE"
-            if licenca.upper() == "VERIFICAR":
-                licenca = "LIVRE"
             flt = lambda k, d=None: float(l[k]) if (l.get(k) or "").strip() else d  # noqa: E731
             y = processar(
                 carregar(fonte),
                 inicio=flt("inicio_s"), fim=flt("fim_s"), pitch=flt("pitch", 1.0),
-                dur_max=flt("dur_max_s"), fade_out_ms=flt("fade_out_ms", 40.0), alvo_db=args.pico,
+                dur_max=flt("dur_max_s"), fade_out_ms=flt("fade_out_ms", 40.0),
+                alvo_db=flt("pico_db", args.pico),
             )
             rel = destino.relative_to(SONS).as_posix()
             print(f"[linha {i}] {fonte.name[:50]} -> {rel}  ({len(y) / SR:.2f}s)")
             if not args.dry_run:
                 salvar_wav(y, destino)
                 feitos.append(i - 2)
-                registros.append({"arquivo": rel, "origem": fonte.name, "autor": autor, "url": url,
-                                  "licenca": licenca, "atribuicao": (l.get("atribuicao") or "").strip(), "data": hoje})
+                registros.append({"arquivo": rel, "origem": fonte.name, **meta, "data": hoje})
         except Exception as e:  # noqa: BLE001
             erros += 1
             print(f"[linha {i}] ERRO ({origem_txt}): {e}")
@@ -361,7 +371,7 @@ def cmd_promover(args) -> int:
         for k in feitos:
             linhas[k]["origem"] = "#" + linhas[k]["origem"]
         with open(tabela, "w", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(f, fieldnames=list(linhas[0].keys()), delimiter=_delim(tabela))
+            w = csv.DictWriter(f, fieldnames=list(linhas[0].keys()), delimiter=delimitador)
             w.writeheader()
             w.writerows(linhas)
         print(f"{len(registros)} arquivo(s) promovido(s); licenças registradas em {LICENCAS.relative_to(RAIZ)}")

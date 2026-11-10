@@ -1,0 +1,1268 @@
+{
+  "total": 532,
+  "finais": 248,
+  "triagem": 284,
+  "erros": [],
+  "duplicatas_bytes": [
+    [
+      "_entrada/1_combate_player/impactos_organicos/342397__christopherderp__swords-clash-w-swing-1.wav",
+      "_entrada/_uteis/metal/342397__christopherderp__swords-clash-w-swing-1(o som é de hit em metal, utilizavel mas nao agora).wav"
+    ],
+    [
+      "_entrada/1_combate_player/soco/232358__richerlandtv__heavy-impacts.mp3",
+      "_entrada/_uteis/soco/232358__richerlandtv__heavy-impacts.mp3"
+    ],
+    [
+      "_entrada/2_materiais/osso/147993__bewareofkites20__bone-cracking.wav",
+      "_entrada/_uteis/osso/147993__bewareofkites20__bone-cracking.wav"
+    ],
+    [
+      "_entrada/2_materiais/osso/161381__vinrax__bone_crack1.wav",
+      "_entrada/_uteis/osso/161381__vinrax__bone_crack1.wav"
+    ],
+    [
+      "_entrada/5_mundo_movimento/passos_pedra/216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
+      "_entrada/5_mundo_movimento/passos_pedra/216004__brainwaves8__walking-down-the-hallway.wav"
+    ],
+    [
+      "_entrada/5_mundo_movimento/passos_pedra/465299__softdistortionfx__concrete-footsteps.flac",
+      "_entrada/_uteis/passos/465299__softdistortionfx__concrete-footsteps__cortar_depois.flac"
+    ],
+    [
+      "_entrada/5_mundo_movimento/passos_pedra/footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
+      "_entrada/5_mundo_movimento/passos_pedra/footsteps-stone-sequence.wav"
+    ],
+    [
+      "_entrada/5_mundo_movimento/passos_pedra/galbenshire__footsteps_stone.wav",
+      "_entrada/_uteis/passos_inimigos/galbenshire__footsteps_stone(funciona mais para os inimigos doque o player em si, e claro sem está correndo).wav"
+    ],
+    [
+      "_entrada/5_mundo_movimento/passos_pedra/hiking-boot-footsteps-on-stone.wav",
+      "_entrada/_uteis/passos_inimigos/hiking-boot-footsteps-on-stone(sim para um globin por exemplo, mas ele tem que esta andando nao correndo).wav"
+    ],
+    [
+      "_entrada/5_mundo_movimento/pouso_pedra/grande_impacto.wav",
+      "_entrada/_uteis/impactos/grande_impacto(o som de impacto é para ataques de inimigos grandes que batem no chao.wav"
+    ],
+    [
+      "_entrada/6_ui/epica/207183__klankbeeld__heavy-steel-noise-03.wav",
+      "_entrada/_uteis/menu/207183__klankbeeld__heavy-steel-noise-03(bom som para menu inicial).wav"
+    ],
+    [
+      "_entrada/6_ui/epica/819290__johnmode__mystical-female-choir-swell-01(estilo em duvida.wav",
+      "_entrada/_uteis/efeitos/819290__johnmode__mystical-female-choir-swell-01(nao serve como musica ambiente, mas sim um efeito sonoro, pode ser util no futuro).wav"
+    ],
+    [
+      "_entrada/6_ui/epica/819291__johnmode__mystical-female-choir-swell-02.wav",
+      "_entrada/_uteis/efeitos/819291__johnmode__mystical-female-choir-swell-02(nao serve como musica ambiente, mas sim um efeito sonoro, pode ser util no futuro.wav"
+    ],
+    [
+      "_entrada/6_ui/epica/819349__johnmode__mystical-female-choir-swell-03.wav",
+      "_entrada/_uteis/efeitos/819349__johnmode__mystical-female-choir-swell-03((nao serve como musica ambiente, mas sim um efeito sonoro, pode ser util no futuro).wav"
+    ],
+    [
+      "_entrada/6_ui/epica/831971__bassimat__metal-stand-gong-hit-percussion-004-via-low-frequency-geo-microphone.wav",
+      "_entrada/_uteis/efeitos/831971__bassimat__metal-stand-gong-hit-percussion-004-via-low-frequency-geo-microphone(nao funciona tanto como ui).wav"
+    ],
+    [
+      "_entrada/6_ui/epica/861361__feraly__bwung.wav",
+      "_entrada/_uteis/efeitos/861361__feraly__bwung(o som nao funciona com ui mas como algum efeito sonoro).wav"
+    ],
+    [
+      "_entrada/6_ui/epica/873650__packsmithy__dark-confirm-synth-horror-game-interface-sounds(talvez no inventario).wav",
+      "_entrada/_uteis/inventario/873650__packsmithy__dark-confirm-synth-horror-game-interface-sounds(talvez no inventario).wav"
+    ],
+    [
+      "sfx/inimigos/boss_carrasco/hit/espada_longa/boss_carrasco_espada_longa_hit_01.wav",
+      "sfx/inimigos/skeleton/hit/espada_longa/skeleton_espada_longa_hit_02.wav",
+      "sfx/materiais/osso/machado_guerra/osso_machado_guerra_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/boss_carrasco/hit/machado_guerra/boss_carrasco_machado_guerra_hit_01.wav",
+      "sfx/materiais/osso/machado_guerra/osso_machado_guerra_hit_02.wav"
+    ],
+    [
+      "sfx/inimigos/flying_eye/hit/espada_longa/flying_eye_espada_longa_hit_01.wav",
+      "sfx/inimigos/flying_eye/hit/machado_guerra/flying_eye_machado_guerra_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/globin/hit/soco/globin_soco_hit_01.wav",
+      "sfx/materiais/carne/machado_guerra/carne_machado_guerra_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/mushroom/hit/_default/mushroom_default_hit_01.wav",
+      "sfx/inimigos/mushroom/hit/espada_longa/mushroom_espada_longa_hit_01.wav",
+      "sfx/materiais/fungo/_default/fungo_default_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/mushroom/hit/machado_guerra/mushroom_machado_guerra_hit_01.wav",
+      "sfx/materiais/fungo/espada_longa/fungo_espada_longa_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/skeleton/hit/espada_longa/skeleton_espada_longa_hit_01.wav",
+      "sfx/materiais/osso/soco/osso_soco_hit_01.wav"
+    ],
+    [
+      "sfx/materiais/etereo/_default/etereo_default_hit_01.wav",
+      "sfx/materiais/etereo/soco/etereo_soco_hit_01.wav"
+    ]
+  ],
+  "duplicatas_pcm_finais": [
+    [
+      "sfx/inimigos/boss_carrasco/hit/espada_longa/boss_carrasco_espada_longa_hit_01.wav",
+      "sfx/inimigos/skeleton/hit/espada_longa/skeleton_espada_longa_hit_02.wav",
+      "sfx/materiais/osso/machado_guerra/osso_machado_guerra_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/boss_carrasco/hit/machado_guerra/boss_carrasco_machado_guerra_hit_01.wav",
+      "sfx/materiais/osso/machado_guerra/osso_machado_guerra_hit_02.wav"
+    ],
+    [
+      "sfx/inimigos/flying_eye/hit/espada_longa/flying_eye_espada_longa_hit_01.wav",
+      "sfx/inimigos/flying_eye/hit/machado_guerra/flying_eye_machado_guerra_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/globin/hit/soco/globin_soco_hit_01.wav",
+      "sfx/materiais/carne/machado_guerra/carne_machado_guerra_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/mushroom/hit/_default/mushroom_default_hit_01.wav",
+      "sfx/inimigos/mushroom/hit/espada_longa/mushroom_espada_longa_hit_01.wav",
+      "sfx/materiais/fungo/_default/fungo_default_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/mushroom/hit/machado_guerra/mushroom_machado_guerra_hit_01.wav",
+      "sfx/materiais/fungo/espada_longa/fungo_espada_longa_hit_01.wav"
+    ],
+    [
+      "sfx/inimigos/skeleton/hit/espada_longa/skeleton_espada_longa_hit_01.wav",
+      "sfx/materiais/osso/soco/osso_soco_hit_01.wav"
+    ],
+    [
+      "sfx/materiais/etereo/_default/etereo_default_hit_01.wav",
+      "sfx/materiais/etereo/soco/etereo_soco_hit_01.wav"
+    ]
+  ],
+  "pastas_finais_vazias": [
+    "sfx/inimigos/boss_carrasco/ataque/normal",
+    "sfx/inimigos/boss_carrasco/ataque/projetil",
+    "sfx/inimigos/boss_carrasco/ataque/varrido",
+    "sfx/inimigos/boss_carrasco/hit/_default",
+    "sfx/inimigos/flying_eye/asas",
+    "sfx/inimigos/flying_eye/ataque",
+    "sfx/inimigos/flying_eye/morte",
+    "sfx/inimigos/flying_eye/passos",
+    "sfx/inimigos/skeleton/ataque",
+    "sfx/materiais/metal/soco",
+    "sfx/player/armas/machado_guerra"
+  ],
+  "licencas_duplicadas": {},
+  "licencas_sem_arquivo": [],
+  "finais_sem_licenca": [
+    "ambiencia/calabouco/841640__newlocknew__ambdsgn_madness-prisonambiencelaughterscreamsfootstepscell-doorsceiling-leaka-faulty-lamp(funciona como um bom som de atmosphera de fundo, vamos promover-lo a ).mp3",
+    "musica/boss/boss_01.mp3",
+    "musica/descanso/descanso_01.ogg",
+    "musica/exploracao/exploracao_01.mp3",
+    "musica/menu/menu_01.mp3",
+    "sfx/combate/generico/generico_block_01.wav",
+    "sfx/combate/generico/generico_hit_01.wav",
+    "sfx/combate/generico/generico_hit_02.wav",
+    "sfx/combate/generico/generico_hit_03.wav",
+    "sfx/inimigos/_default/ataque/default_ataque_01.wav",
+    "sfx/inimigos/_default/morte/default_morte_01.wav",
+    "sfx/interacao/equipar/equipar_arma_01.wav",
+    "sfx/interacao/equipar/equipar_armadura_01.wav",
+    "sfx/interacao/itens/itens_eco_01.wav",
+    "sfx/interacao/itens/itens_item_01.wav",
+    "sfx/interacao/itens/itens_level_up_01.wav",
+    "sfx/mundo/baus/baus_abrir_01.wav",
+    "sfx/mundo/fogueira/fogueira_acender_01.wav",
+    "sfx/mundo/fogueira/fogueira_descansar_01.wav",
+    "sfx/mundo/portas/portas_abrir_01.wav",
+    "sfx/mundo/portas/portas_fechar_01.wav",
+    "sfx/player/armas/espada_longa/armas_espada_longa_swing_01.mp3",
+    "sfx/player/armas/espada_longa/armas_espada_longa_swing_02.wav",
+    "sfx/player/dano/dano_hurt_01.wav",
+    "sfx/player/morte/morte_01.ogg",
+    "sfx/player/movimento/dash/movimento_dash_01.wav",
+    "sfx/player/movimento/passos/madeira/movimento_passos_madeira_step_01.wav",
+    "sfx/player/movimento/passos/madeira/movimento_passos_madeira_step_02.wav",
+    "sfx/player/movimento/passos/madeira/movimento_passos_madeira_step_03.wav",
+    "sfx/player/movimento/pouso/madeira/movimento_pouso_madeira_land_01.wav",
+    "sfx/player/pocao/pocao_abrir_01.wav",
+    "sfx/player/pocao/pocao_beber_01.wav",
+    "sfx/projeteis/bomba/impacto/bomba_impacto_01.wav",
+    "sfx/ui/confirmar/confirmar_01.wav",
+    "sfx/ui/erro/erro_01.wav",
+    "sfx/ui/inventario/inventario_abrir_01.wav",
+    "sfx/ui/inventario/inventario_fechar_01.wav",
+    "sfx/ui/navegar/navegar_01.wav",
+    "sfx/ui/pausa/pausa_abrir_01.wav",
+    "sfx/ui/pausa/pausa_fechar_01.wav",
+    "sfx/ui/salvar/salvar_01.wav",
+    "sfx/ui/voltar/voltar_01.wav"
+  ],
+  "finais_licenca_generica": [
+    {
+      "arquivo": "sfx/inimigos/skeleton/hit/_default/skeleton_default_hit_01.wav",
+      "origem": "369601__evanboyerman__bone-crunchcrack-2-mixed_som_ok.wav",
+      "autor": "evanboyerman",
+      "url": "https://freesound.org/people/evanboyerman/sounds/369601/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/hit/machado_guerra/skeleton_machado_guerra_hit_01.wav",
+      "origem": "skeleton-hit-pesado.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/hit/soco/skeleton_soco_hit_01.wav",
+      "origem": "192146__brassknucklesfilms__bone-crunch-fast.wav",
+      "autor": "brassknucklesfilms",
+      "url": "https://freesound.org/people/brassknucklesfilms/sounds/192146/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/osso/_default/osso_default_hit_01.wav",
+      "origem": "869107__robo9418__bone-crack.wav",
+      "autor": "robo9418",
+      "url": "https://freesound.org/people/robo9418/sounds/869107/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/osso/espada_longa/osso_espada_longa_hit_01.wav",
+      "origem": "792923__kvv_audio__gorebone_bone-crunch-dry-01_kvv-audio_free(reduzir para deixar na faixa de 2s).wav",
+      "autor": "kvv_audio",
+      "url": "https://freesound.org/people/kvv_audio/sounds/792923/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/morte/skeleton_morte_01.wav",
+      "origem": "skeleton-morrendo-sound(esse parece uma morte lenta).mp3",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/morte/_default/skeleton_default_morte_01.wav",
+      "origem": "621977__rydra_wong__multiple-bones-cracking(esse uma morte rapida vindo de algum ataque.wav",
+      "autor": "rydra_wong",
+      "url": "https://freesound.org/people/rydra_wong/sounds/621977/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/_default/carne_default_hit_01.wav",
+      "origem": "hit-critico_ou_pesado(hit pesado em inimigos de carne nao apenas no globin).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/espada_longa/carne_espada_longa_hit_01.wav",
+      "origem": "718259__georgediamond__sword-stab-body-hit(hiit em carne no geral.wav",
+      "autor": "georgediamond",
+      "url": "https://freesound.org/people/georgediamond/sounds/718259/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_01.wav",
+      "origem": "333516__oscaraudiogeek__hand-slap-on-sweater(Serve como som de soco).wav",
+      "autor": "oscaraudiogeek",
+      "url": "https://freesound.org/people/oscaraudiogeek/sounds/333516/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/espada_longa/carne_espada_longa_hit_02.wav",
+      "origem": "733887__velcronator__sword-impact(hit de espada em carne).wav",
+      "autor": "velcronator",
+      "url": "https://freesound.org/people/velcronator/sounds/733887/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/espada_longa/carne_espada_longa_hit_03.wav",
+      "origem": "492254__soundflakes__tyrael-sword-slice-flesh-02(um hit mais generico na carne com um enfase na espada pode alterna entres os sons).wav",
+      "autor": "soundflakes",
+      "url": "https://freesound.org/people/soundflakes/sounds/492254/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/espada_longa/carne_espada_longa_hit_04.wav",
+      "origem": "492548__soundflakes__imperius-hit-the-giants-eye_flesh(serve como um som de ataque mais pesado como uma finalização de combo).wav",
+      "autor": "soundflakes",
+      "url": "https://freesound.org/people/soundflakes/sounds/492548/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/mushroom/morte/mushroom_morte_01.wav",
+      "origem": "395330__ihitokage__fist-clenching-2(nao precisa fatiar ja serve de com para o mushroom morrendo).ogg",
+      "autor": "0",
+      "url": "https://freesound.org/people/ihitokage/sounds/395330/",
+      "licenca": "LIVRE",
+      "atribuicao": "LIVRE",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/armas/soco/armas_soco_swing_01.wav",
+      "origem": "fatia_001__t0001.21s.wav",
+      "autor": "richerlandtv",
+      "url": "https://freesound.org/people/richerlandtv/sounds/232358/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/armas/soco/armas_soco_swing_02.wav",
+      "origem": "fatia_002__t0002.13s.wav",
+      "autor": "richerlandtv",
+      "url": "https://freesound.org/people/richerlandtv/sounds/232358/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/armas/soco/armas_soco_swing_03.wav",
+      "origem": "fatia_003__t0007.36s.wav",
+      "autor": "richerlandtv",
+      "url": "https://freesound.org/people/richerlandtv/sounds/232358/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/escudo_bloqueio/boss_carrasco_escudo_bloqueio_hit_01.wav",
+      "origem": "636102__fonografico__shieldhit2(som de bloqueio para impactos pesados como machados ou marretas.wav",
+      "autor": "fonografico",
+      "url": "https://freesound.org/people/fonografico/sounds/636102/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/pausa/pausa_abrir_02.wav",
+      "origem": "467585__ryusa__deep-dark-not-fancy-air-impact-reverb-ui.wav",
+      "autor": "ryusa",
+      "url": "https://freesound.org/people/ryusa/sounds/467585/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/mundo/portas/portas_abrir_02.wav",
+      "origem": "844329__nahuelmartinez__stone-slab-door-grinding-heavy-rock-scrape-mono(Serve apenas para grande portoes de pedras por exemplo).wav",
+      "autor": "nahuelmartinez",
+      "url": "https://freesound.org/people/nahuelmartinez/sounds/844329/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/madeira/movimento_passos_madeira_step_04.wav",
+      "origem": "565712__ralphwhitehead__footsteps-walking-on-wooden-floor-slow-pace.wav",
+      "autor": "ralphwhitehead",
+      "url": "https://freesound.org/people/ralphwhitehead/sounds/565712/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_07.wav",
+      "origem": "fatia_001__t0000.00s.wav",
+      "autor": "brainwaves8",
+      "url": "https://freesound.org/people/brainwaves8/sounds/216004/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_08.wav",
+      "origem": "fatia_004__t0003.71s.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_09.wav",
+      "origem": "fatia_001__t0000.32s.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_10.wav",
+      "origem": "fatia_001__t0010.15s.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_11.wav",
+      "origem": "fatia_002__t0013.15s.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_12.wav",
+      "origem": "fatia_001__t0001.02s.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_13.wav",
+      "origem": "fatia_002__t0001.35s.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/navegar/navegar_02.wav",
+      "origem": "858948__tommasomotteran__horror-ui-select-stinger-01(bom mas precisa ser baixo e reduzir o tamanho dele para apenas um segundo por ai).wav",
+      "autor": "tommasomotteran",
+      "url": "https://freesound.org/people/tommasomotteran/sounds/858948/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_02.wav",
+      "origem": "fatia_001__t0000.42s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/848526/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_03.wav",
+      "origem": "fatia_002__t0004.59s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/848526/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/erro/erro_02.wav",
+      "origem": "fatia_005__t0014.51s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/848526/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/erro/erro_03.wav",
+      "origem": "fatia_006__t0017.16s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/848526/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_04.wav",
+      "origem": "fatia_001__t0000.49s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/873222/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_05.wav",
+      "origem": "fatia_004__t0005.53s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/873222/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_06.wav",
+      "origem": "fatia_007__t0014.97s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/873222/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/erro/erro_04.wav",
+      "origem": "fatia_006__t0012.34s.wav",
+      "autor": "mikiko850",
+      "url": "https://freesound.org/people/mikiko850/sounds/873222/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_07.wav",
+      "origem": "fatia_001__t0000.09s.wav",
+      "autor": "jcdecha",
+      "url": "https://freesound.org/people/jcdecha/sounds/235459/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_08.wav",
+      "origem": "fatia_002__t0007.39s.wav",
+      "autor": "jcdecha",
+      "url": "https://freesound.org/people/jcdecha/sounds/235459/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/confirmar/confirmar_09.wav",
+      "origem": "fatia_004__t0015.03s.wav",
+      "autor": "jcdecha",
+      "url": "https://freesound.org/people/jcdecha/sounds/235459/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/ui/inicio/inicio_01.wav",
+      "origem": "fatia_001__t0000.00s(coloque como o som de inicia jogo).wav",
+      "autor": "tommasomotteran",
+      "url": "https://freesound.org/people/tommasomotteran/sounds/858212/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/_default/metal_default_hit_01.wav",
+      "origem": "fatia_001__t0001.47s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/819311/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/_default/metal_default_hit_02.wav",
+      "origem": "fatia_002__t0020.42s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/819311/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/_default/metal_default_hit_03.wav",
+      "origem": "fatia_003__t0036.50s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/819311/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/_default/metal_default_hit_04.wav",
+      "origem": "fatia_004__t0047.28s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/819311/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/combate/generico/generico_block_02.wav",
+      "origem": "fatia_005__t0053.75s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/819311/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/espada_longa/metal_espada_longa_hit_01.wav",
+      "origem": "fatia_001__t0004.25s(som de espada batendo em uma armadura de ferro).wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/espada_longa/metal_espada_longa_hit_02.wav",
+      "origem": "fatia_002__t0008.45s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/espada_longa/metal_espada_longa_hit_03.wav",
+      "origem": "fatia_003__t0017.85s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/espada_longa/metal_espada_longa_hit_04.wav",
+      "origem": "fatia_004__t0022.49s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/espada_longa/metal_espada_longa_hit_05.wav",
+      "origem": "fatia_006__t0031.85s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/espada_longa/metal_espada_longa_hit_06.wav",
+      "origem": "fatia_010__t0042.07s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/ataque/globin_ataque_01.wav",
+      "origem": "fatia_007__t0034.53s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/ataque/globin_ataque_02.wav",
+      "origem": "fatia_008__t0037.15s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/ataque/globin_ataque_03.wav",
+      "origem": "fatia_009__t0039.42s.wav",
+      "autor": "eminyildirim",
+      "url": "https://freesound.org/people/eminyildirim/sounds/574612/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/metal/machado_guerra/metal_machado_guerra_hit_01.wav",
+      "origem": "fatia_001__t0014.32s(som de impacto no metal, como um machado, marreta ou coisa do tipo, serve como um impacto pesado em um escudo, ou entidade de metal.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/852716/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/combate/generico/generico_block_03.wav",
+      "origem": "fatia_002__t0015.55s(pancada de soco em um escudo poor exemplo).wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/852716/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_02.wav",
+      "origem": "fatia_001__t0001.94s.wav",
+      "autor": "2100385_joshua_blignaut",
+      "url": "https://freesound.org/people/2100385_joshua_blignaut/sounds/593282/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_03.wav",
+      "origem": "fatia_002__t0003.19s.wav",
+      "autor": "2100385_joshua_blignaut",
+      "url": "https://freesound.org/people/2100385_joshua_blignaut/sounds/593282/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_04.wav",
+      "origem": "fatia_003__t0004.67s.wav",
+      "autor": "2100385_joshua_blignaut",
+      "url": "https://freesound.org/people/2100385_joshua_blignaut/sounds/593282/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_05.wav",
+      "origem": "fatia_001__t0000.12s.wav",
+      "autor": "alexkandrell",
+      "url": "https://freesound.org/people/alexkandrell/sounds/158783/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_06.wav",
+      "origem": "fatia_002__t0001.12s.wav",
+      "autor": "alexkandrell",
+      "url": "https://freesound.org/people/alexkandrell/sounds/158783/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_07.wav",
+      "origem": "fatia_003__t0002.08s.wav",
+      "autor": "alexkandrell",
+      "url": "https://freesound.org/people/alexkandrell/sounds/158783/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_08.wav",
+      "origem": "fatia_004__t0002.87s.wav",
+      "autor": "alexkandrell",
+      "url": "https://freesound.org/people/alexkandrell/sounds/158783/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/materiais/carne/soco/carne_soco_hit_09.wav",
+      "origem": "fatia_005__t0003.89s.wav",
+      "autor": "alexkandrell",
+      "url": "https://freesound.org/people/alexkandrell/sounds/158783/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/hit/soco/skeleton_soco_hit_02.wav",
+      "origem": "fatia_001__t0000.30s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/hit/soco/skeleton_soco_hit_03.wav",
+      "origem": "fatia_002__t0000.71s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/skeleton/hit/soco/skeleton_soco_hit_04.wav",
+      "origem": "fatia_003__t0002.18s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/mushroom/hit/soco/mushroom_soco_hit_01.wav",
+      "origem": "fatia_004__t0002.55s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/mushroom/hit/soco/mushroom_soco_hit_02.wav",
+      "origem": "fatia_005__t0004.37s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/mushroom/hit/soco/mushroom_soco_hit_03.wav",
+      "origem": "fatia_006__t0005.46s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/flying_eye/hit/soco/flying_eye_soco_hit_01.wav",
+      "origem": "fatia_007__t0006.93s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/flying_eye/hit/soco/flying_eye_soco_hit_02.wav",
+      "origem": "fatia_008__t0007.27s.wav",
+      "autor": "makadunyiswe",
+      "url": "https://freesound.org/people/makadunyiswe/sounds/593878/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_01.wav",
+      "origem": "fatia_001__t0005.36s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_02.wav",
+      "origem": "fatia_002__t0006.38s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_03.wav",
+      "origem": "fatia_003__t0009.00s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_04.wav",
+      "origem": "fatia_004__t0014.17s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_05.wav",
+      "origem": "fatia_005__t0017.88s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_06.wav",
+      "origem": "fatia_006__t0018.90s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_07.wav",
+      "origem": "fatia_007__t0020.17s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/boss_carrasco/hit/soco/boss_carrasco_soco_hit_08.wav",
+      "origem": "fatia_008__t0021.53s.wav",
+      "autor": "artninja",
+      "url": "https://freesound.org/people/artninja/sounds/864997/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/pouso/pedra/movimento_pouso_pedra_land_04.wav",
+      "origem": "fatia_001__t0000.08s.wav",
+      "autor": "anational",
+      "url": "https://freesound.org/people/anational/sounds/443958/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/pouso/pedra/movimento_pouso_pedra_land_05.wav",
+      "origem": "fatia_002__t0001.88s.wav",
+      "autor": "anational",
+      "url": "https://freesound.org/people/anational/sounds/443958/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/pouso/pedra/movimento_pouso_pedra_land_06.wav",
+      "origem": "fatia_004__t0004.08s.wav",
+      "autor": "anational",
+      "url": "https://freesound.org/people/anational/sounds/443958/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/pouso/pedra/movimento_pouso_pedra_land_07.wav",
+      "origem": "fatia_005__t0006.57s.wav",
+      "autor": "anational",
+      "url": "https://freesound.org/people/anational/sounds/443958/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/pouso/pedra/movimento_pouso_pedra_land_08.wav",
+      "origem": "fatia_006__t0007.93s.wav",
+      "autor": "anational",
+      "url": "https://freesound.org/people/anational/sounds/443958/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/combate/generico/generico_hit_04.wav",
+      "origem": "fatia_001__t0000.59s(serve como um hit de algo mais leve, uma espada ou soco.wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/combate/generico/generico_hit_05.wav",
+      "origem": "fatia_002__t0001.41s(segue a mesma logica do 1).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_14.wav",
+      "origem": "216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
+      "autor": "brainwaves8",
+      "url": "https://freesound.org/people/brainwaves8/sounds/216004/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_15.wav",
+      "origem": "footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_16.wav",
+      "origem": "footsteps-stone-sneaker(funciona como caminhada no tijolo de pedra, pode ser promovido e ficar em alternancia com o 216004).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_18.wav",
+      "origem": "216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
+      "autor": "brainwaves8",
+      "url": "https://freesound.org/people/brainwaves8/sounds/216004/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_19.wav",
+      "origem": "216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
+      "autor": "brainwaves8",
+      "url": "https://freesound.org/people/brainwaves8/sounds/216004/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_20.wav",
+      "origem": "216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
+      "autor": "brainwaves8",
+      "url": "https://freesound.org/people/brainwaves8/sounds/216004/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_21.wav",
+      "origem": "216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
+      "autor": "brainwaves8",
+      "url": "https://freesound.org/people/brainwaves8/sounds/216004/",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_22.wav",
+      "origem": "footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_23.wav",
+      "origem": "footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_24.wav",
+      "origem": "footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_25.wav",
+      "origem": "footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_26.wav",
+      "origem": "footsteps-stone-sneaker(funciona como caminhada no tijolo de pedra, pode ser promovido e ficar em alternancia com o 216004).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_27.wav",
+      "origem": "footsteps-stone-sneaker(funciona como caminhada no tijolo de pedra, pode ser promovido e ficar em alternancia com o 216004).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_28.wav",
+      "origem": "footsteps-stone-sneaker(funciona como caminhada no tijolo de pedra, pode ser promovido e ficar em alternancia com o 216004).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_29.wav",
+      "origem": "footsteps-stone-sneaker(funciona como caminhada no tijolo de pedra, pode ser promovido e ficar em alternancia com o 216004).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/_default/passos/default_passos_step_01.wav",
+      "origem": "galbenshire__footsteps_stone(funciona mais para os inimigos doque o player em si, e claro sem está correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/_default/passos/default_passos_step_02.wav",
+      "origem": "galbenshire__footsteps_stone(funciona mais para os inimigos doque o player em si, e claro sem está correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/_default/passos/default_passos_step_03.wav",
+      "origem": "galbenshire__footsteps_stone(funciona mais para os inimigos doque o player em si, e claro sem está correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/_default/passos/default_passos_step_04.wav",
+      "origem": "galbenshire__footsteps_stone(funciona mais para os inimigos doque o player em si, e claro sem está correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/passos/globin_passos_step_01.wav",
+      "origem": "hiking-boot-footsteps-on-stone(sim para um globin por exemplo, mas ele tem que esta andando nao correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/passos/globin_passos_step_02.wav",
+      "origem": "hiking-boot-footsteps-on-stone(sim para um globin por exemplo, mas ele tem que esta andando nao correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/passos/globin_passos_step_03.wav",
+      "origem": "hiking-boot-footsteps-on-stone(sim para um globin por exemplo, mas ele tem que esta andando nao correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/inimigos/globin/passos/globin_passos_step_04.wav",
+      "origem": "hiking-boot-footsteps-on-stone(sim para um globin por exemplo, mas ele tem que esta andando nao correndo).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_30.wav",
+      "origem": "fps-footsteps-loop(ja funciona como uma coriida em tijolos de pedra, mas nao possui o eco, vamos promove-lo por enquanto).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_31.wav",
+      "origem": "fps-footsteps-loop(ja funciona como uma coriida em tijolos de pedra, mas nao possui o eco, vamos promove-lo por enquanto).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_32.wav",
+      "origem": "fps-footsteps-loop(ja funciona como uma coriida em tijolos de pedra, mas nao possui o eco, vamos promove-lo por enquanto).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_33.wav",
+      "origem": "fps-footsteps-loop(ja funciona como uma coriida em tijolos de pedra, mas nao possui o eco, vamos promove-lo por enquanto).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    },
+    {
+      "arquivo": "sfx/player/movimento/passos/pedra/movimento_passos_pedra_step_17.wav",
+      "origem": "fps-footsteps-loop(ja funciona como uma coriida em tijolos de pedra, mas nao possui o eco, vamos promove-lo por enquanto).wav",
+      "autor": "",
+      "url": "",
+      "licenca": "LIVRE",
+      "atribuicao": "",
+      "data": "2026-11-07"
+    }
+  ],
+  "sinais_a_revisar": [
+    {
+      "arquivo": "musica/boss/boss_01.mp3",
+      "final": true,
+      "bytes": 1873293,
+      "sha256": "c82a121ddd598392e7556dc8265e69ed2c39a213b71a77af5b366e2a760401c3",
+      "sha256_pcm": "4774b239c400d45047a03a41f064b24334abbd70d4cef921b86cb846d7286e1f",
+      "duracao_s": 58.540408,
+      "pico_db": 0.0,
+      "rms_db": -9.673,
+      "saturacao_pct": 0.121454,
+      "silencio_inicio_s": 0.03585,
+      "silencio_final_s": 0.02873,
+      "formato_wav": "",
+      "erro": ""
+    }
+  ]
+}

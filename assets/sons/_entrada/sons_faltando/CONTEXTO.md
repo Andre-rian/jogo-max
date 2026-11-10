@@ -1,5 +1,15 @@
 # Contexto — sons pendentes (para continuar a implementação)
 
+> **Revisão atual: 2026-11-09.** Consulte
+> [OBSERVACOES.md](avaliacao_15_mp3/OBSERVACOES.md) e
+> [LICENCAS_PESQUISADAS.md](avaliacao_15_mp3/LICENCAS_PESQUISADAS.md).
+> Dois destinos foram integrados com novas cópias de fontes CC0 verificadas;
+> onze aprovados têm prévias prontas e aguardam comprovação de origem.
+> Rugido, asas e seleção de ataque por tipo estão implementados. O script agora
+> rejeita `LIVRE`/licença vazia; o exemplo antigo abaixo não deve ser executado.
+> O restante deste documento é o histórico de planejamento de 2026-11-08;
+> contagens, gatilhos ausentes e decisões antigas foram substituídos pela revisão.
+
 > Atualizado em 2026-11-08. Esta pasta **não é carregada pelo jogo**: é triagem.
 > O que já foi promovido está em `assets/sons/sfx/` e registrado em
 > `assets/sons/_config/LICENCAS.csv`.
@@ -13,7 +23,8 @@
 - `core/audio.py` (`ESPECIFICACOES`) e o filtro da cascata foram atualizados.
 - `LICENCAS.csv` teve 112 linhas re-apontadas para os novos caminhos.
 - Os 15 MP3 desta pasta foram reorganizados em subpastas por destino e renomeados
-  com o mesmo padrão. Eles continuam **pendentes de corte/promoção**.
+  com o mesmo padrão. A avaliação foi concluída; 14 continuam **pendentes de
+  licença/corte/promoção** e 1 foi movido para `_uteis/magico/`.
 - Testes de áudio passaram (`tests/test_audio.py`, `tests/test_audio_cascata.py`).
 
 ## Regra de nomes
@@ -29,6 +40,12 @@
   mesmo que a fonte seja `.mp3`.
 
 ## Os 15 pendentes
+
+> **2026-11-09:** os 15 MP3 foram consolidados em `avaliacao_15_mp3/` para
+> facilitar a escuta. Os caminhos da tabela abaixo são os originais, antes da
+> consolidação; use `avaliacao_15_mp3/OBSERVACOES.md` para registrar a avaliação.
+> Na revisão, 09 foi descartado por ora e o disparo mágico (15) foi movido para
+> `_uteis/magico/`; os outros 14 aguardam licença antes da promoção.
 
 Duração/pico/golpes medidos com `python tools/preparar_sons.py inspecionar` nesta pasta.
 `golpes` é a detecção automática de transientes (ajuda a achar compilações).

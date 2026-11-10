@@ -6,6 +6,8 @@ from core.combat import DanoSpec, KnockbackSpec
 
 class ProjetilBoss(Projetil):
 
+    SOM_PROJETIL = "boss"
+
     Vel_projetil = 6
     Timer_vida   = 300   # some depois de 5 segundos se nao acertar nada
 
@@ -31,6 +33,8 @@ class ProjetilBoss(Projetil):
         if not self.ativo:
             return
 
+        self._atualizar_som_voo()
+
         # fisica
         self.vel.y = min(self.vel.y + self.gravidade, 15)
         self.rect.x += int(self.vel.x)
@@ -45,6 +49,7 @@ class ProjetilBoss(Projetil):
         # colisao com o chao
         for tile in rects_solidos:
             if self.rect.colliderect(tile):
+                self._tocar_som_projetil("impacto")
                 self.ativo = False
                 return
 

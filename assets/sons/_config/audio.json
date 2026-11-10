@@ -5,7 +5,9 @@
     "combat": 0.8,
     "player": 0.9,
     "interaction": 0.7,
-    "ui": 0.7
+    "ui": 0.7,
+    "music": 0.35,
+    "ambience": 0.4
   },
   "eventos": {
     "hit": {"cooldown_ms": 60, "max_instancias": 3, "volume": 1.0},

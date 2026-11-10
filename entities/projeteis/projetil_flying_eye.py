@@ -6,6 +6,8 @@ from core.combat import DanoSpec, KnockbackSpec
 
 class ProjetilFlyingEye(Projetil):
 
+    SOM_PROJETIL = "olho"
+
     def __init__(self, x, y, vel_x, vel_y, dano=15):
         super().__init__(x, y, vel_x=vel_x, vel_y=vel_y, dano=dano, tem_gravidade=False, frames_invenc=20)
         self.rect = pygame.Rect(x, y, 16, 16)
@@ -23,6 +25,8 @@ class ProjetilFlyingEye(Projetil):
         if not self.ativo:
             return
 
+        self._atualizar_som_voo()
+
         self._timer_vida -= 1
         if self._timer_vida <= 0:
             self.ativo = False
@@ -33,6 +37,7 @@ class ProjetilFlyingEye(Projetil):
 
         for tile in rects_solidos:
             if self.rect.colliderect(tile):
+                self._tocar_som_projetil("impacto")
                 self.ativo = False
                 return
 

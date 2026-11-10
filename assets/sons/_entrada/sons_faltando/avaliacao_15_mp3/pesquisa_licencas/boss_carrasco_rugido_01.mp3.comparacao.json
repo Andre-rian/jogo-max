@@ -1,0 +1,10 @@
+{
+  "arquivo_local": "boss_carrasco_rugido_01.mp3",
+  "previa": "497056_4444010-hq.mp3",
+  "duracao_local_s": 4.48421768707483,
+  "duracao_previa_s": 4.416145124716553,
+  "metodo": "log1p(100 * potencia FFT 1024 Hann); hop 220; bins 2:200; Pearson; busca atraso -20..20 frames",
+  "correlacao_espectral": 0.967714993279849,
+  "atraso_frames": 9,
+  "observacao": "Similaridade nao comprova identidade binaria; usar copia verificada do Freesound na promocao."
+}

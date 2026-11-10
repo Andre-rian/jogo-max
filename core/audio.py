@@ -20,6 +20,8 @@ VOLUMES_CATEGORIA_INICIAIS = {
     "player": 0.9,
     "interaction": 0.7,
     "ui": 0.7,
+    "music": 0.35,
+    "ambience": 0.4,
 }
 
 ATAQUES_DISPONIVEIS = ("slash", "ataque")
@@ -34,8 +36,8 @@ CATEGORIA_POR_RAIZ = {
     "sfx/mundo": "interaction",
     "sfx/interacao": "interaction",
     "sfx/ui": "ui",
-    "ambiencia": "interaction",
-    "musica": "ui",
+    "ambiencia": "ambience",
+    "musica": "music",
 }
 
 PERFIS_EVENTO = {
@@ -44,6 +46,15 @@ PERFIS_EVENTO = {
     "block": {"cooldown_ms": 60, "max_instancias": 2, "volume": 1.0},
     "swing": {"cooldown_ms": 0, "max_instancias": 1, "volume": 0.65},
     "enemy_attack": {"cooldown_ms": 80, "max_instancias": 3, "volume": 1.0},
+    "enemy_entrada": {"cooldown_ms": 0, "max_instancias": 1, "volume": 1.0},
+    "enemy_rugido": {"cooldown_ms": 3200, "max_instancias": 1, "volume": 0.85},
+    "enemy_asas": {"cooldown_ms": 2400, "max_instancias": 1, "volume": 0.35},
+    "guard_break": {"cooldown_ms": 120, "max_instancias": 1, "volume": 1.0},
+    "jump": {"cooldown_ms": 0, "max_instancias": 1, "volume": 0.9},
+    "mecanismo": {"cooldown_ms": 0, "max_instancias": 1, "volume": 1.0},
+    "ambiente": {"volume": 0.65},
+    "tochas": {"volume": 0.25},
+    "eco_profano": {"cooldown_ms": 60, "max_instancias": 2, "volume": 0.8},
     "step": {"cooldown_ms": 90, "max_instancias": 2, "volume": 1.0},
     "land": {"cooldown_ms": 80, "max_instancias": 1, "volume": 1.0},
     "projectile": {"cooldown_ms": 50, "max_instancias": 3, "volume": 0.85},
@@ -71,7 +82,7 @@ class _Reproducao:
 
 ESPECIFICACOES = {
     "player_attack_slash": SomSpec("sfx/player/armas/espada_longa/armas_espada_longa_swing_01.mp3", "player", 0.65, 1, 0),
-    "player_attack_ataque": SomSpec("sfx/player/armas/espada_longa/armas_espada_longa_swing_02.mp3", "player", 0.65, 1, 0),
+    "player_attack_ataque": SomSpec("sfx/player/armas/espada_longa/armas_espada_longa_swing_02.wav", "player", 0.65, 1, 0),
     "player_hurt": SomSpec("sfx/player/dano/dano_hurt_01.wav", "player", 1.0, 1, 40),
     "player_death": SomSpec("sfx/player/morte/morte_01.ogg", "player", 1.0, 1, 0),
     "player_dash": SomSpec("sfx/player/movimento/dash/movimento_dash_01.wav", "player", 1.0, 1, 0),
@@ -154,6 +165,9 @@ class AudioManager:
         self._ultimos = {}
         self._ultimos_arquivo = {}
         self._indice = {}
+        self._musica_contexto = None
+        self._musica_caminho = None
+        self.music_volume = 1.0
         self._config = self._ler_config()
         self._ataque_ativo = ATAQUE_PLAYER_INICIAL
         self._indice_passo = 0
@@ -193,7 +207,8 @@ class AudioManager:
             if pygame.mixer.get_init() is None:
                 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
             pygame.mixer.set_num_channels(24)
-            pygame.mixer.set_reserved(2)
+            # UI, jogador, ambiência e tochas; música usa o stream separado.
+            pygame.mixer.set_reserved(4)
         except pygame.error as erro:
             logger.warning(f"[AUDIO] mixer indisponível: {erro}")
             return False
@@ -290,7 +305,7 @@ class AudioManager:
         categoria_volume = self.volumes_categoria.get(categoria, 1.0)
         return _limitar_volume(
             self.master_volume
-            * self.sfx_volume
+            * (self.music_volume if categoria == "music" else self.sfx_volume)
             * categoria_volume
             * volume_base
             * ajuste
@@ -306,9 +321,17 @@ class AudioManager:
         )
 
     def _atualizar_volumes_ativos(self):
+        if pygame.mixer.get_init() is None:
+            return
         self._prune_ativos()
         for reproducao in self._ativos:
             self._aplicar_volume(reproducao)
+        if self._musica_caminho is not None:
+            pygame.mixer.music.set_volume(self._volume_final("music", 1.0, 1.0))
+
+    def set_music_volume(self, valor):
+        self.music_volume = _limitar_volume(valor)
+        self._atualizar_volumes_ativos()
 
     def set_master_volume(self, valor):
         self.master_volume = _limitar_volume(valor)
@@ -354,14 +377,15 @@ class AudioManager:
             self._avisar_uma_vez(chave_som, f"[AUDIO] som indisponível: {chave_som}")
             return False
 
+        perfil = self._config.get("eventos", {}).get(grupo, {})
         return self._tocar_som(
             som,
             chave_som,
             grupo,
             spec.categoria,
-            spec.volume_base,
-            spec.cooldown_ms,
-            spec.max_instancias,
+            perfil.get("volume", spec.volume_base),
+            perfil.get("cooldown_ms", spec.cooldown_ms),
+            perfil.get("max_instancias", spec.max_instancias),
             ajuste,
             critico=chave_som in ("player_hurt", "player_death"),
             interrompe=chave_som == "player_death",
@@ -389,7 +413,13 @@ class AudioManager:
             return False
 
         if self._contar_grupo(grupo) >= max_instancias:
-            return False
+            if grupo not in ("swing", "player_attack"):
+                return False
+            # Um novo golpe substitui a cauda do swing anterior, sem ficar mudo.
+            for repro in list(self._ativos):
+                if repro.grupo == grupo:
+                    pygame.mixer.Channel(repro.indice_canal).stop()
+                    self._remover_canal(repro.indice_canal)
 
         indice_canal = self._escolher_canal(
             categoria, critico=critico, interrompe=interrompe
@@ -429,7 +459,7 @@ class AudioManager:
                 return None
             return 0
 
-        for indice in range(2, pygame.mixer.get_num_channels()):
+        for indice in range(4, pygame.mixer.get_num_channels()):
             if not pygame.mixer.Channel(indice).get_busy():
                 return indice
         return None
@@ -443,8 +473,10 @@ class AudioManager:
 
     def _tocar_cascata(
         self, pastas, grupo, evento, categoria=None, ajuste=1.0,
-        prefixo_generico=None,
+        prefixo_generico=None, fallback_sfx=None,
     ):
+        if not self.disponivel or pygame.mixer.get_init() is None:
+            return False
         for pasta in pastas:
             arquivos = self._indice.get(pasta)
             if not arquivos:
@@ -456,10 +488,10 @@ class AudioManager:
                 ]
                 if not arquivos:
                     continue
-            caminho = self._escolher_arquivo(pasta, arquivos)
-            som = self._carregar_som(caminho)
-            if som is None:
+            encontrado = self._som_valido(pasta, arquivos)
+            if encontrado is None:
                 continue
+            caminho, som = encontrado
             perfil = self._config_evento(evento)
             return self._tocar_som(
                 som,
@@ -471,7 +503,68 @@ class AudioManager:
                 perfil.get("max_instancias", 2),
                 ajuste,
             )
+        return self.play_sfx(fallback_sfx) if fallback_sfx else False
+
+    def _som_valido(self, pasta, arquivos=None):
+        restantes = list(self._indice.get(pasta, []) if arquivos is None else arquivos)
+        while restantes:
+            caminho = self._escolher_arquivo(pasta, restantes)
+            som = self._carregar_som(caminho)
+            if som is not None:
+                return caminho, som
+            restantes.remove(caminho)
+        return None
+
+    def _tocar_loop(self, pasta, grupo, evento, canal):
+        if not self.disponivel or pygame.mixer.get_init() is None:
+            return False
+        atual = next((r for r in self._ativos if r.indice_canal == canal), None)
+        if (pasta and atual and Path(atual.chave).parent == self.pasta_sons / pasta
+                and pygame.mixer.Channel(canal).get_busy()):
+            return True
+        pygame.mixer.Channel(canal).stop()
+        self._remover_canal(canal)
+        if not pasta:
+            return False
+        encontrado = self._som_valido(pasta)
+        if encontrado is None:
+            return False
+        caminho, som = encontrado
+        repro = _Reproducao(canal, str(caminho), grupo, "ambience",
+                           self._config_evento(evento).get("volume", 1.0), 1.0)
+        self._aplicar_volume(repro)
+        pygame.mixer.Channel(canal).play(som, loops=-1, fade_ms=200)
+        self._ativos.append(repro)
+        return True
+
+    def play_music(self, contexto):
+        if not self.disponivel or pygame.mixer.get_init() is None:
+            return False
+        if contexto == self._musica_contexto and pygame.mixer.music.get_busy():
+            return True
+        self.stop_music()
+        if not contexto:
+            return False
+        pasta = f"musica/{contexto}"
+        for caminho in self._indice.get(pasta, []):
+            try:
+                pygame.mixer.music.load(str(caminho))
+                pygame.mixer.music.set_volume(self._volume_final("music", 1.0, 1.0))
+                pygame.mixer.music.play(loops=-1, fade_ms=500)
+            except (pygame.error, OSError) as erro:
+                self._avisar_uma_vez(str(caminho), f"[AUDIO] música indisponível: {caminho}: {erro}")
+                continue
+            self._musica_contexto = contexto
+            self._musica_caminho = caminho
+            return True
         return False
+
+    def stop_music(self):
+        if pygame.mixer.get_init() is not None:
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
+        self._musica_contexto = None
+        self._musica_caminho = None
 
     def _pastas_hit(self, inimigo, arma, material):
         return [
@@ -553,6 +646,28 @@ class AudioManager:
         ]
         return self._tocar_cascata(pastas, "step", "step", "player")
 
+    def play_jump(self):
+        pastas = ["sfx/player/movimento/pulo"]
+        return self._tocar_cascata(pastas, "jump", "jump", "player")
+
+    def play_eco_profano(self):
+        pastas = ["sfx/interacao/eco_profano"]
+        return self._tocar_cascata(
+            pastas, "eco_profano", "eco_profano", "interaction", fallback_sfx="eco_pickup"
+        )
+
+    def play_mecanismo(self):
+        pastas = ["sfx/mundo/mecanismos"]
+        return self._tocar_cascata(
+            pastas, "mecanismo", "mecanismo", "interaction", fallback_sfx="door_open"
+        )
+
+    def play_tochas(self, ativo=True):
+        return self._tocar_loop("sfx/mundo/tochas" if ativo else None, "tochas", "tochas", 3)
+
+    def play_ambiente(self, nome):
+        return self._tocar_loop(f"ambiencia/{nome}" if nome else None, "ambiente", "ambiente", 2)
+
     def play_enemy_step(self, inimigo):
         pastas = [
             f"sfx/inimigos/{inimigo}/passos",
@@ -570,26 +685,79 @@ class AudioManager:
         ]
         return self._tocar_cascata(pastas, "land", "land", "player")
 
-    def play_enemy_attack(self, inimigo):
+    def play_enemy_attack(self, inimigo, tipo="normal"):
+        if tipo == "esporo":
+            return self.play_enemy_esporo(inimigo)
         pastas = [
+            f"sfx/inimigos/{inimigo}/ataque/{tipo}",
             f"sfx/inimigos/{inimigo}/ataque",
             "sfx/inimigos/_default/ataque",
         ]
         return self._tocar_cascata(pastas, "enemy_attack", "enemy_attack", "combat")
 
-    def play_projectile(self, tipo, fase):
+    def play_enemy_esporo(self, inimigo):
         pastas = [
-            f"sfx/projeteis/{tipo}/{fase}",
-            f"sfx/projeteis/{tipo}/impacto",
-            "sfx/projeteis/bomba/impacto",
+            f"sfx/inimigos/{inimigo}/esporo",
+            "sfx/inimigos/_default/ataque",
         ]
-        return self._tocar_cascata(pastas, f"projectile_{tipo}", "projectile", "combat")
+        return self._tocar_cascata(
+            pastas, "enemy_esporo", "enemy_attack", "combat"
+        )
+
+    def play_enemy_entrada(self, inimigo):
+        pastas = [
+            f"sfx/inimigos/{inimigo}/entrada",
+            "sfx/inimigos/_default/entrada",
+        ]
+        return self._tocar_cascata(
+            pastas, "enemy_entrada", "enemy_entrada", "combat"
+        )
+
+    def play_enemy_rugido(self, inimigo):
+        return self._tocar_cascata(
+            [f"sfx/inimigos/{inimigo}/rugido"], "enemy_rugido", "enemy_rugido", "combat"
+        )
+
+    def play_enemy_asas(self, inimigo):
+        return self._tocar_cascata(
+            [f"sfx/inimigos/{inimigo}/asas"], "enemy_asas", "enemy_asas", "combat"
+        )
+
+    def play_enemy_quebra_guarda(self, inimigo):
+        pastas = [
+            f"sfx/inimigos/{inimigo}/hit/quebra_guarda",
+            f"sfx/inimigos/{inimigo}/hit/_default",
+            "sfx/combate/generico",
+        ]
+        return self._tocar_cascata(
+            pastas,
+            "guard_break",
+            "guard_break",
+            "combat",
+            prefixo_generico="hit",
+        )
+
+    def play_projectile(self, tipo, fase):
+        pastas = [f"sfx/projeteis/{tipo}/{fase}"]
+        if fase == "impacto":
+            pastas.append("sfx/combate/generico")
+        return self._tocar_cascata(pastas, f"projectile_{tipo}_{fase}", "projectile",
+                                  "combat", prefixo_generico="hit")
+
+    def stop_world_sfx(self):
+        if pygame.mixer.get_init() is not None:
+            for repro in list(self._ativos):
+                if repro.categoria != "ui":
+                    pygame.mixer.Channel(repro.indice_canal).stop()
+                    self._remover_canal(repro.indice_canal)
+                    self._ultimos.pop(repro.grupo, None)
 
     def stop_all_sfx(self):
         if pygame.mixer.get_init() is not None:
             for indice in range(pygame.mixer.get_num_channels()):
                 pygame.mixer.Channel(indice).stop()
         self._ativos.clear()
+        self._ultimos.clear()
 
 
 audio = AudioManager()

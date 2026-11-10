@@ -1,5 +1,30 @@
-import pygame
+import os
 import sys
+from pathlib import Path
+
+
+def _usar_venv_do_projeto():
+    if os.environ.get("PROFANE_VENV_ATIVO") == "1":
+        return
+    raiz = Path(__file__).resolve().parent
+    pasta_venv = raiz / ".venv"
+    pasta_bin = Path("Scripts") if os.name == "nt" else Path("bin")
+    executavel = "python.exe" if os.name == "nt" else "python"
+    python_venv = pasta_venv / pasta_bin / executavel
+    if not python_venv.exists():
+        return
+    if Path(sys.prefix).resolve() == pasta_venv.resolve():
+        return
+    os.environ["PROFANE_VENV_ATIVO"] = "1"
+    os.execv(str(python_venv), [str(python_venv), str(Path(__file__).resolve()), *sys.argv[1:]])
+
+
+_usar_venv_do_projeto()
+
+if sys.version_info < (3, 11):
+    sys.exit("Profane Echo requer Python 3.11 ou superior (recomendado 3.14).")
+
+import pygame
 import atexit
 import logging
 import argparse

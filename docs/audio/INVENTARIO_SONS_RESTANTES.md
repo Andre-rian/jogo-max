@@ -1,8 +1,12 @@
 # Inventário dos sons restantes
 
+> **Registro histórico anterior à revisão de 2026-11-10.** Para o estado atual,
+> consultar [STATUS_SONS.md](STATUS_SONS.md) e
+> [ARQUIVOS.csv](auditoria_geral/ARQUIVOS.csv).
+
 > Gerado em 2026-11-07 após a 2ª triagem. **27 fontes** e **42 fatias** em `_entrada/`. `_para_fatiar/` foi removido; só ficaram as fatias citadas nos MDs/anotações.
 
-A tabela completa (uma linha por arquivo) está em `tools/inventario_sons_restantes.csv`.
+A tabela completa (uma linha por arquivo) está em `docs/audio/auditoria_geral/ARQUIVOS.csv` (inventário atual).
 
 ## `_fatias/345308__samsterbirdies__sword-sounds-compilation(som de hits no metal, talvez util precisa ser fatiado)`
 

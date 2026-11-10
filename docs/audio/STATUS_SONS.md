@@ -1,5 +1,7 @@
 # Status dos sons — revisão de 2026-11-10
 
+Relatório desta limpeza: [REVISAO_GERAL_2026_11_10.md](REVISAO_GERAL_2026_11_10.md).
+
 Guia para continuar o trabalho: [GUIA_CONTINUACAO_AUDIO.md](GUIA_CONTINUACAO_AUDIO.md).
 
 Base: árvore local de `assets/sons/`, código atual e registros de licença. Este
@@ -13,7 +15,7 @@ promoções dos lotes 1–3 já presentes no workspace.
   antigos permanecem preservados, sem licença presumida.
 - **11 aprovados aguardam comprovação de origem/licença**, com prévias editadas
   e tabela de promoção preparada.
-- **1 rejeitado:** ataque do Skeleton com impacto embutido.
+- **1 rejeitado e removido na limpeza:** ataque do Skeleton com impacto embutido; avaliação e hash histórico preservados.
 - **1 reservado para o futuro:** disparo mágico em `_uteis/magico/`.
 - Há **13 prévias editadas** dos originais para comparação. O impacto em carne
   usa pico de -12 dBFS; os demais, -3 dBFS. Silêncios foram aparados, portanto
@@ -44,9 +46,16 @@ mecanismos, tochas e disparo de ambiência na entrada da sala.
 A revisão geral adicionou loops persistentes de ambiência/tochas e reprodução
 das quatro músicas por contexto, com volumes separados. Corrigiu gatilhos
 duplicados, cooldowns de projéteis, fallbacks e o silêncio inicial da espada.
-A mixagem por escuta continua pendente; veja o guia de continuação.
+Nesta rodada também foram habilitadas as 13 variações de UI e a variação de
+abrir porta já existentes, mantendo cada ação separada. A mixagem por escuta
+continua pendente; veja o guia de continuação.
 
 ## Inventário atual
+
+- **460 áudios ao todo; 212 em `_entrada`**, após retirar 76 sobras (313,32 MiB).
+- Recuperados 222 ponteiros LFS; todos os arquivos restantes decodificam.
+- Preservados os 17 áudios em `_uteis` e todas as reservas anotadas.
+- 8 grupos de duplicatas finais entre contextos diferentes; nenhum dentro da mesma pasta.
 
 - **248 arquivos** em `sfx/`, `ambiencia/` e `musica/`.
 - Os **37 arquivos de ESPECIFICACOES** existem.
@@ -79,14 +88,8 @@ continuam em suas pastas. Eles não comprovam a licença dos 15 MP3 renomeados.
 
 ## Validação
 
-**156 testes passaram** (`python -m pytest -ra`). `git diff --check` e
-`git lfs fsck` também passaram. Os 248 áudios finais foram decodificados sem
-erro; as 37 especificações carregaram no mixer dummy. As duas novas reproduções
-foram exercitadas, os 13 WAV de prévia foram validados e os hashes dos 15 MP3
-originais permaneceram iguais.
-
-Testes de regressão cobrem bloqueio de promoção sem licença, créditos CC BY,
-volume por arquivo, repetição da promoção, gatilhos de rugido/asas e
-encaminhamento do tipo de ataque. A revisão técnica inclui decodificação das
-prévias, duração/pico, formato dos WAV finais, preservação dos 15 originais e
-carregamento dos sons no mixer dummy. Escuta em gameplay permanece necessária.
+A auditoria atual decodificou os **460 arquivos sem erro**; as 37 especificações
+estáticas existem. **159 testes passaram** e `git lfs fsck` passou. Os hashes dos 248 áudios finais e dos
+17 áudios `_uteis` permaneceram iguais. A suíte inclui os testes anteriores e
+regressões de variações de UI/interação; resultado registrado no relatório da
+revisão. Escuta em gameplay permanece necessária.

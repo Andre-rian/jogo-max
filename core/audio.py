@@ -373,6 +373,24 @@ class AudioManager:
             return False
 
         som = self._sons.get(chave_som)
+        chave_reproducao = chave_som
+        if spec.categoria in ("ui", "interaction"):
+            caminho_base = self.pasta_sons / spec.arquivo
+            pasta = Path(spec.arquivo).parent.as_posix()
+            prefixo = caminho_base.stem.rsplit("_", 1)[0]
+            # Abrir e fechar compartilham pasta, mas não compartilham variantes.
+            arquivos = [
+                p for p in self._indice.get(pasta, [])
+                if p.stem.rsplit("_", 1)[0] == prefixo
+                and p.stem.rsplit("_", 1)[-1].isdigit()
+            ]
+            if som is not None:
+                self._sons.setdefault(str(caminho_base), som)
+            encontrado = self._som_valido(chave_som, arquivos)
+            if encontrado is not None:
+                caminho, som = encontrado
+                if caminho != caminho_base:
+                    chave_reproducao = str(caminho)
         if som is None:
             self._avisar_uma_vez(chave_som, f"[AUDIO] som indisponível: {chave_som}")
             return False
@@ -380,7 +398,7 @@ class AudioManager:
         perfil = self._config.get("eventos", {}).get(grupo, {})
         return self._tocar_som(
             som,
-            chave_som,
+            chave_reproducao,
             grupo,
             spec.categoria,
             perfil.get("volume", spec.volume_base),

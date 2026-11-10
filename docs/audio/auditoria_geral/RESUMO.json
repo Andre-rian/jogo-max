@@ -1,77 +1,9 @@
 {
-  "total": 532,
+  "total": 460,
   "finais": 248,
-  "triagem": 284,
+  "triagem": 212,
   "erros": [],
   "duplicatas_bytes": [
-    [
-      "_entrada/1_combate_player/impactos_organicos/342397__christopherderp__swords-clash-w-swing-1.wav",
-      "_entrada/_uteis/metal/342397__christopherderp__swords-clash-w-swing-1(o som é de hit em metal, utilizavel mas nao agora).wav"
-    ],
-    [
-      "_entrada/1_combate_player/soco/232358__richerlandtv__heavy-impacts.mp3",
-      "_entrada/_uteis/soco/232358__richerlandtv__heavy-impacts.mp3"
-    ],
-    [
-      "_entrada/2_materiais/osso/147993__bewareofkites20__bone-cracking.wav",
-      "_entrada/_uteis/osso/147993__bewareofkites20__bone-cracking.wav"
-    ],
-    [
-      "_entrada/2_materiais/osso/161381__vinrax__bone_crack1.wav",
-      "_entrada/_uteis/osso/161381__vinrax__bone_crack1.wav"
-    ],
-    [
-      "_entrada/5_mundo_movimento/passos_pedra/216004__brainwaves8__walking-down-the-hallway(funciona em ambientes fechados como o proprio calabouço, por causa do eco, ja pode ser promovido).wav",
-      "_entrada/5_mundo_movimento/passos_pedra/216004__brainwaves8__walking-down-the-hallway.wav"
-    ],
-    [
-      "_entrada/5_mundo_movimento/passos_pedra/465299__softdistortionfx__concrete-footsteps.flac",
-      "_entrada/_uteis/passos/465299__softdistortionfx__concrete-footsteps__cortar_depois.flac"
-    ],
-    [
-      "_entrada/5_mundo_movimento/passos_pedra/footsteps-stone-sequence(funciona para caminhadas nao corridas, o arquivo em si ja funciona, nao precisa fatias).wav",
-      "_entrada/5_mundo_movimento/passos_pedra/footsteps-stone-sequence.wav"
-    ],
-    [
-      "_entrada/5_mundo_movimento/passos_pedra/galbenshire__footsteps_stone.wav",
-      "_entrada/_uteis/passos_inimigos/galbenshire__footsteps_stone(funciona mais para os inimigos doque o player em si, e claro sem está correndo).wav"
-    ],
-    [
-      "_entrada/5_mundo_movimento/passos_pedra/hiking-boot-footsteps-on-stone.wav",
-      "_entrada/_uteis/passos_inimigos/hiking-boot-footsteps-on-stone(sim para um globin por exemplo, mas ele tem que esta andando nao correndo).wav"
-    ],
-    [
-      "_entrada/5_mundo_movimento/pouso_pedra/grande_impacto.wav",
-      "_entrada/_uteis/impactos/grande_impacto(o som de impacto é para ataques de inimigos grandes que batem no chao.wav"
-    ],
-    [
-      "_entrada/6_ui/epica/207183__klankbeeld__heavy-steel-noise-03.wav",
-      "_entrada/_uteis/menu/207183__klankbeeld__heavy-steel-noise-03(bom som para menu inicial).wav"
-    ],
-    [
-      "_entrada/6_ui/epica/819290__johnmode__mystical-female-choir-swell-01(estilo em duvida.wav",
-      "_entrada/_uteis/efeitos/819290__johnmode__mystical-female-choir-swell-01(nao serve como musica ambiente, mas sim um efeito sonoro, pode ser util no futuro).wav"
-    ],
-    [
-      "_entrada/6_ui/epica/819291__johnmode__mystical-female-choir-swell-02.wav",
-      "_entrada/_uteis/efeitos/819291__johnmode__mystical-female-choir-swell-02(nao serve como musica ambiente, mas sim um efeito sonoro, pode ser util no futuro.wav"
-    ],
-    [
-      "_entrada/6_ui/epica/819349__johnmode__mystical-female-choir-swell-03.wav",
-      "_entrada/_uteis/efeitos/819349__johnmode__mystical-female-choir-swell-03((nao serve como musica ambiente, mas sim um efeito sonoro, pode ser util no futuro).wav"
-    ],
-    [
-      "_entrada/6_ui/epica/831971__bassimat__metal-stand-gong-hit-percussion-004-via-low-frequency-geo-microphone.wav",
-      "_entrada/_uteis/efeitos/831971__bassimat__metal-stand-gong-hit-percussion-004-via-low-frequency-geo-microphone(nao funciona tanto como ui).wav"
-    ],
-    [
-      "_entrada/6_ui/epica/861361__feraly__bwung.wav",
-      "_entrada/_uteis/efeitos/861361__feraly__bwung(o som nao funciona com ui mas como algum efeito sonoro).wav"
-    ],
-    [
-      "_entrada/6_ui/epica/873650__packsmithy__dark-confirm-synth-horror-game-interface-sounds(talvez no inventario).wav",
-      "_entrada/_uteis/inventario/873650__packsmithy__dark-confirm-synth-horror-game-interface-sounds(talvez no inventario).wav"
-    ],
     [
       "sfx/inimigos/boss_carrasco/hit/espada_longa/boss_carrasco_espada_longa_hit_01.wav",
       "sfx/inimigos/skeleton/hit/espada_longa/skeleton_espada_longa_hit_02.wav",
@@ -1254,7 +1186,7 @@
       "final": true,
       "bytes": 1873293,
       "sha256": "c82a121ddd598392e7556dc8265e69ed2c39a213b71a77af5b366e2a760401c3",
-      "sha256_pcm": "4774b239c400d45047a03a41f064b24334abbd70d4cef921b86cb846d7286e1f",
+      "sha256_pcm": "33478d6c3174cbe365277c35e0e5932237f74153eacde3151b233ad17521222c",
       "duracao_s": 58.540408,
       "pico_db": 0.0,
       "rms_db": -9.673,

@@ -63,7 +63,7 @@ pelo jogo e não ganham licença por terem sido editadas.
 - `tools/promocao_lote4.csv`: duas fontes verificadas, já promovidas.
 - `tools/promocao_lote4_pendentes.csv`: onze aprovados, com cortes/fades/pico
   definidos e licença `PENDENTE`; o script recusa todos enquanto faltar comprovação.
-- 09 (ataque do Skeleton) segue rejeitado por impacto embutido.
+- 09 (ataque do Skeleton) foi rejeitado por impacto embutido e removido na limpeza de 2026-11-10. O hash histórico continua em `originais_sha256.json`; recuperação em `docs/audio/auditoria_geral/LIMPEZA_ENTRADA.csv`.
 - 15 (disparo mágico) continua reservado em `_uteis/magico/`.
 
 Para liberar uma linha pendente, confirmar a correspondência com a fonte exata,

@@ -1,5 +1,9 @@
 # Sons faltando — lista de trabalho
 
+> **Registro histórico anterior à revisão de 2026-11-10.** Para o estado atual,
+> consultar [STATUS_SONS.md](STATUS_SONS.md) e
+> [ARQUIVOS.csv](auditoria_geral/ARQUIVOS.csv).
+
 > Baseado em `core/audio.py`, na árvore `assets/sons/` e nos relatórios de áudio.
 > Atualizado em 2026-11-07.
 
@@ -7,13 +11,13 @@
 
 - Os **37 sons obrigatórios** de `ESPECIFICACOES` em `core/audio.py` **existem todos**; os 37 caminhos foram verificados em `assets/sons/`.
 - O que falta são os sons **específicos**. Enquanto a pasta está vazia, a cascata de fallback usa um som genérico já existente.
-- Muitos itens já têm candidato em `assets/sons/_entrada/`; o CSV `tools/promocao_exec_final.csv` registra as promoções executadas e o inventário restante está em `tools/inventario_sons_restantes.csv`.
+- Muitos itens já têm candidato em `assets/sons/_entrada/`; o CSV `tools/promocao_exec_final.csv` registra as promoções executadas e o inventário restante está em `docs/audio/auditoria_geral/ARQUIVOS.csv` (inventário atual).
 
 ### Promovidos em 2026-11-07
 
 Já preenchidos (não são mais pastas vazias): hits do Skeleton (`_default`, `machado_guerra`, `soco`), hits do Mushroom e Flying Eye (`soco`), mortes do Skeleton, impacto em osso (`_default`, `espada_longa`), impacto em carne (`_default`, `soco`, 4× `espada_longa`), impacto em metal (`_default`, `espada_longa`, `machado_guerra`), morte do Mushroom, swings do soco, bloqueio de escudo do Boss Carrasco, hit de soco do Boss, ataque do Globin, `ui/confirmar`, `ui/erro`, `ui/navegar`, `ui/pausa`, `mundo/portas`, passos (madeira + 33 em pedra), passos de inimigos (`globin/passos` e `inimigos/_default/passos`, 4 cada) e pouso em pedra (8). O registro está em `assets/sons/_config/LICENCAS.csv` e os CSVs executados em `tools/promocao_exec_*.csv`.
 
-Ainda fora da promoção: `_entrada/_fatias/` (38 fatias em 7 pastas), `_entrada/_uteis/` (16 fontes para depois; as 2 de passos de inimigos já foram usadas nos cortes, mas os originais permanecem) e as 4 fontes longas de passos em `5_mundo_movimento/passos_pedra/`. O `_para_fatiar/` foi removido após a 2ª triagem; `_entrada/_revisar/` está vazia no momento. O inventário atualizado está em `tools/inventario_sons_restantes.csv` e `docs/audio/INVENTARIO_SONS_RESTANTES.md`.
+Ainda fora da promoção: `_entrada/_fatias/` (38 fatias em 7 pastas), `_entrada/_uteis/` (16 fontes para depois; as 2 de passos de inimigos já foram usadas nos cortes, mas os originais permanecem) e as 4 fontes longas de passos em `5_mundo_movimento/passos_pedra/`. O `_para_fatiar/` foi removido após a 2ª triagem; `_entrada/_revisar/` está vazia no momento. O inventário atualizado está em `docs/audio/auditoria_geral/ARQUIVOS.csv` (inventário atual) e `docs/audio/INVENTARIO_SONS_RESTANTES.md`.
 
 Legenda de prioridade:
 

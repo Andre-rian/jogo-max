@@ -1,5 +1,9 @@
 # Plano de busca dos sons remanescentes
 
+> **Registro histórico anterior à revisão de 2026-11-10.** Para o estado atual,
+> consultar [STATUS_SONS.md](STATUS_SONS.md) e
+> [ARQUIVOS.csv](auditoria_geral/ARQUIVOS.csv).
+
 > Preparado em 2026-11-09. Atualização: usuário deu OK para pesquisa/download, com todos os candidatos restritos a `sons_faltando`.
 > Primeiro lote concluído: 66 candidatos em `assets/sons/_entrada/sons_faltando/busca_2026_11_09/`; nenhum áudio promovido e nenhum código alterado.
 

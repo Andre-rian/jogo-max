@@ -105,6 +105,45 @@ def test_configuracao_de_evento_estatico_e_aplicada():
     assert pygame.mixer.Channel(1).get_volume() == pytest.approx(0.8 * 0.9 * 0.2, abs=0.01)
 
 
+def test_ui_alterna_variacoes_sem_repeticao_imediata(tmp_path):
+    arquivos = {
+        som_teste(tmp_path, f"sfx/ui/confirmar/confirmar_{n:02}.wav")
+        for n in (1, 2)
+    }
+    m = manager(tmp_path)
+    tocados = []
+    for _ in range(3):
+        assert m.play_sfx("ui_confirm")
+        tocados.append(pygame.mixer.Channel(0).get_sound())
+        m.stop_all_sfx()
+    assert tocados[0] is not tocados[1]
+    assert tocados[0] is tocados[2]
+    assert arquivos <= {Path(k) for k in m._sons}
+
+
+def test_ui_variante_valida_substitui_original_ruim_sem_tocar_outra_acao(tmp_path):
+    original = som_teste(tmp_path, "sfx/ui/pausa/pausa_abrir_01.wav")
+    original.write_bytes(b"audio corrompido")
+    valido = som_teste(tmp_path, "sfx/ui/pausa/pausa_abrir_02.wav")
+    som_teste(tmp_path, "sfx/ui/pausa/pausa_fechar_01.wav")
+    m = manager(tmp_path)
+    assert m.play_sfx("ui_pause_open", ajuste=0.5)
+    assert pygame.mixer.Channel(0).get_sound() is m._sons[str(valido)]
+    assert pygame.mixer.Channel(0).get_volume() == pytest.approx(0.8 * 0.7 * 0.5, abs=0.01)
+    m.stop_all_sfx()
+    assert m.play_sfx("ui_pause_close")
+    assert pygame.mixer.Channel(0).get_sound() is not m._sons[str(valido)]
+
+
+def test_porta_usa_variante_integrada_e_preserva_acao_fechar(monkeypatch):
+    m = manager()
+    monkeypatch.setattr(m, "_escolher_arquivo", lambda pasta, arquivos: arquivos[-1])
+    assert m.play_sfx("door_open")
+    assert m._ativos[-1].chave.endswith("portas_abrir_02.wav")
+    assert m.play_sfx("door_close")
+    assert m._ativos[-1].chave == "door_close"
+
+
 def test_loops_nao_reiniciam_e_param_se_destino_ficar_vazio(tmp_path):
     som_teste(tmp_path, "ambiencia/sala/teste.wav")
     som_teste(tmp_path, "sfx/mundo/tochas/teste.wav")

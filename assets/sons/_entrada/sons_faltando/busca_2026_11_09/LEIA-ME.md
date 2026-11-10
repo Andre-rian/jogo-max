@@ -1,15 +1,24 @@
 # Candidatos de áudio — busca de 2026-11-09
 
-**66 áudios, 8,2 MiB, todos em triagem.** São 64 arquivos obtidos de pacotes/fontes e 2 prévias públicas HQ do Freesound. Nenhum arquivo deste lote foi colocado em `sfx/`, `musica/` ou `ambiencia/`, e nenhum gatilho foi alterado.
+**Atualização de 2026-11-10:** os 66 arquivos originais foram utilizados nas
+promoções dos lotes 1–3. Permanecem aqui como fontes para reprodução das edições,
+com hashes, autoria e licenças. Não são carregados diretamente pelo jogo.
 
-## Como avaliar
+`CANDIDATOS.csv` agora registra `fonte_utilizada_em_promocao` e os
+`destinos_promovidos` conferidos na árvore final. Os campos de opinião do usuário
+não foram preenchidos automaticamente. As receitas concluídas estão em
+`tools/promocao_lote1.csv` a `tools/promocao_lote3.csv`; o pulo usa a fatia 003 da fonte.
 
-1. Abra [ESCUTA.md](ESCUTA.md): cada linha leva ao áudio e informa duração e uso sugerido.
-2. Se preferir um reprodutor externo, abra [ESCUTA.m3u8](ESCUTA.m3u8), que segue a mesma ordem de IDs.
-3. Em [CANDIDATOS.csv](CANDIDATOS.csv), preencha `aprovado` e `observacao_usuario` com suas escolhas. Todas as células de aprovação estão vazias inicialmente.
-4. Consulte [COBERTURA_55_DESTINOS.csv](COBERTURA_55_DESTINOS.csv) para ver quais candidatos foram sugeridos para cada pendência.
+## Como consultar
 
-Os destinos são propostas de uso. A escolha foi feita pelas descrições das fontes, categoria, duração e análise técnica; **a escuta artística e a aprovação ainda estão pendentes**. Os arquivos permanecem sem corte, normalização ou mixagem.
+1. [ESCUTA.md](ESCUTA.md) e [ESCUTA.m3u8](ESCUTA.m3u8) permitem ouvir as fontes.
+2. [CANDIDATOS.csv](CANDIDATOS.csv) relaciona fontes e destinos já utilizados.
+3. [COBERTURA_55_DESTINOS.csv](COBERTURA_55_DESTINOS.csv) é o mapeamento histórico
+   da busca, anterior às promoções. As pendências atuais estão em
+   [STATUS_SONS.md](../../../../../docs/audio/STATUS_SONS.md).
+
+Os dados de prioridade e recomendações de edição abaixo registram a busca
+original de 2026-11-09. Não são uma nova fila de promoção.
 
 ## Organização
 

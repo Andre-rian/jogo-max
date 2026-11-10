@@ -4,6 +4,14 @@ Atualizado em **2026-11-10**, branch `som`. Orientações para quem continuar o
 trabalho, no formato de um guia de agente. Este arquivo registra o estado da
 revisão; não substitui as decisões de escuta do usuário em OBSERVACOES.md.
 
+## Revisão e limpeza mais recentes
+
+Ver [REVISAO_GERAL_2026_11_10.md](REVISAO_GERAL_2026_11_10.md).
+Foram recuperados 222 ponteiros LFS e retirados 76 arquivos sem função na
+triagem (313,32 MiB), com manifesto e recuperação. Restam 460 áudios: 248 finais
+e 212 em `_entrada`. Os 17 arquivos em `_uteis` foram preservados.
+A seleção de variantes de UI/interação agora utiliza 14 finais antes ignorados.
+
 ## Leia primeiro
 
 - [Status e destinos ainda vazios](STATUS_SONS.md).
@@ -23,7 +31,8 @@ linhas cuja origem começa com `#` já foram processadas.
 
 ### Arquivos e licenças
 
-- Preservados os 15 MP3 originais na triagem; o disparo mágico ficou em
+- Preservados 14 dos 15 MP3 originais; o rejeitado 09 foi removido na limpeza,
+  com hash e recuperação no manifesto. O disparo mágico ficou em
   `_entrada/sons_faltando/_uteis/magico/` para uso futuro.
 - Preparadas 13 prévias editadas em `avaliacao_15_mp3/previas_editadas/`, com
   duração e parâmetros em `PREVIAS.csv`. Impacto em carne tem pico de -12 dBFS;
@@ -66,11 +75,11 @@ linhas cuja origem começa com `#` já foram processadas.
 
 | Verificação | Resultado |
 |---|---:|
-| Arquivos de áudio em toda a árvore | 532 |
+| Arquivos de áudio em toda a árvore | 460 |
 | Finais (`sfx`, `ambiencia`, `musica`) | 248 |
-| Triagem, fontes, prévias e backups | 284 |
+| Triagem, fontes, prévias e backups | 212 |
 | Erros de decodificação | 0 |
-| Grupos com bytes idênticos em toda a árvore | 25 |
+| Grupos com bytes idênticos em toda a árvore | 8 |
 | Grupos com PCM idêntico entre arquivos finais | 8 |
 | Pastas finais vazias | 11 |
 | Arquivos finais sem registro de licença | 42 |
@@ -166,8 +175,8 @@ que o checkout contém arquivos reais, não ponteiros LFS sem download.
 
 ## Validação desta entrega
 
-**156 testes passaram** em 2026-11-10 (`python -m pytest -ra`). A auditoria
-decodificou os 532 arquivos sem erro. A revisão anterior também verificou o
+**159 testes passaram** em 2026-11-10 (`python -m pytest -ra`). A auditoria
+decodificou os 460 arquivos sem erro. A revisão anterior também verificou o
 carregamento das 37 especificações e a preservação dos hashes dos 15 originais.
 Os testes novos cobrem promoção/licenças, rugido/asas, cascata, loops, música,
 cooldowns, projéteis, pausa e entrada do Boss por TMX. Escuta manual completa

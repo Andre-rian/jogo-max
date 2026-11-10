@@ -3,7 +3,9 @@
 > Pasta de triagem: **não é carregada pelo jogo**. Os arquivos foram consolidados
 > aqui apenas para facilitar a escuta e a anotação.
 >
-> Os 15 MP3 originais continuam preservados, sem comprovação individual de origem.
+> Dos 15 MP3, 14 continuam preservados, sem comprovação individual de origem.
+> O rejeitado 09 foi removido na limpeza de 2026-11-10; hash e recuperação em
+> [LIMPEZA_ENTRADA.csv](../../../../../docs/audio/auditoria_geral/LIMPEZA_ENTRADA.csv).
 > Para 03 e 07 foram obtidas cópias de fontes **CC0 verificadas**, editadas e
 > integradas ao jogo. Não foi atribuída uma licença por suposição aos MP3 antigos.
 >
@@ -248,7 +250,7 @@
 - Não promover: 09 (impacto embutido).
 - **Licenças:** 11 aprovados ainda aguardam comprovação individual de origem. O script foi corrigido: licença vazia, `LIVRE`, `VERIFICAR` ou `PENDENTE` agora impede a promoção. O lote confirmado está em `tools/promocao_lote4.csv`; os 11 bloqueados, em `tools/promocao_lote4_pendentes.csv`.
 - **Volume:** a prévia de carne (10) tem pico de -12 dBFS, 9 dB abaixo das demais; `pico_db` preserva esse ajuste quando a fonte for confirmada.
-- **Preservação:** hashes dos 15 originais em `pesquisa_licencas/originais_sha256.json`. 09 não foi editado/promovido; 15 permanece em `_uteis/magico/`.
+- **Preservação:** hashes dos 15 originais em `pesquisa_licencas/originais_sha256.json`. 09 foi removido na limpeza de 2026-11-10, sem promoção; 15 permanece em `_uteis/magico/`.
 - Cortes candidatos: 02 ~0,65 s; 03 ~3,20 s + fade 300 ms; 05 ~1,30 s; 07 ~1,3 s; 08 ~0,65 s; 11 1,50 s; 12 ~1,20 s; 14 ~1,35 s.
 - A inspeção de 2026-11-09 detectou: 02 com 1 golpe (cauda longa), 03/14/15 com 2 golpes e 04 com 3 batidas de asa.
-- Fatias de audição em `assets/sons/_entrada/_fatias/`.
+- As fatias experimentais deste lote foram substituídas por `previas_editadas/` e removidas na limpeza; os originais aprovados e as 13 prévias permanecem.

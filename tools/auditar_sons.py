@@ -119,7 +119,7 @@ def main():
     )
     args.saida.mkdir(parents=True, exist_ok=True)
     with (args.saida / "ARQUIVOS.csv").open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(linhas[0]))
+        w = csv.DictWriter(f, fieldnames=list(linhas[0]), lineterminator="\n")
         w.writeheader()
         w.writerows(linhas)
     (args.saida / "RESUMO.json").write_text(json.dumps(resumo, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")

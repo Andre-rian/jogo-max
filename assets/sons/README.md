@@ -38,7 +38,7 @@ assets/sons/
 
 - ASCII minúsculo, sem acento, espaço ou parênteses.
 - Variações numeradas: `hit_01.wav`, `hit_02.wav`, `swing_01.wav`, `step_01.wav`, `land_01.wav`, `morte_01.wav`.
-- O jogo sorteia entre todos os arquivos de áudio da pasta; não é preciso registrar cada variação no código.
+- A cascata de combate/movimento sorteia os arquivos da pasta. Eventos de UI e interação sorteiam variantes numeradas da mesma ação (`pausa_abrir_01`, `pausa_abrir_02`), sem misturar abrir/fechar. Música usa o primeiro arquivo válido do contexto.
 - Pasta `_default/` é o fallback local. Prefixo `_` significa "não é uma arma/material/inimigo".
 - SFX curtos: WAV PCM 16-bit, 44,1 kHz, mono, pico entre -3 e -1 dBFS.
 - Música e ambiência: OGG.
@@ -59,7 +59,7 @@ Passos e pouso usam o material do piso da sala (`MATERIAL_PISO` em `world/niveis
 
 ## Entrada de novos arquivos
 
-`_entrada/` é a área de triagem. Os arquivos ali **não são carregados pelo jogo**. Consulte `docs/audio/RELATORIO_NOVOS_SONS.md` para saber o destino sugerido de cada candidato. Só mova para `sfx/`, `ambiencia/` ou `musica/` depois de editar, normalizar e registrar a licença.
+`_entrada/` é a área de triagem. Os arquivos ali **não são carregados pelo jogo**. Consulte `_entrada/sons_faltando/CONTEXTO.md` para retomar a avaliação atual. Só mova para `sfx/`, `ambiencia/` ou `musica/` depois de editar, normalizar e registrar a licença.
 
 ## Promoções recentes
 

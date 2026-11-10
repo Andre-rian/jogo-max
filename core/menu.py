@@ -1,5 +1,6 @@
 import pygame
 import sys
+from core.audio import audio
 from settings import Screen_widht, Screen_height
 from core.navegacao import hover_index
 from ui.estilo import (
@@ -59,6 +60,7 @@ class MenuInicial:
             
             if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
                 dados = slots[self.slot_selecionado]
+                audio.play_sfx("ui_confirm")
                 if self.callback_iniciar:
                     self.callback_iniciar(self.slot_selecionado, dados)
                     return
@@ -67,15 +69,22 @@ class MenuInicial:
             if evento.type == pygame.KEYDOWN:
                 if self.estado == "selecionar":
                     if evento.key == pygame.K_UP:
+                        anterior = self.slot_selecionado
                         self.slot_selecionado = max(1, self.slot_selecionado - 1)
+                        if self.slot_selecionado != anterior:
+                            audio.play_sfx("ui_move")
 
 
                     elif evento.key == pygame.K_DOWN:
+                        anterior = self.slot_selecionado
                         self.slot_selecionado = min(3, self.slot_selecionado + 1)
+                        if self.slot_selecionado != anterior:
+                            audio.play_sfx("ui_move")
 
 
                     elif evento.key == pygame.K_RETURN:
                         dados = slots[self.slot_selecionado]
+                        audio.play_sfx("ui_confirm")
                         if self.callback_iniciar:
                             self.callback_iniciar(self.slot_selecionado, dados)
 
@@ -83,15 +92,20 @@ class MenuInicial:
                     elif evento.key == pygame.K_DELETE:
                         #so deixa deleta se existir o save
                         if slots[self.slot_selecionado] is not None:
+                            audio.play_sfx("ui_confirm")
                             self.estado = "confirmar_delete"
+                        else:
+                            audio.play_sfx("ui_error")
 
 
                 elif self.estado == "confirmar_delete":
                     if evento.key == pygame.K_RETURN:
+                        audio.play_sfx("ui_confirm")
                         self.save_manager.deletar(self.slot_selecionado)
                         self.estado = "selecionar"
 
                     elif evento.key == pygame.K_ESCAPE:
+                        audio.play_sfx("ui_back")
                         self.estado = "selecionar"
 
     def desenhar(self):

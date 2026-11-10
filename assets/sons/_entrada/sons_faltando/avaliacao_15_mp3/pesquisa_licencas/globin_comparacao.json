@@ -1,0 +1,14 @@
+{
+  "pagina": "https://freesound.org/people/spookymodem/sounds/249813/",
+  "previa": "https://cdn.freesound.org/previews/249/249813_3756348-hq.mp3",
+  "licencas_na_pagina": [
+    "http://creativecommons.org/publicdomain/zero/1.0/"
+  ],
+  "sha256_local": "815b169781b5e621a9968d140c4b56cacd5216623e363c5a74bb7800fe1e99a0",
+  "sha256_previa": "d1f8f6844f3e84465e8feb9d8a19a4b80994e3a6941f928d8d84a21e17c920b7",
+  "amostras_local": 75200,
+  "amostras_previa": 73567,
+  "deslocamento_amostras": 2032,
+  "correlacao_pcm": 0.28034777583081855,
+  "cobertura_local": 0.9729787234042553
+}

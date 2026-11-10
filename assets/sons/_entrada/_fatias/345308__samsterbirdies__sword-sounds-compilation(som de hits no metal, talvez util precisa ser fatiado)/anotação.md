@@ -1,0 +1,1 @@
+o som de todos(tirando o 005 e 006) se assemelha ao um impacto em algo de metal, pouco utilizavel em batalha, mas vejo utilidade em som de algo sendo forgado, util guarda-los e tambem facialmente alternaveis entre si

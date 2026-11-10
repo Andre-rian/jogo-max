@@ -1,5 +1,30 @@
-import pygame
+import os
 import sys
+from pathlib import Path
+
+
+def _usar_venv_do_projeto():
+    if os.environ.get("PROFANE_VENV_ATIVO") == "1":
+        return
+    raiz = Path(__file__).resolve().parent
+    pasta_venv = raiz / ".venv"
+    pasta_bin = Path("Scripts") if os.name == "nt" else Path("bin")
+    executavel = "python.exe" if os.name == "nt" else "python"
+    python_venv = pasta_venv / pasta_bin / executavel
+    if not python_venv.exists():
+        return
+    if Path(sys.prefix).resolve() == pasta_venv.resolve():
+        return
+    os.environ["PROFANE_VENV_ATIVO"] = "1"
+    os.execv(str(python_venv), [str(python_venv), str(Path(__file__).resolve()), *sys.argv[1:]])
+
+
+_usar_venv_do_projeto()
+
+if sys.version_info < (3, 11):
+    sys.exit("Profane Echo requer Python 3.11 ou superior (recomendado 3.14).")
+
+import pygame
 import atexit
 import logging
 import argparse
@@ -13,6 +38,7 @@ log.debug("Logging inicializado")
 
 
 from settings import *
+from core.audio import audio
 from core.menu import MenuInicial
 from core.game_scene import Gamescene
 from save_manager import Savemaneger
@@ -21,7 +47,9 @@ from save_manager import Savemaneger
 
 class Jogo:
     def __init__(self, modo_teste_combate=False):
+        pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
+        audio.inicializar()
         self.Criar_janela()
         self.clock = pygame.time.Clock()
         self.save_manager = Savemaneger()
@@ -33,6 +61,7 @@ class Jogo:
 
         self.menu = MenuInicial(self.tela, self.save_manager)
         self.menu.callback_iniciar = self._iniciar_jogo
+        audio.play_music("menu")
 
         if self.modo_teste_combate:
             self._iniciar_jogo(None, None)
@@ -71,7 +100,8 @@ class Jogo:
 
 
     def _voltar_menu(self):
-        
+        audio.stop_all_sfx()
+        audio.play_music("menu")
         self.estado = "menu"
         self.scene = None
         self.slot_atual = None
@@ -102,6 +132,8 @@ class Jogo:
 
     def _sair(self):
         self.save_manager.fechar()
+        audio.stop_all_sfx()
+        audio.stop_music()
         pygame.quit()
         sys.exit()
 

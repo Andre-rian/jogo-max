@@ -13,9 +13,10 @@ from core.navegacao import hover_index
 
 from world.tile_map import TileMap
 from world.rooms import Salas
-from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos
+from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos, MATERIAL_PISO
 
 from core.camera import Camera
+from core.audio import audio, resolver_arma_id
 from core.combat import CombatSystem
 from core.combat.debug import desenhar_hitboxes_ativas, desenhar_hurtbox
 
@@ -51,6 +52,12 @@ def _nome_arquivo_normalizado(nome):
     #remove acentos dos nomes das salas para monta os caminhos para o tmx
     nfdk = unicodedata.normalize('NFKD', nome)
     return ''.join(c for c in nfdk if not unicodedata.combining(c))
+
+
+AMBIENCIA_POR_SALA = {
+    "calabouço_4": "sala_descanso",
+    "calabouço_5": "arena_boss",
+}
 
 
 
@@ -205,9 +212,12 @@ class Gamescene:
             if tipo == "esqueleto_boss":
                 inimigo = classe(x, y, callback_morte=self._abrir_parede_boss)
                 self.boss_atual = inimigo
+                self._tocar_entrada_boss(inimigo)
             else:
                 inimigo = classe(x, y, dados[3], dados[4])
             self.inimigos.append(inimigo)
+
+        self._atualizar_audio_sala()
 
     #CARREGA A SALA 
 
@@ -215,6 +225,11 @@ class Gamescene:
         #carrega um novo mapa e reposiciona o player
 
         self.sala_atual = nome_sala
+        self.player.material_piso = MATERIAL_PISO.get(nome_sala, "pedra")
+
+        parar_mundo = getattr(audio, "stop_world_sfx", None)
+        if parar_mundo is not None:
+            parar_mundo()
 
         #se existe um tmx para aquela sala usa ele, senao pular
         import os 
@@ -487,7 +502,7 @@ class Gamescene:
                 col_idx, linha_idx = obj["col"], obj["linha"]
                 x, y = col_idx * Tile_size, linha_idx * Tile_size
 
-                if tipo == "esquelo_boss":
+                if tipo == "esqueleto_boss":
                     if self.sala_atual in self.bosses_derrotados:
                         continue
 
@@ -495,6 +510,7 @@ class Gamescene:
                     boss._indice_spawn = indice
                     self.inimigos.append(boss)
                     self.boss_atual = boss
+                    self._tocar_entrada_boss(boss)
                     continue
 
                 if indice in mortos:
@@ -532,6 +548,27 @@ class Gamescene:
                             linha_idx * Tile_size,
                             Tile_size, Tile_size
                         ))
+
+        self._atualizar_audio_sala()
+
+    def _atualizar_audio_sala(self):
+        tocar_ambiente = getattr(audio, "play_ambiente", None)
+        if tocar_ambiente is not None:
+            tocar_ambiente(AMBIENCIA_POR_SALA.get(self.sala_atual, "calabouco"))
+        tocar_tochas = getattr(audio, "play_tochas", None)
+        if tocar_tochas is not None:
+            tocar_tochas(bool(getattr(self, "tochas", [])))
+        tocar_musica = getattr(audio, "play_music", None)
+        if tocar_musica is not None:
+            boss = getattr(self, "boss_atual", None)
+            menu = getattr(self, "menu_fogueira", None)
+            if boss is not None and boss.vivo:
+                contexto = "boss"
+            elif (menu is not None and menu.aberto) or AMBIENCIA_POR_SALA.get(self.sala_atual) == "sala_descanso":
+                contexto = "descanso"
+            else:
+                contexto = "exploracao"
+            tocar_musica(contexto)
 
     def _fazer_callback_drop_inimigo(self, drops, sala):
         def _callback(ix, iy):
@@ -697,6 +734,7 @@ class Gamescene:
 
         if self.pausado:
             self._atualizar_pausa(eventos)
+            return
             
 
         rects_solidos = self.mapa.rects_solidos + self.parede_boss + [p.rect for p in self.portas if not p.aberta]
@@ -789,7 +827,10 @@ class Gamescene:
                 inimigo.atualizar_mask()
 
         #resolver todo o combate do frame (player, inimigos e projéteis)
-        self.combate.resolver(self.player, self.inimigos, self.projeteis, rects_solidos)
+        eventos_combate = self.combate.resolver(
+            self.player, self.inimigos, self.projeteis, rects_solidos
+        )
+        self._processar_audio_combate(eventos_combate)
 
         #coleta projéteis spawnados pelos hooks de ataque neste frame
         for inimigo in self.inimigos:
@@ -874,9 +915,11 @@ class Gamescene:
 
                 if evento.key == pygame.K_UP:
                     self.opçoes_selecionadas = (self.opçoes_selecionadas - 1) % len(self.opçoes_pause)
+                    audio.play_sfx("ui_move")
                 
                 elif evento.key == pygame.K_DOWN:
                     self.opçoes_selecionadas = (self.opçoes_selecionadas + 1) % len(self.opçoes_pause)
+                    audio.play_sfx("ui_move")
 
                 elif evento.key == pygame.K_RETURN:
                     self._confirma_opçao_pausa()
@@ -890,18 +933,21 @@ class Gamescene:
         opçao = self.opçoes_pause[self.opçoes_selecionadas]
 
         if opçao == "Continuar":
-            self.pausado = False
+            self._fechar_pausa()
         elif opçao == "Salvar":
             if self._save_callback:
                 self._save_callback()
         elif opçao == "Menu principal":
+            audio.play_sfx("ui_confirm")
+            self._fechar_pausa(tocar_som=False)
             if self._menu_callback:
                 self._menu_callback()
         elif opçao == "Inventário":
+             self._fechar_pausa(tocar_som=False)
              self.inventario.abrir()
-             self.pausado = False
 
         elif opçao == "Sair":
+            audio.play_sfx("ui_confirm")
             pygame.quit()
             sys.exit()
 
@@ -941,6 +987,7 @@ class Gamescene:
                 boss._indice_spawn = i  #marca o boss com um indice para rastrear se ele morreu
                 self.inimigos.append(boss)
                 self.boss_atual = boss
+                self._tocar_entrada_boss(boss)
 
             else:
                 if i in mortos:
@@ -978,6 +1025,7 @@ class Gamescene:
 
 
     def _descansar_fogueira(self):
+        audio.play_sfx("campfire_rest")
         #reseta os inimigos das salas ja visitadas
         self.inimigos_morto_por_sala.clear()
 
@@ -992,11 +1040,13 @@ class Gamescene:
     def _fechar_menu_fogueira(self):
         self.menu_fogueira.aberto = False
         self.pausado = False
+        self._atualizar_audio_sala()
 
 
     def _abrir_menu_fogueira(self):
         logger.info("abrindo menu fogueira")
         self.menu_fogueira.abrir()
+        self._atualizar_audio_sala()
         
 
 
@@ -1007,6 +1057,39 @@ class Gamescene:
 
     
 
+    def _processar_audio_combate(self, eventos):
+        for evento in eventos:
+            alvo = evento.alvo
+            atacante = evento.atacante
+
+            if alvo is self.player:
+                if evento.aplicado and self.player.vivo:
+                    audio.play_sfx("player_hurt")
+                continue
+
+            if atacante is not self.player:
+                continue
+
+            inimigo = getattr(alvo, "SOM_ID", "_default")
+            material = getattr(alvo, "MATERIAL", "_default")
+            arma = resolver_arma_id(atacante)
+
+            if getattr(alvo, "_escudo_ativo", False) and not evento.aplicado:
+                if hasattr(audio, "play_block"):
+                    audio.play_block(inimigo)
+                else:
+                    audio.play_sfx("block")
+            elif not getattr(alvo, "vivo", False):
+                if hasattr(audio, "play_hit"):
+                    audio.play_hit(inimigo, arma, material, kill=True)
+                else:
+                    audio.play_sfx("enemy_death")
+            elif evento.aplicado:
+                if hasattr(audio, "play_hit"):
+                    audio.play_hit(inimigo, arma, material)
+                else:
+                    audio.play_sfx("hit")
+
     def _checar_morte(self):
         #dectetar se o player morreu, se sim colocar o "voce morreu" na tela tipo dark souls
 
@@ -1014,6 +1097,7 @@ class Gamescene:
             #inicia o timer de morte
             self.morrendo = True
             self.timer_morto = self.duraçao_morte
+            audio.play_sfx("player_death")
 
 
             #cria o drop dos ecos no lugar da morte
@@ -1083,10 +1167,19 @@ class Gamescene:
                 break 
     
 
+    def _tocar_entrada_boss(self, boss):
+        tocar = getattr(audio, "play_enemy_entrada", None)
+        if tocar is not None:
+            tocar(boss.SOM_ID)
+
     def _abrir_parede_boss(self, x, y):
         self.parede_boss = []
         self.boss_atual = None
         self.bosses_derrotados.add(self.sala_atual)
+        self._atualizar_audio_sala()
+        tocar_mecanismo = getattr(audio, "play_mecanismo", None)
+        if tocar_mecanismo is not None:
+            tocar_mecanismo()
         self.hud.mostra_mensagem("O caminho esta livre")
 
 
@@ -1114,9 +1207,20 @@ class Gamescene:
         
         self.drops.append(drop)
 
+    def _fechar_pausa(self, tocar_som=True):
+        if not self.pausado:
+            return
+        self.pausado = False
+        if tocar_som:
+            audio.play_sfx("ui_pause_close")
+
     def alternar_pausa(self):
-        self.pausado = not self.pausado
-        self.opçoes_selecionadas = 0 #reseta ao sair do menu
+        if self.pausado:
+            self._fechar_pausa()
+        else:
+            self.pausado = True
+            self.opçoes_selecionadas = 0 #reseta ao sair do menu
+            audio.play_sfx("ui_pause_open")
     
     def carregar_save(self, dados):
         self.fogueiras_ativas = dados["fogueiras_ativas"]
@@ -1158,11 +1262,13 @@ class Gamescene:
             if inimigo.vivo:
                 dist = abs(inimigo.rect.centerx - self.player.rect.centerx)
                 if dist < 300:
+                    audio.play_sfx("ui_error")
                     self.hud.mostra_mensagem("Não é possivel salvar em combate")
                     return False
                 
 
         save_manager.salvar(slot, self)
+        audio.play_sfx("ui_save")
         self.hud.mostra_mensagem("Jogo salvo")
         return True
     

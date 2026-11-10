@@ -2,6 +2,7 @@ import pygame
 import math
 import logging
 from settings import Screen_widht, Screen_height
+from core.audio import audio
 from ui.estilo import (
     Fonte_titulo, Fonte_texto,
     Roxo_espectral, Azul_espectral, Azul_claro,
@@ -107,10 +108,8 @@ class MenuFogueira:
     def _confirmar_level_up(self):
         custo = self._calcular_custo_total()
         
-        if custo > self.player.ecos:
-            return
-        
-        if sum(self.pendente.values()) == 0:
+        if custo > self.player.ecos or sum(self.pendente.values()) == 0:
+            audio.play_sfx("ui_error")
             return
         
 
@@ -130,6 +129,7 @@ class MenuFogueira:
         self.player.stamina_max = self.player.STAMINA_BASE + (self.player.resistencia * self.player.STAMINA_POR_RES)
         self.player.stamina = self.player.stamina_max
 
+        audio.play_sfx("level_up")
         self._resetar_pendente()
 
 
@@ -157,33 +157,41 @@ class MenuFogueira:
     def _input_menu(self, evento):
         if evento.key == pygame.K_UP:
             self.opcao_selecionada = (self.opcao_selecionada - 1) % len(self.opcoes)
+            audio.play_sfx("ui_move")
         
         elif evento.key == pygame.K_DOWN:
             self.opcao_selecionada = (self.opcao_selecionada + 1) % len(self.opcoes)
+            audio.play_sfx("ui_move")
 
         elif evento.key == pygame.K_RETURN:
             self._confirmar_opcao()
         
         elif evento.key == pygame.K_ESCAPE:
+            audio.play_sfx("ui_back")
             self.fechar()
 
     
     def _input_level_up(self, evento):
         if evento.key == pygame.K_ESCAPE:
+            audio.play_sfx("ui_back")
             self._resetar_pendente()
             self.estado = self.MENU_PRINCIPAL
         
         elif evento.key == pygame.K_UP:
             self.atributo_selecionado = (self.atributo_selecionado - 1) % len(self._atributos)
+            audio.play_sfx("ui_move")
 
         elif evento.key == pygame.K_DOWN:
             self.atributo_selecionado = (self.atributo_selecionado + 1) % len(self._atributos)
+            audio.play_sfx("ui_move")
             
         elif evento.key == pygame.K_RIGHT:
-            self._adicionar_ponto()
+            if self._adicionar_ponto():
+                audio.play_sfx("ui_move")
 
         elif evento.key == pygame.K_LEFT:
-            self._remover_ponto()
+            if self._remover_ponto():
+                audio.play_sfx("ui_move")
 
         elif evento.key == pygame.K_RETURN:
             self._confirmar_level_up()
@@ -194,19 +202,24 @@ class MenuFogueira:
         atr = self._atributos[self.atributo_selecionado]
         nivel_atual = self.player.nivel + sum(self.pendente.values())
         if nivel_atual >= 99:
-            return
+            return False
         
         custo_proximo = custo_nivel(nivel_atual)
         custo_atual = self._calcular_custo_total()
         if custo_atual + custo_proximo <= self.player.ecos:
             self.pendente[atr] += 1
+            return True
+        return False
 
     def _remover_ponto(self):
         atr = self._atributos[self.atributo_selecionado]
         if self.pendente[atr] > 0:
             self.pendente[atr] -= 1
+            return True
+        return False
 
     def _confirmar_opcao(self):
+        audio.play_sfx("ui_confirm")
         opcao = self.opcoes[self.opcao_selecionada]
         if opcao == "Descansar":
             if self.callback_descansar:
@@ -247,11 +260,13 @@ class MenuFogueira:
 
             if rect_mais.collidepoint(pos_mouse):
                 self.atributo_selecionado = i
-                self._adicionar_ponto()
+                if self._adicionar_ponto():
+                    audio.play_sfx("ui_move")
 
             elif rect_menos.collidepoint(pos_mouse):
                 self.atributo_selecionado = i
-                self._remover_ponto()
+                if self._remover_ponto():
+                    audio.play_sfx("ui_move")
         
         #botao de confirma
         rect_confirma = pygame.Rect(cx, py + 250, 240, 40)

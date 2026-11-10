@@ -175,8 +175,30 @@ jogo-max/
 
 ## 🚀 Requisitos
 
-- **Python 3.x**
-- **pygame-ce** (Community Edition)
+- **Python 3.11+** (recomendado 3.14, definido em `.python-version`)
+- **pygame-ce** e **numpy** (definidos em `requirements.txt`)
+
+### Instalação
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+
+Ou use o launcher, que cria e atualiza o `.venv` automaticamente:
+
+```bash
+./run.sh
+```
+
+Para rodar os testes:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
 
 ---
 

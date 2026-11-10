@@ -139,7 +139,7 @@ def _construir_fundo():
         fator = rnd.uniform(0.1, 0.5)
         pygame.draw.circle(base, escurecer(cor, 1 - fator), (x, y), rnd.randint(1, 2))
 
-    base.blit(_vignete(w, h, 130))
+    base.blit(_vignete(w, h, 130), (0, 0))
     return base
 
 
@@ -211,7 +211,7 @@ def desenhar_overlay(tela, alpha=165):
         _cache["overlay_vinheta"] = _vignete(Screen_widht, Screen_height, 170)
     ov = _cache["overlay"]
     ov.fill((9, 9, 11, alpha))
-    ov.blit(_cache["overlay_vinheta"])
+    ov.blit(_cache["overlay_vinheta"], (0, 0))
     tela.blit(ov, (0, 0))
 
 

@@ -1,12 +1,17 @@
 import pygame
 import random
 from entities.inimigo_base import InimigoBase
+from core.audio import audio
 from core.animated_sprite import AnimatedSprite
 from core.combat import DanoSpec, KnockbackSpec, ModoMovimento, ReacaoDano
 from entities.projeteis.projetil_boss import ProjetilBoss
 
 
 class EsqueletoBoss(InimigoBase):
+
+    SOM_ID = "boss_carrasco"
+    MATERIAL = "osso"
+    TEM_PASSOS = False
 
     ESTADO_PADRAO = "Perseguir"   
     Duracao_morte = 120
@@ -72,6 +77,7 @@ class EsqueletoBoss(InimigoBase):
 
         self._tempo_decisao = 0
         self._micro_dir = 0
+        self._rugido_emitido = False
 
         self.projeteis_spawnar = []
 
@@ -180,6 +186,7 @@ class EsqueletoBoss(InimigoBase):
         #terceiro golpe: quebra a guarda e interrompe o ataque em andamento
         atacando = self._animando_ataque
         self._quebra_ativa = True
+        audio.play_enemy_quebra_guarda(self.SOM_ID)
         self._guarda_golpes = 0
         self._guarda_timer = 0
         #a quebra cancela o ataque; sem encurtar o cooldown o Boss ficaria
@@ -246,6 +253,10 @@ class EsqueletoBoss(InimigoBase):
             self.estado = self.Patrulha
             self.vel.x = 0
             return 0
+
+        if not self._rugido_emitido:
+            self._rugido_emitido = True
+            audio.play_enemy_rugido(self.SOM_ID)
 
         if self._tempo_decisao <= 0:
             self._tempo_decisao = self.Decisao_ticks

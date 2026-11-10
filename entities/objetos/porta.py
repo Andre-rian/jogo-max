@@ -1,6 +1,7 @@
 import pygame
 import logging
 from settings import Tile_size, DEBUG
+from core.audio import audio
 from core.recursos import carregar_imagem
 
 logger = logging.getLogger(__name__)
@@ -55,10 +56,12 @@ class Porta:
 
                 if self.aberta:
                     portas_abertas.add((self.col, self.linha))
+                    audio.play_sfx("door_open")
                     logger.debug(f"porta ({self.col},{self.linha}) aberta")
 
                 else:
                     portas_abertas.discard((self.col, self.linha))
+                    audio.play_sfx("door_close")
                     logger.debug(f"porta ({self.col},{self.linha}) fechada")
 
                 hud.limpar_prompt()

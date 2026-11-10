@@ -1,0 +1,10 @@
+{
+  "arquivo_local": "globin_morte_01.mp3",
+  "previa": "249813_3756348-hq.mp3",
+  "duracao_local_s": 1.7052154195011338,
+  "duracao_previa_s": 1.668185941043084,
+  "metodo": "log1p(100 * potencia FFT 1024 Hann); hop 220; bins 2:200; Pearson; busca atraso -20..20 frames",
+  "correlacao_espectral": 0.97914512251015,
+  "atraso_frames": 9,
+  "observacao": "Similaridade nao comprova identidade binaria; usar copia verificada do Freesound na promocao."
+}

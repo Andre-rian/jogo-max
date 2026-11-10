@@ -2,6 +2,7 @@ import pygame
 import math
 import random
 from entities.inimigo_base import InimigoBase
+from core.audio import audio
 from core.animated_sprite import AnimatedSprite
 from core.combat import DanoSpec, FaseAtaque, HitboxSpec, KnockbackSpec
 from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
@@ -9,9 +10,14 @@ from entities.projeteis.projetil_flying_eye import ProjetilFlyingEye
 
 class FlyingEye(InimigoBase):
 
+    SOM_ID = "flying_eye"
+    MATERIAL = "etereo"
+
     Voando = "voando"          
     ESTADO_PADRAO = "Voando"
     TEM_GRAVIDADE = False
+    TEM_PASSOS = False
+    INTERVALO_ASAS_TICKS = 144  # clipe de 2,4 s a 60 atualizações/s
 
     Dano_mordida = 15
     Dano_dash = 12
@@ -51,6 +57,7 @@ class FlyingEye(InimigoBase):
         self._vel_ataque = pygame.Vector2(0, 0)
         self._lunge_restante = 0.0
         self.projeteis_spawnar = []
+        self._ticks_asas = 0
 
         Eye = "assets/sprites/enemies/monsters/flying_eye/"
         self.animaçoes = {
@@ -66,6 +73,22 @@ class FlyingEye(InimigoBase):
         self.ecos_drop = 15
 
         self._configurar_ataques()
+
+    def atualizar(self, rects_solidos, player):
+        resultado = super().atualizar(rects_solidos, player)
+        self._atualizar_audio_asas(player)
+        return resultado
+
+    def _atualizar_audio_asas(self, player):
+        if self._ticks_asas > 0:
+            self._ticks_asas -= 1
+        perto = (pygame.Vector2(player.rect.center) - self.rect.center).length_squared()
+        if (not self.vivo or not player.vivo or self._em_hit
+                or self.timer_knockback > 0 or perto >= self.Alcance_detec ** 2):
+            return
+        if self._ticks_asas <= 0:
+            audio.play_enemy_asas(self.SOM_ID)
+            self._ticks_asas = self.INTERVALO_ASAS_TICKS
 
     def _configurar_ataques(self):
         contato = HitboxSpec(

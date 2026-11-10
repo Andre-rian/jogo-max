@@ -1,0 +1,133 @@
+#EXTM3U
+#EXTINF:0.229,BUSCA_001 - arma_default_swing_candidato_01
+4_player/armas_default/arma_default_swing_candidato_01.wav
+#EXTINF:0.146,BUSCA_002 - arma_default_swing_candidato_02
+4_player/armas_default/arma_default_swing_candidato_02.wav
+#EXTINF:0.500,BUSCA_004 - carne_hit_candidato_01
+3_materiais/carne/carne_hit_candidato_01.flac
+#EXTINF:0.500,BUSCA_005 - carne_hit_candidato_02
+3_materiais/carne/carne_hit_candidato_02.flac
+#EXTINF:0.901,BUSCA_006 - osso_soco_hit_previa_hq_192146
+3_materiais/osso/osso_soco_hit_previa_hq_192146.mp3
+#EXTINF:0.811,BUSCA_007 - osso_crunch_base_01
+3_materiais/osso/osso_crunch_base_01.flac
+#EXTINF:0.889,BUSCA_008 - osso_crunch_base_03
+3_materiais/osso/osso_crunch_base_03.flac
+#EXTINF:0.473,BUSCA_009 - fungo_squish_candidato_01
+3_materiais/fungo/fungo_squish_candidato_01.ogg
+#EXTINF:0.571,BUSCA_010 - fungo_squish_candidato_03
+3_materiais/fungo/fungo_squish_candidato_03.ogg
+#EXTINF:0.414,BUSCA_011 - fungo_squish_candidato_06
+3_materiais/fungo/fungo_squish_candidato_06.ogg
+#EXTINF:0.230,BUSCA_012 - fungo_squish_candidato_12
+3_materiais/fungo/fungo_squish_candidato_12.ogg
+#EXTINF:0.530,BUSCA_013 - etereo_shade_base_01
+3_materiais/etereo/etereo_shade_base_01.wav
+#EXTINF:0.668,BUSCA_014 - etereo_shade_base_04
+3_materiais/etereo/etereo_shade_base_04.wav
+#EXTINF:0.562,BUSCA_015 - etereo_shade_base_14
+3_materiais/etereo/etereo_shade_base_14.wav
+#EXTINF:0.204,BUSCA_016 - globin_vocal_hit_candidato_01
+2_inimigos/globin/hit/globin_vocal_hit_candidato_01.wav
+#EXTINF:0.284,BUSCA_017 - globin_vocal_hit_candidato_05
+2_inimigos/globin/hit/globin_vocal_hit_candidato_05.wav
+#EXTINF:0.454,BUSCA_018 - globin_vocal_hit_candidato_09
+2_inimigos/globin/hit/globin_vocal_hit_candidato_09.wav
+#EXTINF:0.495,BUSCA_019 - flying_eye_hurt_base_01
+2_inimigos/flying_eye/hit/flying_eye_hurt_base_01.ogg
+#EXTINF:0.349,BUSCA_020 - flying_eye_hurt_base_04
+2_inimigos/flying_eye/hit/flying_eye_hurt_base_04.ogg
+#EXTINF:0.678,BUSCA_021 - boss_carrasco_hurt_base_01
+2_inimigos/boss_carrasco/hit/boss_carrasco_hurt_base_01.ogg
+#EXTINF:0.576,BUSCA_022 - boss_quebra_guarda_metal_base_01
+2_inimigos/boss_carrasco/quebra_guarda/boss_quebra_guarda_metal_base_01.ogg
+#EXTINF:0.426,BUSCA_023 - boss_quebra_guarda_metal_base_03
+2_inimigos/boss_carrasco/quebra_guarda/boss_quebra_guarda_metal_base_03.ogg
+#EXTINF:0.138,BUSCA_003 - bomba_arremesso_candidato_01
+5_projeteis/bomba/disparo/bomba_arremesso_candidato_01.wav
+#EXTINF:0.672,BUSCA_024 - mushroom_ataque_candidato_01
+2_inimigos/mushroom/ataque/mushroom_ataque_candidato_01.ogg
+#EXTINF:0.482,BUSCA_025 - mushroom_ataque_candidato_03
+2_inimigos/mushroom/ataque/mushroom_ataque_candidato_03.ogg
+#EXTINF:0.488,BUSCA_026 - esporo_disparo_candidato_01
+5_projeteis/esporo/disparo/esporo_disparo_candidato_01.ogg
+#EXTINF:0.687,BUSCA_027 - esporo_disparo_candidato_02
+5_projeteis/esporo/disparo/esporo_disparo_candidato_02.ogg
+#EXTINF:1.043,BUSCA_028 - boss_entrada_candidato_02
+2_inimigos/boss_carrasco/entrada/boss_entrada_candidato_02.ogg
+#EXTINF:1.163,BUSCA_029 - boss_entrada_candidato_03
+2_inimigos/boss_carrasco/entrada/boss_entrada_candidato_03.ogg
+#EXTINF:1.060,BUSCA_030 - boss_morte_vocal_candidato_01
+2_inimigos/boss_carrasco/morte/boss_morte_vocal_candidato_01.ogg
+#EXTINF:1.509,BUSCA_031 - boss_morte_ossos_candidato_01
+2_inimigos/boss_carrasco/morte/boss_morte_ossos_candidato_01.ogg
+#EXTINF:0.633,BUSCA_032 - olho_disparo_magia_candidato_01
+5_projeteis/olho/disparo/olho_disparo_magia_candidato_01.ogg
+#EXTINF:0.546,BUSCA_033 - olho_disparo_magia_candidato_02
+5_projeteis/olho/disparo/olho_disparo_magia_candidato_02.ogg
+#EXTINF:0.875,BUSCA_034 - olho_impacto_magia_base_01
+5_projeteis/olho/impacto/olho_impacto_magia_base_01.wav
+#EXTINF:1.220,BUSCA_035 - boss_disparo_sombrio_base_02
+5_projeteis/boss/disparo/boss_disparo_sombrio_base_02.flac
+#EXTINF:3.921,BUSCA_036 - boss_disparo_sombrio_base_03
+5_projeteis/boss/disparo/boss_disparo_sombrio_base_03.flac
+#EXTINF:0.651,BUSCA_037 - boss_impacto_magico_base_01
+5_projeteis/boss/impacto/boss_impacto_magico_base_01.ogg
+#EXTINF:0.472,BUSCA_038 - esporo_impacto_candidato_04
+5_projeteis/esporo/impacto/esporo_impacto_candidato_04.ogg
+#EXTINF:0.410,BUSCA_039 - esporo_impacto_candidato_11
+5_projeteis/esporo/impacto/esporo_impacto_candidato_11.ogg
+#EXTINF:5.959,BUSCA_040 - projeteis_voo_ar_base_01
+5_projeteis/voo_compartilhado/projeteis_voo_ar_base_01.ogg
+#EXTINF:12.519,BUSCA_041 - player_pulo_esforcos_fonte_01
+4_player/movimento/pulo/player_pulo_esforcos_fonte_01.wav
+#EXTINF:0.246,BUSCA_042 - passos_terra_grass_01
+4_player/movimento/passos/terra/passos_terra_grass_01.ogg
+#EXTINF:0.246,BUSCA_043 - passos_terra_grass_02
+4_player/movimento/passos/terra/passos_terra_grass_02.ogg
+#EXTINF:0.106,BUSCA_044 - passos_terra_gravel_01
+4_player/movimento/passos/terra/passos_terra_gravel_01.ogg
+#EXTINF:0.226,BUSCA_045 - passos_terra_gravel_02
+4_player/movimento/passos/terra/passos_terra_gravel_02.ogg
+#EXTINF:0.348,BUSCA_046 - passos_metal_metal_01
+4_player/movimento/passos/metal/passos_metal_metal_01.ogg
+#EXTINF:0.326,BUSCA_047 - passos_metal_metal_02
+4_player/movimento/passos/metal/passos_metal_metal_02.ogg
+#EXTINF:0.135,BUSCA_048 - passos_default_boots_01
+4_player/movimento/passos/default/passos_default_boots_01.ogg
+#EXTINF:0.135,BUSCA_049 - passos_default_boots_02
+4_player/movimento/passos/default/passos_default_boots_02.ogg
+#EXTINF:0.108,BUSCA_050 - skeleton_passos_candidato_01
+2_inimigos/skeleton/passos/skeleton_passos_candidato_01.ogg
+#EXTINF:0.136,BUSCA_051 - skeleton_passos_candidato_02
+2_inimigos/skeleton/passos/skeleton_passos_candidato_02.ogg
+#EXTINF:0.119,BUSCA_052 - skeleton_passos_candidato_03
+2_inimigos/skeleton/passos/skeleton_passos_candidato_03.ogg
+#EXTINF:0.476,BUSCA_053 - mushroom_passos_lama_base_01
+2_inimigos/mushroom/passos/mushroom_passos_lama_base_01.ogg
+#EXTINF:0.681,BUSCA_054 - mushroom_passos_lama_base_02
+2_inimigos/mushroom/passos/mushroom_passos_lama_base_02.ogg
+#EXTINF:0.408,BUSCA_055 - pouso_default_candidato_01
+4_player/movimento/pouso/default/pouso_default_candidato_01.wav
+#EXTINF:2.005,BUSCA_056 - pouso_cascalho_previa_hq_819656
+4_player/movimento/pouso/terra/pouso_cascalho_previa_hq_819656.mp3
+#EXTINF:0.411,BUSCA_057 - pouso_metal_base_01
+4_player/movimento/pouso/metal/pouso_metal_base_01.ogg
+#EXTINF:3.545,BUSCA_058 - tocha_fogo_crepitar_candidato_01
+6_mundo/tochas/tocha_fogo_crepitar_candidato_01.ogg
+#EXTINF:0.506,BUSCA_059 - mecanismo_corrente_candidato_01
+6_mundo/mecanismos/mecanismo_corrente_candidato_01.ogg
+#EXTINF:0.927,BUSCA_060 - mecanismo_corrente_candidato_03
+6_mundo/mecanismos/mecanismo_corrente_candidato_03.ogg
+#EXTINF:0.397,BUSCA_061 - mecanismo_trava_candidato_01
+6_mundo/mecanismos/mecanismo_trava_candidato_01.ogg
+#EXTINF:0.200,BUSCA_062 - eco_profano_coleta_base_01
+6_mundo/eco_profano/eco_profano_coleta_base_01.ogg
+#EXTINF:0.646,BUSCA_063 - eco_profano_espectral_base_02
+6_mundo/eco_profano/eco_profano_espectral_base_02.wav
+#EXTINF:20.011,BUSCA_064 - arena_boss_sombria_loop_candidato_01
+7_ambiencia/arena_boss/arena_boss_sombria_loop_candidato_01.flac
+#EXTINF:20.037,BUSCA_065 - arena_boss_sombria_loop_candidato_03
+7_ambiencia/arena_boss/arena_boss_sombria_loop_candidato_03.flac
+#EXTINF:94.310,BUSCA_066 - sala_descanso_caverna_loop_candidato_01
+7_ambiencia/sala_descanso/sala_descanso_caverna_loop_candidato_01.ogg

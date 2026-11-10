@@ -1,4 +1,5 @@
 import pygame
+from core.audio import audio
 from entities.entity import Entity
 from core.combat import (
     DanoSpec,
@@ -23,6 +24,8 @@ class InimigoBase(Entity):
 
     Duracao_morte = 60          # cada filho sobrescreve (skeleton=90, boss=120...)
     TEM_GRAVIDADE = True        # FlyingEye sobrescreve pra False
+    TEM_PASSOS = True
+    DISTANCIA_PASSO = 48
     ESTADO_PADRAO = "Patrulha"  # nome do atributo usado como fallback de animação
 
 
@@ -51,6 +54,7 @@ class InimigoBase(Entity):
         self._cooldowns_extra = []   # filho preenche, ex: ["cooldown_bomba"] no Globin
 
         self._frame = 0
+        self._distancia_passo = 0.0
         self.olhando_dir = True
 
         self._ataque_atual = None
@@ -110,7 +114,9 @@ class InimigoBase(Entity):
 
         if self.TEM_GRAVIDADE:
             self.aplicar_gravidade()
+        x_antes = self.rect.x
         self.mover_com_colisão(rects_solidos)
+        self._atualizar_audio_passos(x_antes)
         self._decrementar_cooldowns()
 
         return self._atualizar_troca_animacao(dano_causado)
@@ -165,6 +171,10 @@ class InimigoBase(Entity):
         self.estado = self.Atacando
         self._resetar_flags_ataque()
         self._lunge_restante = definicao.lunge
+        if hasattr(audio, "play_enemy_attack"):
+            audio.play_enemy_attack(getattr(self, "SOM_ID", "_default"), tipo=nome)
+        else:
+            audio.play_sfx("enemy_attack")
         return True
 
     def encerrar_ataque(self):
@@ -300,6 +310,31 @@ class InimigoBase(Entity):
             valor = getattr(self, nome)
             if valor > 0:
                 setattr(self, nome, valor - 1)
+
+    def _atualizar_audio_passos(self, x_antes):
+        if (
+            not self.TEM_PASSOS
+            or not self.vivo
+            or not self.no_chao
+            or self.vel.x == 0
+            or self._animando_ataque
+        ):
+            self._distancia_passo = 0.0
+            return
+
+        deslocamento = abs(self.rect.x - x_antes)
+        if deslocamento <= 0:
+            return
+
+        self._distancia_passo += deslocamento
+        if self._distancia_passo < self.DISTANCIA_PASSO:
+            return
+        self._distancia_passo -= self.DISTANCIA_PASSO
+
+        if hasattr(audio, "play_enemy_step"):
+            audio.play_enemy_step(getattr(self, "SOM_ID", "_default"))
+        else:
+            audio.play_sfx("enemy_step")
 
     def _atualizar_hit_flash(self):
         # retorna 0 se ainda travado no flash de hit, None se liberou pro fluxo normal

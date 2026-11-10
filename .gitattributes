@@ -1,0 +1,5 @@
+assets/sons/_entrada/**/*.wav filter=lfs diff=lfs merge=lfs -text
+assets/sons/_entrada/**/*.ogg filter=lfs diff=lfs merge=lfs -text
+assets/sons/_entrada/**/*.mp3 filter=lfs diff=lfs merge=lfs -text
+assets/sons/_entrada/**/*.flac filter=lfs diff=lfs merge=lfs -text
+assets/sons/_entrada/**/*.aiff filter=lfs diff=lfs merge=lfs -text

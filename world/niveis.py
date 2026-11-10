@@ -45,3 +45,11 @@ Drops_fixos = {
         (5, 5, 10.7),  # id_item=5, col=5, linha=5 — ajusta a posição depois
     ],
 }
+
+MATERIAL_PISO = {
+    'calabouço_1': 'pedra',
+    'calabouço_2': 'pedra',
+    'calabouço_3': 'pedra',
+    'calabouço_4': 'pedra',
+    'calabouço_5': 'pedra',
+}

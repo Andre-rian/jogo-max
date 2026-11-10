@@ -3,6 +3,7 @@ import logging
 log = logging.getLogger("inventario")
 
 from settings import Screen_widht, Screen_height
+from core.audio import audio
 from entities.objetos.item import get_item
 from core.navegacao import hover_index 
 from ui.icones import desenhar_icone_item
@@ -62,12 +63,16 @@ class Inventario:
         self._ignorar_frame_abertura = True #trava até o proximo atualizar
         self.menu_contexto = None
         self.opcao_contexto_selecionada = 0
+        audio.play_sfx("ui_inventory_open")
 
 
     def fechar(self):
+        if not self.aberto:
+            return
         self.aberto = False
         self.menu_contexto = None
         self.opcao_contexto_selecionada = 0
+        audio.play_sfx("ui_inventory_close")
 
 
     #retorna a lista de itens da aba atual
@@ -183,6 +188,7 @@ class Inventario:
                     log.debug(f"[esc] menu_contexto={'ABERTO' if self.menu_contexto else 'FECHADO'}")
 
                     if self.menu_contexto: #verificar se o menu de contexto esta aberto
+                        audio.play_sfx("ui_back")
                         self.menu_contexto = None
                         return
                     self.fechar()
@@ -193,10 +199,13 @@ class Inventario:
                     opcoes = self.menu_contexto["opcoes"]
                     if evento.key == pygame.K_UP:
                         self.opcao_contexto_selecionada = (self.opcao_contexto_selecionada - 1) % len(opcoes)
+                        audio.play_sfx("ui_move")
                     elif evento.key == pygame.K_DOWN:
                         self.opcao_contexto_selecionada = (self.opcao_contexto_selecionada + 1) % len(opcoes)
+                        audio.play_sfx("ui_move")
                     elif evento.key == pygame.K_RETURN:
                         opcao = opcoes[self.opcao_contexto_selecionada]
+                        audio.play_sfx("ui_confirm")
                         self._executar_opcao(opcao, self.menu_contexto["item"], player)
                         self.menu_contexto = None
                     return   # não deixa cair nas teclas de navegação do grid abaixo
@@ -205,35 +214,49 @@ class Inventario:
                 elif evento.key == pygame.K_TAB:
                     self.aba_atual = (self.aba_atual + 1) % len(self.abas)
                     self.slot_selecionado = 0
+                    audio.play_sfx("ui_move")
                 
                 elif evento.key == pygame.K_RIGHT:
                     itens = self._itens_da_aba(player)
                     if itens:
+                        anterior = self.slot_selecionado
                         atual = self.slot_selecionado if self.slot_selecionado is not None else -1
                         self.slot_selecionado = min(len(itens) - 1, atual+ 1)
+                        if self.slot_selecionado != anterior:
+                            audio.play_sfx("ui_move")
                         
                 elif evento.key == pygame.K_LEFT:
+                    anterior = self.slot_selecionado
                     atual = self.slot_selecionado if self.slot_selecionado is not None else  1
                     self.slot_selecionado = max(0, atual - 1)
+                    if self.slot_selecionado != anterior:
+                        audio.play_sfx("ui_move")
 
 
                 elif evento.key == pygame.K_DOWN:
                     itens = self._itens_da_aba(player)
+                    anterior = self.slot_selecionado
                     atual = self.slot_selecionado if self.slot_selecionado is not None else -self.slots_por_linha
                     novo = atual + self.slots_por_linha
                     if novo < len(itens):
                         self.slot_selecionado = novo
+                    if self.slot_selecionado != anterior:
+                        audio.play_sfx("ui_move")
 
                 elif evento.key == pygame.K_UP:
+                    anterior = self.slot_selecionado
                     if self.slot_selecionado is not None:
                         novo = self.slot_selecionado - self.slots_por_linha
                         if novo >= 0:
                             self.slot_selecionado = novo
+                    if self.slot_selecionado != anterior:
+                        audio.play_sfx("ui_move")
 
                 elif evento.key == pygame.K_RETURN:          
                         itens = self._itens_da_aba(player)
                         if self.slot_selecionado is not None and self.slot_selecionado < len(itens):
                             item = itens[self.slot_selecionado]
+                            audio.play_sfx("ui_confirm")
                             col = self.slot_selecionado % self.slots_por_linha
                             lin = self.slot_selecionado // self.slots_por_linha
                             col1_x = px + 180
@@ -278,6 +301,7 @@ class Inventario:
                     if rect_aba.collidepoint(pos_mouse):
                         self.aba_atual = i
                         self.slot_selecionado = 0
+                        audio.play_sfx("ui_move")
                         break
 
                 
@@ -298,11 +322,13 @@ class Inventario:
                 
                         if rect_opcao.collidepoint(pos_mouse):
                             clicou_opcao = True
+                            audio.play_sfx("ui_confirm")
                             self._executar_opcao(opcao, self.menu_contexto["item"], player)
                             self.menu_contexto = None
                             break
 
                     if not clicou_opcao:
+                        audio.play_sfx("ui_back")
                         self.menu_contexto = None #clicou fora do menu - fecha ele
                     return
                 
@@ -321,6 +347,7 @@ class Inventario:
                     rect_slot = pygame.Rect(sx, sy, slot_size, slot_size)
                     if rect_slot.collidepoint(pos_mouse):
                         self.slot_selecionado = i
+                        audio.play_sfx("ui_confirm")
 
                         #define as opçoes seguindo o tipo dos itens
                         from entities.objetos.item import Arma, Consumivel
@@ -375,6 +402,8 @@ class Inventario:
             
             #se tem algo equipado na mao, subistutuio e retorna ele para o inventario
             id_atual = player.inventario["mao_direita"]
+            if id_atual == item.id:
+                return
             if id_atual is not None:
                 player.inventario["equipamentos"].append(id_atual)
             
@@ -384,12 +413,16 @@ class Inventario:
                 player.inventario["equipamentos"].remove(item.id)
             player.inventario["mao_direita"] = item.id
             player.itens_novos.discard(item.id)
+            audio.play_sfx("equip_weapon")
 
 
     def _executar_opcao(self, opcao, item , player):
         from entities.objetos.item import Arma, Consumivel
 
         if opcao == "Equipar":
+            if not isinstance(item, Arma):
+                audio.play_sfx("ui_error")
+                return
             self._tentar_equipar(item, player)
 
         
@@ -397,6 +430,11 @@ class Inventario:
             
             if isinstance(item, Consumivel):
                 item.usar(player, player.inventario)
+            else:
+                audio.play_sfx("ui_error")
+
+        elif opcao == "Descartar" and not self.callback_descartar:
+            audio.play_sfx("ui_error")
 
         elif opcao == "Descartar" and self.callback_descartar:
             #checar se esta equipado e desequipar primeiro
@@ -431,6 +469,8 @@ class Inventario:
                 if player.inventario["mao_direita"] == item.id:
                     player.inventario["mao_direita"] = None
                     player.inventario["equipamentos"].append(item.id)
+            else:
+                audio.play_sfx("ui_error")
 
     def desenhar(self, player):
         if not self.aberto:

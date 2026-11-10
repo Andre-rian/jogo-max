@@ -1,0 +1,1 @@
+o som de arma metalica batendo em uma superfice de metal, com uma grande força de impacto, acredito que seja utilizavel em situações espesificas, mas nada por agora, algo ao se assemlhar com um inimigo grande batendo com uma arma grande em um escudo ou armadura metalica, ou vice versa. guardeos que podem ser uteis

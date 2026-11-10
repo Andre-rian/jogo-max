@@ -1,0 +1,12 @@
+origem;destino;licenca;autor;url;atribuicao;dur_max_s;fade_out_ms;pico_db
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/espada_escudo_hit_01.mp3;sfx/combate/generico/generico_block_04.wav;PENDENTE;;;;;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/machado_escudo_hit_01.mp3;sfx/combate/generico/generico_block_05.wav;PENDENTE;;;;0.65;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/flying_eye_asas_01.mp3;sfx/inimigos/flying_eye/asas/flying_eye_asas_01.wav;PENDENTE;;;;;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/flying_eye_ataque_bite_01.mp3;sfx/inimigos/flying_eye/ataque/flying_eye_ataque_bite_01.wav;PENDENTE;;;;1.3;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/flying_eye_morte_01.mp3;sfx/inimigos/flying_eye/morte/flying_eye_morte_01.wav;PENDENTE;;;;;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/mushroom_default_hit_01.mp3;sfx/inimigos/mushroom/hit/_default/mushroom_default_hit_02.wav;PENDENTE;;;;0.65;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/carne_default_hit_02.mp3;sfx/materiais/carne/_default/carne_default_hit_02.wav;PENDENTE;;;;;40;-12
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/metal_soco_hit_01.mp3;sfx/materiais/metal/soco/metal_soco_hit_01.wav;PENDENTE;;;;1.5;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/armas_espada_longa_swing_03.mp3;sfx/player/armas/espada_longa/armas_espada_longa_swing_03.wav;PENDENTE;;;;1.2;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/armas_machado_guerra_swing_01.mp3;sfx/player/armas/machado_guerra/armas_machado_guerra_swing_01.wav;PENDENTE;;;;;40;-3
+assets/sons/_entrada/sons_faltando/avaliacao_15_mp3/projeteis_bomba_impacto_02.mp3;sfx/projeteis/bomba/impacto/bomba_impacto_02.wav;PENDENTE;;;;1.35;40;-3

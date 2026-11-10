@@ -7,6 +7,9 @@ from core.combat import DanoSpec, KnockbackSpec, ModoMovimento
 
 class Mushroom(InimigoBase):
 
+    SOM_ID = "mushroom"
+    MATERIAL = "fungo"
+
     USAR_MOVIMENTO_SUBPIXEL = True
 
     Dano_normal = 12

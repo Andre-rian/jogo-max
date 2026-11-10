@@ -17,6 +17,7 @@ from core.combat import (
     construir_hitboxes,
 )
 from entities.objetos.pocao import Pocao
+from core.audio import audio
 from settings import Dourado, Tile_size
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,10 @@ class Player(Entity):
     Stamina_ataque  = 10
     Stamina_recarga = 0.4
     Stamina_delay   = 30
+
+    #audio
+    Frames_contato_passo = (1, 6)
+    Queda_minima_pouso = 4
 
     def __init__(self, x, y):
         hp_inicial = self.HP_BASE + (self.VIGOR_INICIAL * self.HP_POR_VIGOR)
@@ -190,6 +195,10 @@ class Player(Entity):
         #checkpoin(inicial)
         self.checkpoint_pos = pygame.Vector2(x, y)
         self.checkpoint_sala = 'calabouço_1' 
+
+        #audio de movimento
+        self._audio_suprimir_pouso = False
+        self.material_piso = "pedra"
 
 
         # animações
@@ -313,6 +322,16 @@ class Player(Entity):
     def arma_equipada(self):
         id_ = self.inventario["mao_direita"]
         return get_item(id_) if id_ else None
+
+    @property
+    def arma_id(self):
+        arma = self.arma_equipada
+        if arma is None:
+            return "soco"
+        return {
+            "espada": "espada_longa",
+            "machado": "machado_guerra",
+        }.get(arma.icone, "soco")
     
     @property
     def tem_arma_equipada(self):
@@ -380,6 +399,8 @@ class Player(Entity):
        
 
         self._frame_atual += 1
+        estava_no_chao = self.no_chao
+        x_antes_movimento = self.rect.x
 
         teclas = pygame.key.get_pressed()
         
@@ -392,7 +413,10 @@ class Player(Entity):
         self._escalar(teclas, rects_escada)
 
         self.aplicar_gravidade()
+        velocidade_queda = self.vel.y
         self.mover_com_colisão(rects_solidos, rects_plataforma)
+        deslocamento = abs(self.rect.x - x_antes_movimento)
+        self._atualizar_audio_movimento(estava_no_chao, velocidade_queda)
         #diagnostico: avisa quando o player fica de pe numa plataforma (uma vez so por pouso)
         if self._sobre_plataforma and not self._debug_plat_prev:
             logger.info(f"[DROPLOG] DE PE em plataforma (bottom={self.rect.bottom})")
@@ -412,7 +436,9 @@ class Player(Entity):
             self._estado_anterior = self.estado
 
         #avançar o frame da animaçao atual
+        frame_antes = self.anim_atual.frame_index
         self.anim_atual.atualizar()
+        self._atualizar_audio_passos(frame_antes, deslocamento)
 
 
         #salvar teclas para o proximo frame
@@ -462,6 +488,7 @@ class Player(Entity):
         self.vel.y = 0 #cancela a gravidade no dash
         self.olhando_dir = direçao > 0
         self._gastar_stamina(self.Stamina_dash)
+        audio.play_sfx("player_dash")
     
     #MOVIMENTO HORIZONTAL
 
@@ -553,6 +580,9 @@ class Player(Entity):
             self._escalando = False
             self._bloqueio_escalada = 12  #nao pega escada subindo (pulo limpo)
             self._gastar_stamina(self.Stamina_pulo)
+            tocar_pulo = getattr(audio, "play_jump", None)
+            if tocar_pulo is not None:
+                tocar_pulo()
 
     #ESCADA - subir/descer segurando W e S
     def _escalar(self, teclas, rects_escada=None):
@@ -673,6 +703,10 @@ class Player(Entity):
 
         custo = self.Stamina_combo if tier == "combo" else self.Stamina_ataque
         self._gastar_stamina(custo)
+        if hasattr(audio, "play_swing"):
+            audio.play_swing(self.arma_id)
+        else:
+            audio.play_sfx("player_attack")
 
     def encerrar_ataque(self):
         self.ataque_ativo = None
@@ -802,6 +836,7 @@ class Player(Entity):
             self.timer_bebida -= 1
             if self.timer_bebida <= 0:
                 self._bebendo = False
+                audio.play_sfx("potion_drink")
 
 
         #cooldown de interações 
@@ -842,6 +877,7 @@ class Player(Entity):
         self.anim_atual.resetar()            
         n_frames = len(anim.frames)
         self.timer_bebida = n_frames * anim.velocidade
+        audio.play_sfx("potion_open")
 
     
     #funçao chamada pelo o drop para iniciar a animação de pegar os itens
@@ -931,6 +967,37 @@ class Player(Entity):
         self.timer_hit = 0
         self._segurando_ataque = False
         self._timer_hold = 0
+        self._audio_suprimir_pouso = True
+
+    def _atualizar_audio_movimento(self, estava_no_chao, velocidade_queda):
+        pousou = self.no_chao and not estava_no_chao
+        if pousou:
+            if self._audio_suprimir_pouso:
+                self._audio_suprimir_pouso = False
+            elif velocidade_queda >= self.Queda_minima_pouso and not self._atravessando():
+                if hasattr(audio, "play_land"):
+                    audio.play_land(self.material_piso)
+                else:
+                    audio.play_sfx("player_land")
+
+        if self._audio_suprimir_pouso and not pousou:
+            self._audio_suprimir_pouso = False
+
+    def _atualizar_audio_passos(self, frame_antes, deslocamento):
+        if self.estado != self.Correndo:
+            return
+        if not self.vivo or not self.no_chao or deslocamento <= 0:
+            return
+        if self._audio_suprimir_pouso:
+            return
+        if self.anim_atual.frame_index == frame_antes:
+            return
+        if self.anim_atual.frame_index not in self.Frames_contato_passo:
+            return
+        if hasattr(audio, "play_step"):
+            audio.play_step(self.material_piso)
+        else:
+            audio.play_sfx("player_step")
 
     def receber_evento(self, evento):
         aplicado = self.receber_dano(evento.dano, frames_invenc=evento.frames_invenc)

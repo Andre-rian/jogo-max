@@ -58,5 +58,5 @@ class Hud:
         self.ecos.desenhar(tela, player)
         if DEBUG:
             self.debug.desenhar(tela, player)
-        if boss_atual:
-            self.boss_bar.desenhar(tela, boss_atual)
+        # A ausência limpa o estado antes de reapresentar o mesmo chefe.
+        self.boss_bar.desenhar(tela, boss_atual)

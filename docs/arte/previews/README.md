@@ -1,5 +1,23 @@
 # Prévias de arte
 
+## Fase F.3 — chefe, notificações e mensagens
+
+- [Comparativo compacto 1×](hud_f3_comparativo.png): UI própria e poção M095
+  CC0, fundo claro sintético, renderers reais antes/depois.
+- [Evidências de 11 cenários](hud_f3_evidencias.json) e
+  [relatório completo](../RELATORIO_FASE_F3_HUD.md).
+- Reprodução: `python docs/arte/gerar_previews_f3.py` (requer histórico Git
+  com o commit F.2 `c5f6792` para carregar o renderer anterior).
+- Capturas reais `hud_f3_<cenario>_<antes|depois>_local.png` (1280×720) e
+  comparativos `hud_f3_<cenario>_comparativo_local.png` (2560×752): 33 imagens
+  completas locais, ignoradas. Cenários: `chefe_cheio`, `chefe_dano`,
+  `chefe_meio`, `chefe_baixo`, `chefe_zero`, `exploracao_item`, `chefe_item`,
+  `prompt_item`, `mensagem_item`, `combate_real` e `combate_completo`.
+- Todos usam `Gamescene.desenhar` e fallback de LY015, sem saves ou logs em
+  arquivo. Vida reduzida e mensagens são preparadas em memória; `combate_real`
+  inclui ataque de espada real. Não são sessões manuais de progressão.
+- Recibo de push: `hud_f3_publicacao_local.json`, local e ignorado.
+
 ## Fase F.2 — poção e Ecos Profanos
 
 - [Comparativo compacto, 1×](hud_f2_comparativo.png): cargas 3/1/0, flash,

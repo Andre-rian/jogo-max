@@ -1,0 +1,378 @@
+{
+  "base": "c5f67921094b5ef9d28069469626e28b97d3afcc",
+  "resolucao": [
+    1280,
+    720
+  ],
+  "driver": "dummy",
+  "cenarios": {
+    "exploracao_item": {
+      "hp": 200,
+      "stamina": 130,
+      "boss_hp": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "boss": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "notificacao": [
+        470,
+        476,
+        340,
+        64
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "prompt_item": {
+      "hp": 200,
+      "stamina": 130,
+      "boss_hp": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "boss": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "notificacao": [
+        470,
+        476,
+        340,
+        64
+      ],
+      "prompt": [
+        579,
+        562,
+        122,
+        30
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "mensagem_item": {
+      "hp": 200,
+      "stamina": 130,
+      "boss_hp": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "boss": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "notificacao": [
+        470,
+        476,
+        340,
+        64
+      ],
+      "prompt": [
+        579,
+        562,
+        122,
+        30
+      ],
+      "mensagem": [
+        437,
+        260,
+        407,
+        37
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "chefe_cheio": {
+      "hp": 200,
+      "stamina": 130,
+      "boss_hp": 300,
+      "sala": "calabouço_5",
+      "zoom": 1.35,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "combate_real": {
+      "hp": 200,
+      "stamina": 120,
+      "boss_hp": 290,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "chefe_dano": {
+      "hp": 200,
+      "stamina": 120,
+      "boss_hp": 150,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "chefe_meio": {
+      "hp": 200,
+      "stamina": 120,
+      "boss_hp": 150,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "chefe_baixo": {
+      "hp": 200,
+      "stamina": 120,
+      "boss_hp": 30,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "chefe_item": {
+      "hp": 200,
+      "stamina": 120,
+      "boss_hp": 30,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        470,
+        476,
+        340,
+        64
+      ],
+      "prompt": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "mensagem": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "combate_completo": {
+      "hp": 40,
+      "stamina": 26,
+      "boss_hp": 30,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        470,
+        476,
+        340,
+        64
+      ],
+      "prompt": [
+        573,
+        562,
+        135,
+        30
+      ],
+      "mensagem": [
+        437,
+        260,
+        407,
+        37
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    },
+    "chefe_zero": {
+      "hp": 40,
+      "stamina": 26,
+      "boss_hp": 0,
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "boss": [
+        400,
+        636,
+        480,
+        64
+      ],
+      "notificacao": [
+        470,
+        476,
+        340,
+        64
+      ],
+      "prompt": [
+        573,
+        562,
+        135,
+        30
+      ],
+      "mensagem": [
+        437,
+        260,
+        407,
+        37
+      ],
+      "fora_area_comparada_identico": true,
+      "dados_funcionais_preservados": true
+    }
+  },
+  "hud_ms_por_frame_600_desenhos": 0.16,
+  "arquivos_pessoais_inalterados": {
+    "jogo.log": "204e6252ceb2b91b873fab65be6a9ea334c5a6dc9d8769790893d95480e86795"
+  },
+  "fullscreen": "Não validado: sem display ou ferramentas de desktop nesta sessão."
+}

@@ -2,7 +2,7 @@
 
 Mapa entre elementos do jogo e arquivos aprovados.
 
-**Status (15/11/2026): Fase F.2 integrada; F.1 preservada.** Cinco ícones
+**Status (16/11/2026): Fase F.3 integrada; F.1/F.2 preservadas.** Cinco ícones
 integrados (IDs 1–5), fallback global ativo, prompts de teclado integrados e
 LY005 1× adotado como moldura preferencial do inventário. A moldura anterior
 permanece como fallback. Na E.2, `Frame1Empty`/`Frame1` entraram em teste nos
@@ -124,7 +124,7 @@ como propostas aprovadas, reservadas a uma etapa funcional separada.
 O Eco já existia como moeda em `player.ecos`: sua integração visual na F.2
 não exigiu criar itens/IDs nem alterar progressão ou salvamento.
 
-## HUD — F.1 e F.2
+## HUD — F.1, F.2 e F.3
 
 - F.1: proposta C, painel grafite, vida vermelha, stamina verde com 8 px úteis;
   LY015 opcional e fallback procedural preservados.
@@ -132,6 +132,9 @@ não exigiu criar itens/IDs nem alterar progressão ou salvamento.
   de 12 ticks; contador de Ecos com símbolo D.1 em 1× e painel adaptável.
 - Nenhum pack restrito é necessário para os dois componentes da F.2.
 - [Relatório, validações e comparativo](RELATORIO_FASE_F2_HUD.md).
+- F.3: barra de chefe híbrida, dano atrasado distinto, notificações com os
+  sprites IDs 1–5 e faixas separadas de prompts/mensagens; sem novos assets.
+- [Relatório F.3, testes e capturas](RELATORIO_FASE_F3_HUD.md).
 
 ## Packs em triagem
 

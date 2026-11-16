@@ -7,15 +7,20 @@ from core.audio import audio
 from entities.objetos.item import get_item
 from core.navegacao import hover_index 
 from ui.icones import desenhar_icone_item
+from ui.sprites_itens import precarregar as precarregar_sprites_itens
+from ui.prompts_teclas import desenhar_prompts
+from ui.painel_lygame import desenhar_painel_lygame, disponivel as lygame_disponivel
 from ui.estilo import (
     Fonte_titulo, Fonte_texto,
-    Roxo_espectral, Roxo_profundo, Azul_espectral, Azul_claro,
-    Branco_texto, Cinza_texto, Cinza_texto_escuro, Vermelho_ritual,
+    Roxo_espectral, Azul_espectral, Azul_claro,
+    Branco_texto, Cinza_texto, Vermelho_ritual,
     Cinza_carvao, Cinza_azulado,
     desenhar_overlay, desenhar_painel, desenhar_botao,
     desenhar_eco_profano, desenhar_linha_ornamental,
-    adicionar_brilho, escurecer, misturar
+    escurecer, misturar
 )
+
+USAR_PAINEL_LYGAME = True
 
 
 class Inventario:
@@ -28,11 +33,12 @@ class Inventario:
         self.fonte_titulo = Fonte_titulo(21, negrito=True)
         self.fonte_normal = Fonte_texto(16)
         self.fonte_pequena = Fonte_texto(14)
+        self.cor_texto_secundario = misturar(Cinza_texto, Branco_texto, 0.28)
 
         self._frame = 0
 
         #abas de navegaçao
-        self.abas = ["Equipamentos", "Itens", "Chaves", "materias"]
+        self.abas = ["Equipamentos", "Itens", "Chaves", "Materiais"]
         self.aba_atual = 0
 
 
@@ -52,7 +58,15 @@ class Inventario:
         self.painel_y = Screen_height // 2 - 260
         self.painel_w = 840
         self.painel_h = 520
+        self.usar_painel_lygame = USAR_PAINEL_LYGAME
 
+        precarregar_sprites_itens()
+
+
+    def _pad_conteudo(self):
+        if self.usar_painel_lygame and lygame_disponivel():
+            return 6
+        return 0
 
 
     #def abrir e fecha o inventario
@@ -145,6 +159,7 @@ class Inventario:
 
         px, py = self.painel_x, self.painel_y
         pw, ph = self.painel_w, self.painel_h
+        pad_conteudo = self._pad_conteudo()
         pos_mouse = pygame.mouse.get_pos()
 
         #hover na abas
@@ -171,7 +186,7 @@ class Inventario:
             lin = i // self.slots_por_linha
 
             sx = col1_x + 10 + col * (slot_size + gap)
-            sy = py + 10 + lin * (slot_size + gap)
+            sy = py + 10 + pad_conteudo + lin * (slot_size + gap)
             itens_com_rect.append((i, pygame.Rect(sx, sy, slot_size, slot_size)))                    
 
         indice_houver = hover_index(eventos, pos_mouse, itens_com_rect)
@@ -263,7 +278,7 @@ class Inventario:
                             slot_size = 60
                             gap = 8
                             sx = col1_x + 10 + col * (slot_size + gap)
-                            sy = py + 10 + lin * (slot_size + gap)
+                            sy = py + 10 + pad_conteudo + lin * (slot_size + gap)
     
                             from entities.objetos.item import Arma, Consumivel
     
@@ -343,7 +358,7 @@ class Inventario:
                     col = i % self.slots_por_linha
                     lin = i // self.slots_por_linha
                     sx = col1_x + 10 + col * (slot_size + gap)
-                    sy = py + 10 + lin * (slot_size + gap)
+                    sy = py + 10 + pad_conteudo + lin * (slot_size + gap)
                     rect_slot = pygame.Rect(sx, sy, slot_size, slot_size)
                     if rect_slot.collidepoint(pos_mouse):
                         self.slot_selecionado = i
@@ -486,8 +501,17 @@ class Inventario:
 
 
         #painel principal
-        desenhar_painel(self.tela, pygame.Rect(px, py, pw, ph),
-                        self._frame, cor_borda=Azul_espectral)
+        painel_rect = pygame.Rect(px, py, pw, ph)
+        usou_lygame = False
+        if self.usar_painel_lygame:
+            usou_lygame = desenhar_painel_lygame(self.tela, painel_rect)
+        if not usou_lygame:
+            desenhar_painel(self.tela, painel_rect, self._frame,
+                            cor_borda=Azul_espectral)
+
+        pad_conteudo = 6 if usou_lygame else 0
+        conteudo_topo = py + 10 + pad_conteudo
+        conteudo_base = py + ph - 10 - pad_conteudo
 
 
         #abas
@@ -498,30 +522,40 @@ class Inventario:
             selecionada = i == self.aba_atual
             rect_aba = pygame.Rect(aba_x, aba_y, aba_w - 2, 36)
             desenhar_botao(self.tela, rect_aba, aba, selecionada, self._frame,
-                           fonte_btn=self.fonte_normal, marcador=False)
+                           fonte_btn=self.fonte_normal,
+                           cor_texto=self.cor_texto_secundario,
+                           marcador=False, brilho=False)
 
         #divisorias internas
         col1_x = px + 180
         col2_x = px + 480
         pygame.draw.line(self.tela, escurecer(Azul_espectral, 0.6),
-                         (col1_x, py + 10), (col1_x, py + ph - 10))
+                         (col1_x, conteudo_topo), (col1_x, conteudo_base))
         
         #coluna esquerda
-        self._desenhar_slots_equipados(player, px + 10, py + 20, 160)
+        self._desenhar_slots_equipados(
+            player, px + 10 + pad_conteudo, py + 20 + pad_conteudo, 160
+        )
         #coluna central
-        self._desenhar_grid(player, col1_x + 10, py + 10, 
+        self._desenhar_grid(player, col1_x + 10, conteudo_topo,
                             col2_x - col1_x - 20)
-        
+
         #coluna direita
-        self._desenhar_detalhes(player, col2_x + 10, py + 10,
+        self._desenhar_detalhes(player, col2_x + 10, conteudo_topo,
                                 pw - (col2_x - px) - 20)
         
         #instruçoes na base 
-        inst = self.fonte_pequena.render(
-            "← → ↑ ↓  navegar    TAB  trocar aba    ESC  fechar",
-            True, Cinza_texto_escuro)
-        self.tela.blit(inst, (px + pw // 2 - inst.get_width() // 2,
-                              py + ph - 20))
+        prompts = [
+            (["seta_esquerda", "seta_direita", "seta_cima", "seta_baixo"],
+             "navegar"),
+            (["tab"], "trocar aba"),
+            (["esc"], "fechar"),
+        ]
+        desenhar_prompts(
+            self.tela, prompts, px + pw // 2,
+            py + ph - 26 - pad_conteudo,
+            self.fonte_pequena, self.cor_texto_secundario
+        )
            
         #menu do contexto/ açoes para os itens
         if self.menu_contexto:
@@ -576,8 +610,8 @@ class Inventario:
        
 
         slots = [
-            ("Mão Dir", "mao_direita"),
-            ("Mão Esq", "mao_esquerda"),
+            ("Mão Direita", "mao_direita"),
+            ("Mão Esquerda", "mao_esquerda"),
             ("Armadura", "armadura"),
         ]
 
@@ -599,24 +633,33 @@ class Inventario:
                              (x, sy, largura, 58), 1, border_radius=4)
             
             #label
-            lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+            lbl = self.fonte_pequena.render(label, True, self.cor_texto_secundario)
             self.tela.blit(lbl, (x + 6, sy + 4))
 
 
             #item ou vazio
             if item:
 
-                nome = self.fonte_normal.render(item.nome, True, Branco_texto)
-                self.tela.blit(nome, (x + 6, sy + 22))
+                nome = self.fonte_pequena.render(item.nome, True, Branco_texto)
+                self.tela.blit(nome, (x + 4, sy + 22))
                 
                 if hasattr(item, "dano"):
                     dano = self.fonte_pequena.render(f"Dano: {item.dano}",
                                                      True, Azul_claro)
-                    self.tela.blit(dano, (x + 6, sy + 40))
+                    self.tela.blit(dano, (x + 4, sy + 40))
+
+                tamanho_icone = 26
+                icone_x = x + largura - tamanho_icone - 4
+                icone_y = sy + 16
+                desenhar_icone_item(
+                    self.tela, item, icone_x + tamanho_icone // 2,
+                    icone_y + tamanho_icone // 2, icone_x, icone_y,
+                    tamanho_icone, self.fonte_pequena
+                )
 
             else:
-                vazio = self.fonte_pequena.render("- Vazio -", True, Cinza_texto_escuro)
-                self.tela.blit(vazio, (x + 6, sy + 28))
+                vazio = self.fonte_pequena.render("- Vazio -", True, self.cor_texto_secundario)
+                self.tela.blit(vazio, (x + 4, sy + 28))
 
  
     #grid de itens
@@ -636,11 +679,6 @@ class Inventario:
             selecionado =  self.slot_selecionado is not None and i == self.slot_selecionado
             cor_borda = Azul_claro if selecionado else escurecer(Azul_espectral, 0.5)
             cor_fundo = Cinza_azulado if selecionado else escurecer(Cinza_carvao, 0.15)
-
-            if selecionado:
-                adicionar_brilho(self.tela, sx + slot_size // 2, sy + slot_size // 2,
-                                 slot_size // 2 + 6, Roxo_profundo, self._frame,
-                                 intensidade=0.22)
 
             #checar se o item esta equipado
             slots_equipados = [
@@ -683,7 +721,7 @@ class Inventario:
 
 
         if not itens:
-            msg = self.fonte_normal.render("Nenhum item", True, Cinza_texto_escuro)
+            msg = self.fonte_normal.render("Nenhum item", True, self.cor_texto_secundario)
             self.tela.blit(msg, (x + largura // 2 - msg.get_width() // 2, 
                                  y + 80))
             
@@ -710,7 +748,7 @@ class Inventario:
                 surf = self.fonte_pequena.render(teste, True, Branco_texto)
                 if surf.get_width() > largura - 10:
                     rendered = self.fonte_pequena.render(linhas_txt,
-                                                         True, Cinza_texto)
+                                                         True, self.cor_texto_secundario)
                     self.tela.blit(rendered, (x, linha_y))
                     linha_y += 18
                     linhas_txt = palavra + " "
@@ -718,7 +756,7 @@ class Inventario:
                     linhas_txt = teste
             if linhas_txt:
                 rendered = self.fonte_pequena.render(linhas_txt,
-                                                     True, Cinza_texto)
+                                                     True, self.cor_texto_secundario)
                 self.tela.blit(rendered, (x, linha_y))
                 linha_y += 18
                 linhas_txt = palavra + " "
@@ -749,7 +787,7 @@ class Inventario:
                 ]
 
                 for label, valor in stats:
-                    lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+                    lbl = self.fonte_pequena.render(label, True, self.cor_texto_secundario)
                     val = self.fonte_pequena.render(valor, True, Branco_texto)
                     self.tela.blit(lbl, (x, linha_y))
                     self.tela.blit(val, (x + largura - val.get_width() - 10,
@@ -762,7 +800,7 @@ class Inventario:
                     ("Cargas",  f"{item.cargas} / {item.cargas_max}"),
                 ]
                 for label, valor in stats:
-                    lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+                    lbl = self.fonte_pequena.render(label, True, self.cor_texto_secundario)
                     val = self.fonte_pequena.render(valor, True, Branco_texto)
                     self.tela.blit(lbl, (x, linha_y))
                     self.tela.blit(val, (x + largura - val.get_width() - 10,
@@ -775,7 +813,7 @@ class Inventario:
 
                 ]
                 for label, valor in stats:
-                    lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+                    lbl = self.fonte_pequena.render(label, True, self.cor_texto_secundario)
                     val = self.fonte_pequena.render(valor, True, Branco_texto)
                     
                     self.tela.blit(lbl, (x, linha_y))
@@ -802,7 +840,7 @@ class Inventario:
             ("Destreza",str(player.destreza)),       
         ]
         for label, valor in stats_player:
-            lbl = self.fonte_pequena.render(label, True, Cinza_texto)
+            lbl = self.fonte_pequena.render(label, True, self.cor_texto_secundario)
             val = self.fonte_pequena.render(valor, True, Branco_texto)
             self.tela.blit(lbl, (x, status_y))
             self.tela.blit(val, (x + largura - val.get_width() - 10, status_y))

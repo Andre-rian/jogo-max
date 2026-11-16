@@ -83,6 +83,21 @@ def test_menu_inicial_delete_pede_confirmacao(audio_falso):
     assert menu.estado == "selecionar"
 
 
+def test_menu_inicial_desenha_com_e_sem_moldura_lygame(monkeypatch):
+    monkeypatch.setattr("core.menu.USAR_MOLDURA_LYGAME", True)
+    slots = {
+        1: {"checkpoint_sala": "Cripta", "data_hora": "15/11/2026 18:32"},
+        2: None,
+        3: None,
+    }
+    for usar in (True, False):
+        monkeypatch.setattr("core.menu.USAR_MOLDURA_LYGAME", usar)
+        menu = MenuInicial(pygame.Surface((1280, 720)), SaveManagerFalso(slots=dict(slots)))
+        menu.desenhar()
+        menu.estado = "confirmar_delete"
+        menu.desenhar()
+
+
 def test_pausa_abre_fecha_e_navega(audio_falso):
     cena = Gamescene.__new__(Gamescene)
     cena.pausado = False

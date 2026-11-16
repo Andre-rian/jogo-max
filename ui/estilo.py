@@ -104,9 +104,19 @@ def _brilho_radial(raio, cor):
     return _cache[chave]
 
 
-def adicionar_brilho(tela, cx, cy, raio, cor, frame, intensidade=0.35):
+def _aplicar_brilho_alpha(tela, cx, cy, raio, cor, alfa):
+    surf = _brilho_radial(int(raio), cor)
+    surf.set_alpha(int(alfa))
+    tela.blit(surf, (int(cx - raio), int(cy - raio)))
+
+
+def adicionar_brilho(tela, cx, cy, raio, cor, frame, intensidade=0.35,
+                     alpha_real=False):
     pulso = 0.6 + 0.4 * math.sin(frame * 0.05)
     alfa = int(255 * intensidade * pulso)
+    if alpha_real:
+        _aplicar_brilho_alpha(tela, cx, cy, raio, cor, alfa)
+        return
     surf = _brilho_radial(int(raio), cor)
     surf.set_alpha(alfa)
     tela.blit(surf, (int(cx - raio), int(cy - raio)), special_flags=pygame.BLEND_ADD)
@@ -197,10 +207,10 @@ def desenhar_fundo(tela, frame):
     tela.blit(_cache["fundo"], (0, 0))
 
     pulso = 0.5 + 0.5 * math.sin(frame * 0.02)
-    glow = _brilho_radial(230, Roxo_profundo)
-    glow.set_alpha(int(20 + 16 * pulso))
-    tela.blit(glow, (Screen_widht // 2 - 230, Screen_height // 2 - 120),
-              special_flags=pygame.BLEND_ADD)
+    alfa = int(20 + 16 * pulso)
+    _aplicar_brilho_alpha(tela, Screen_widht // 2,
+                          Screen_height // 2 - 120 + 230,
+                          230, Roxo_profundo, alfa)
 
     _desenhar_particulas(tela, frame)
 
@@ -257,14 +267,15 @@ def desenhar_painel(tela, rect, frame, cor_borda=None, titulo=None, titulo_fonte
 
 
 def desenhar_botao(tela, rect, texto, selecionado, frame,
-                   fonte_btn=None, cor_texto=None, marcador=True):
+                   fonte_btn=None, cor_texto=None, marcador=True, brilho=True):
     x, y, w, h = rect
     cx, cy = rect.centerx, rect.centery
     if fonte_btn is None:
         fonte_btn = Fonte_texto(22)
 
     if selecionado:
-        adicionar_brilho(tela, cx, cy, w // 2 + 14, Roxo_profundo, frame, intensidade=0.30)
+        if brilho:
+            adicionar_brilho(tela, cx, cy, w // 2 + 14, Roxo_profundo, frame, intensidade=0.30)
         pygame.draw.rect(tela, Cinza_azulado, rect, border_radius=4)
         cor_borda = misturar(Azul_claro, Roxo_espectral, 0.25 + 0.2 * (0.5 + 0.5 * math.sin(frame * 0.06)))
     else:
@@ -289,11 +300,12 @@ def _fragmento(tela, x, y, cor, tamanho):
     pygame.draw.polygon(tela, cor, pontos)
 
 
-def desenhar_eco_profano(tela, cx, cy, raio, frame):
+def desenhar_eco_profano(tela, cx, cy, raio, frame, alpha_real=False):
     pulso = 0.5 + 0.5 * math.sin(frame * 0.035)
     rn = int(raio * (0.5 + 0.08 * pulso))
 
-    adicionar_brilho(tela, cx, cy, int(raio * 2.0), Roxo_profundo, frame, intensidade=0.22)
+    adicionar_brilho(tela, cx, cy, int(raio * 2.0), Roxo_profundo, frame,
+                     intensidade=0.22, alpha_real=alpha_real)
 
     pygame.draw.circle(tela, (7, 5, 11), (cx, cy), rn)
     pygame.draw.circle(tela, Roxo_espectral, (cx, cy), rn, 1)

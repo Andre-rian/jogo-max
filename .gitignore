@@ -31,3 +31,27 @@ fontes/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Pacotes originais de sprites com licenca restrita ou a confirmar
+# (mantidos apenas localmente; promover somente arquivos aprovados)
+assets/sprites/_entrada/itens/raven_fantasy_icons/
+assets/sprites/_entrada/itens/lygame_dark_fantasy/
+assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/
+assets/sprites/_entrada/ui/kibyra_medieval_fantasy_ui/
+assets/sprites/_entrada/ui/hypnobius_dark_ages_ui/
+assets/sprites/_entrada/prompts/greedy_toad_keyboard_ui/
+
+# Catalogos derivados de packs restritos (uso local, nao versionar)
+docs/arte/catalogos/ui_comparativo*.png
+docs/arte/catalogos/kingdom_icons*.png
+docs/arte/catalogos/recursos_especiais_fase_d0.png
+docs/arte/catalogos/recursos_especiais_eco*.png
+
+# Previas locais com paineis lygame (pack restrito, nao versionar)
+docs/arte/previews/*lygame*.png
+docs/arte/previews/*ly005*.png
+docs/arte/previews/*ly006*.png
+
+# Previas E.0 com AbyssOwl/Kibyra/lygame (licenca restrita ou nao confirmada)
+docs/arte/previews/*restrito*.png
+docs/arte/previews.zip

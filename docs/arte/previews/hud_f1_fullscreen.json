@@ -1,0 +1,13 @@
+{
+  "driver": "windows",
+  "superficie": [
+    1280,
+    720
+  ],
+  "janela": [
+    1920,
+    1080
+  ],
+  "frames": 90,
+  "flags": -2147483648
+}

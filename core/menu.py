@@ -9,8 +9,27 @@ from ui.estilo import (
     Branco_texto, Cinza_texto, Cinza_texto_escuro, Vermelho_ritual,
     desenhar_fundo, desenhar_overlay, desenhar_painel, desenhar_botao,
     desenhar_titulo, desenhar_linha_ornamental, desenhar_eco_profano,
-    adicionar_brilho, escurecer
+    adicionar_brilho, clarear, escurecer
 )
+from ui.moldura_menu_lygame import (
+    desenhar_moldura_slot, disponivel as moldura_lygame_disponivel
+)
+from ui.prompts_teclas import criar_prompt, desenhar_prompts
+
+USAR_MOLDURA_LYGAME = True
+
+ESCALA_PROMPT_DISCRETO = 1.25
+ESCALA_PROMPT_MODAL = 1.50
+FONTE_PROMPT_DISCRETO = 18
+FONTE_PROMPT_MODAL = 20
+PADDING_PROMPT_DISCRETO = (5, 3)
+PADDING_PROMPT_MODAL = (8, 5)
+FUNDO_PROMPT_DISCRETO = (10, 10, 14, 80)
+FUNDO_PROMPT_MODAL = (18, 16, 22, 140)
+ESPACO_TECLAS_PROMPT = 4
+ESPACO_TEXTO_PROMPT = 9
+ESPACO_TECLAS_MODAL = 5
+ESPACO_TEXTO_MODAL = 11
 
 class MenuInicial:
 
@@ -22,6 +41,8 @@ class MenuInicial:
         self.fonte_titulo = Fonte_titulo(78, negrito=True)
         self.fonte_slot = Fonte_titulo(27, negrito=True)
         self.fonte_info = Fonte_texto(17)
+        self.fonte_prompt = Fonte_texto(FONTE_PROMPT_DISCRETO)
+        self.fonte_prompt_modal = Fonte_texto(FONTE_PROMPT_MODAL)
 
         self._frame = 0
 
@@ -116,17 +137,24 @@ class MenuInicial:
 
         #titulo
         adicionar_brilho(self.tela, Screen_widht // 2, 84, 320, Roxo_profundo,
-                         self._frame, intensidade=0.22)
+                         self._frame, intensidade=0.22, alpha_real=True)
         desenhar_titulo(self.tela, "PROFANE ECHO", self.fonte_titulo,
-                        Roxo_espectral, Screen_widht // 2, 58, espacamento=6)
+                        clarear(Roxo_espectral, 0.08), Screen_widht // 2, 58,
+                        espacamento=6)
 
         sub = self.fonte_info.render("o eco profano desperta entre os escombros",
-                                     True, Cinza_texto_escuro)
+                                     True, clarear(Cinza_texto_escuro, 0.12))
         self.tela.blit(sub, (Screen_widht // 2 - sub.get_width() // 2, 146))
 
         desenhar_linha_ornamental(self.tela, Screen_widht // 2, 176, 260, Roxo_espectral)
-        desenhar_eco_profano(self.tela, Screen_widht // 2, 176, 12, self._frame)
+        desenhar_eco_profano(self.tela, Screen_widht // 2, 176, 12,
+                             self._frame, alpha_real=True)
 
+        cor_alerta = clarear(Vermelho_ritual, 0.30)
+        cor_prompt_delete = clarear(Vermelho_ritual, 0.40)
+        usar_moldura_lygame = (
+            USAR_MOLDURA_LYGAME and moldura_lygame_disponivel()
+        )
 
         #slots
         for i in range(1, 4):
@@ -137,12 +165,22 @@ class MenuInicial:
             slot_y = 240 + (i - 1) * 140
             rect_slot = pygame.Rect(Screen_widht // 2 - 250, slot_y, 500, 110)
 
-            cor_borda = Azul_claro if selecionado else escurecer(Azul_espectral, 0.45)
-            desenhar_painel(self.tela, rect_slot, self._frame, cor_borda=cor_borda)
+            moldura_ok = usar_moldura_lygame and desenhar_moldura_slot(
+                self.tela, rect_slot, selecionado, dados is not None
+            )
+            if not moldura_ok:
+                cor_borda = (
+                    Azul_claro if selecionado
+                    else escurecer(Azul_espectral, 0.45)
+                )
+                desenhar_painel(
+                    self.tela, rect_slot, self._frame, cor_borda=cor_borda
+                )
 
             if selecionado:
                 desenhar_eco_profano(self.tela, rect_slot.left + 24,
-                                     rect_slot.centery, 11, self._frame)
+                                     rect_slot.centery, 11, self._frame,
+                                     alpha_real=True)
 
             #conteudo do slot
             if dados is None:
@@ -168,11 +206,20 @@ class MenuInicial:
                     f"Salvo em: {dados['data_hora']}", True, Cinza_texto_escuro)
                 self.tela.blit(data, (rect_slot.left + 52, rect_slot.top + 78))
 
-                #DEL para deletar o save
-                del_txt = self.fonte_info.render("DEL p/ apagar o save",
-                                                 True, Vermelho_ritual)
-                self.tela.blit(del_txt, (rect_slot.right - del_txt.get_width() - 20,
-                                         rect_slot.top + 78))
+                prompt_del = criar_prompt(
+                    ["delete"], "apagar save", self.fonte_prompt,
+                    cor_prompt_delete,
+                    espaco_teclas=ESPACO_TECLAS_PROMPT,
+                    espaco_texto=ESPACO_TEXTO_PROMPT,
+                    escala=ESCALA_PROMPT_DISCRETO,
+                    padding=PADDING_PROMPT_DISCRETO,
+                    cor_fundo=FUNDO_PROMPT_DISCRETO,
+                )
+                self.tela.blit(
+                    prompt_del,
+                    (rect_slot.right - prompt_del.get_width() - 18,
+                     rect_slot.top + 70)
+                )
 
 
         #confirmaçao de deletar o save
@@ -183,18 +230,35 @@ class MenuInicial:
             desenhar_painel(self.tela, painel, self._frame,
                             cor_borda=escurecer(Vermelho_ritual, 0.25))
 
-            msg1 = self.fonte_slot.render("Apagar este save?", True, Vermelho_ritual)
-            msg2 = self.fonte_info.render("ENTER para confirmar   ESC para cancelar",
-                                          True, Cinza_texto)
+            msg1 = self.fonte_slot.render("Apagar este save?", True, cor_alerta)
             self.tela.blit(msg1, (Screen_widht // 2 - msg1.get_width() // 2,
                                   painel.top + 26))
-            self.tela.blit(msg2, (Screen_widht // 2 - msg2.get_width() // 2,
-                                  painel.top + 84))
+            desenhar_prompts(
+                self.tela,
+                [(["enter"], "confirmar"), (["esc"], "cancelar")],
+                Screen_widht // 2, painel.top + 74,
+                self.fonte_prompt_modal, Cinza_texto, espaco=34,
+                escala=ESCALA_PROMPT_MODAL,
+                padding=PADDING_PROMPT_MODAL,
+                cor_fundo=FUNDO_PROMPT_MODAL,
+                espaco_teclas=ESPACO_TECLAS_MODAL,
+                espaco_texto=ESPACO_TEXTO_MODAL,
+            )
 
         #instruçao de teclas na base
-        inst = self.fonte_info.render("↑↓ para navegar  ENTER para selecionar",
-                                      True, Cinza_texto_escuro)
-        self.tela.blit(inst, (Screen_widht // 2 - inst.get_width() // 2,
-                              Screen_height - 40))
+        desenhar_prompts(
+            self.tela,
+            [
+                (["seta_cima", "seta_baixo"], "navegar"),
+                (["enter"], "selecionar"),
+            ],
+            Screen_widht // 2, Screen_height - 50,
+            self.fonte_prompt, Cinza_texto_escuro, espaco=30,
+            escala=ESCALA_PROMPT_DISCRETO,
+            padding=PADDING_PROMPT_DISCRETO,
+            cor_fundo=FUNDO_PROMPT_DISCRETO,
+            espaco_teclas=ESPACO_TECLAS_PROMPT,
+            espaco_texto=ESPACO_TEXTO_PROMPT,
+        )
         desenhar_eco_profano(self.tela, Screen_widht - 60, Screen_height - 40,
-                             9, self._frame)
+                             9, self._frame, alpha_real=True)

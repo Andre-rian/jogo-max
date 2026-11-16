@@ -200,6 +200,29 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
+## Assets opcionais de UI (desenvolvimento local)
+
+O inventário usa a moldura **LY005 1×** quando o painel opcional do pack lygame
+está disponível. Se o arquivo não existir, o jogo cai automaticamente na moldura
+anterior, sem erro.
+
+Para habilitar localmente:
+
+1. Obtenha **Dark Fantasy Free Pixel Art Assets** (lygame). A licença e a origem
+   estão em [`docs/arte/ASSETS_UI_ORIGENS.md`](docs/arte/ASSETS_UI_ORIGENS.md).
+2. Coloque o pack em
+   `assets/sprites/_entrada/itens/lygame_dark_fantasy/`, preservando
+   `UI/Panel1.png`.
+3. Mantenha o pack **fora do Git**: a licença permite uso no jogo, mas não
+   redistribuição. O `.gitignore` já bloqueia o pack e as prévias derivadas.
+4. `Panel1_small.png` (LY006) fica reservado para futuras interfaces menores e
+   não é usado pelo inventário atual.
+5. Para forçar a moldura anterior, defina `USAR_PAINEL_LYGAME = False` em
+   `core/inventario.py` ou use `inventario.usar_painel_lygame = False`.
+
+Detalhes de triagem e licenças: [`assets/sprites/README.md`](assets/sprites/README.md)
+e [`assets/sprites/_entrada/LEIA-ME.md`](assets/sprites/_entrada/LEIA-ME.md).
+
 ---
 
 ## 📦 Escopo da primeira entrega

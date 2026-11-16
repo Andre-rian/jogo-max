@@ -1,0 +1,319 @@
+{
+  "states": {
+    "exploracao": {
+      "hp": 200,
+      "hp_max": 200,
+      "stamina": 130,
+      "stamina_max": 130,
+      "cargas": 3,
+      "cargas_max": 3,
+      "ecos": 0,
+      "buff": 0,
+      "delay": 30,
+      "arma": "soco",
+      "item": null,
+      "boss": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "player_rect": [
+        128,
+        297,
+        38,
+        64
+      ]
+    },
+    "combate": {
+      "hp": 200,
+      "hp_max": 200,
+      "stamina": 120,
+      "stamina_max": 130,
+      "cargas": 3,
+      "cargas_max": 3,
+      "ecos": 0,
+      "buff": 0,
+      "delay": 30,
+      "arma": "espada_longa",
+      "item": null,
+      "boss": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "player_rect": [
+        845,
+        320,
+        38,
+        64
+      ]
+    },
+    "vida_baixa": {
+      "hp": 40,
+      "hp_max": 200,
+      "stamina": 26,
+      "stamina_max": 130,
+      "cargas": 1,
+      "cargas_max": 3,
+      "ecos": 137,
+      "buff": 0,
+      "delay": 30,
+      "arma": "espada_longa",
+      "item": null,
+      "boss": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "player_rect": [
+        845,
+        320,
+        38,
+        64
+      ]
+    },
+    "machado_raiz": {
+      "hp": 40,
+      "hp_max": 200,
+      "stamina": 26,
+      "stamina_max": 130,
+      "cargas": 1,
+      "cargas_max": 3,
+      "ecos": 137,
+      "buff": 180,
+      "delay": 30,
+      "arma": "machado_guerra",
+      "item": "Machado de Guerra",
+      "boss": null,
+      "sala": "calabouço_1",
+      "zoom": 1.35,
+      "player_rect": [
+        845,
+        320,
+        38,
+        64
+      ]
+    },
+    "boss": {
+      "hp": 200,
+      "hp_max": 200,
+      "stamina": 120,
+      "stamina_max": 130,
+      "cargas": 3,
+      "cargas_max": 3,
+      "ecos": 0,
+      "buff": 0,
+      "delay": 30,
+      "arma": "espada_longa",
+      "item": null,
+      "boss": {
+        "nome": "Carrasco Esquelético",
+        "hp": 290,
+        "max": 300,
+        "dano": 10
+      },
+      "sala": "calabouço_5",
+      "zoom": 1.1398730822600096,
+      "player_rect": [
+        384,
+        288,
+        38,
+        64
+      ]
+    }
+  },
+  "assets": [
+    {
+      "id": "AB026",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/54x16px_bar_01.png",
+      "size": [
+        54,
+        16
+      ],
+      "transparent": 420,
+      "partial": 0,
+      "opaque": 444
+    },
+    {
+      "id": "AB027",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/54x20px_bar_02.png",
+      "size": [
+        54,
+        20
+      ],
+      "transparent": 500,
+      "partial": 0,
+      "opaque": 580
+    },
+    {
+      "id": "AB028",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/56x16px_bar_02.png",
+      "size": [
+        56,
+        16
+      ],
+      "transparent": 464,
+      "partial": 0,
+      "opaque": 432
+    },
+    {
+      "id": "AB029",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/60x24px_bar_01.png",
+      "size": [
+        60,
+        24
+      ],
+      "transparent": 480,
+      "partial": 0,
+      "opaque": 960
+    },
+    {
+      "id": "AB030",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/bar_fill_01.png",
+      "size": [
+        4,
+        6
+      ],
+      "transparent": 0,
+      "partial": 0,
+      "opaque": 24
+    },
+    {
+      "id": "AB031",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/bar_fill_02.png",
+      "size": [
+        4,
+        6
+      ],
+      "transparent": 0,
+      "partial": 0,
+      "opaque": 24
+    },
+    {
+      "id": "AB032",
+      "path": "assets/sprites/_entrada/ui/abyssowl_gothic_pixel_ui/split_assets/frames and bars/bar_fill_03.png",
+      "size": [
+        4,
+        6
+      ],
+      "transparent": 0,
+      "partial": 0,
+      "opaque": 24
+    },
+    {
+      "id": "LY014",
+      "path": "assets/sprites/_entrada/itens/lygame_dark_fantasy/UI/ProgressBar.png",
+      "size": [
+        42,
+        6
+      ],
+      "transparent": 0,
+      "partial": 0,
+      "opaque": 252
+    },
+    {
+      "id": "LY015",
+      "path": "assets/sprites/_entrada/itens/lygame_dark_fantasy/UI/ProgressTrack.png",
+      "size": [
+        48,
+        12
+      ],
+      "transparent": 0,
+      "partial": 0,
+      "opaque": 576
+    },
+    {
+      "id": "M095",
+      "path": "assets/sprites/itens/consumiveis/pocao_vida.png",
+      "size": [
+        24,
+        24
+      ],
+      "transparent": 309,
+      "partial": 0,
+      "opaque": 267
+    },
+    {
+      "id": "M067",
+      "path": "assets/sprites/itens/consumiveis/raiz_amarga.png",
+      "size": [
+        24,
+        24
+      ],
+      "transparent": 250,
+      "partial": 0,
+      "opaque": 326
+    },
+    {
+      "id": "A017",
+      "path": "assets/sprites/itens/equipamentos/espada_longa.png",
+      "size": [
+        24,
+        24
+      ],
+      "transparent": 307,
+      "partial": 0,
+      "opaque": 269
+    },
+    {
+      "id": "A045",
+      "path": "assets/sprites/itens/equipamentos/machado_guerra.png",
+      "size": [
+        24,
+        24
+      ],
+      "transparent": 245,
+      "partial": 0,
+      "opaque": 331
+    },
+    {
+      "id": "Eco D1",
+      "path": "docs/arte/propostas_recursos/eco_profano_d1.png",
+      "size": [
+        24,
+        24
+      ],
+      "transparent": 380,
+      "partial": 0,
+      "opaque": 196
+    },
+    {
+      "id": "KB009",
+      "path": "assets/sprites/_entrada/ui/kibyra_medieval_fantasy_ui/UI Icons/icon9.png",
+      "size": [
+        32,
+        32
+      ],
+      "transparent": 648,
+      "partial": 0,
+      "opaque": 376
+    },
+    {
+      "id": "KB017",
+      "path": "assets/sprites/_entrada/ui/kibyra_medieval_fantasy_ui/UI Icons/icon17.png",
+      "size": [
+        32,
+        32
+      ],
+      "transparent": 154,
+      "partial": 0,
+      "opaque": 870
+    },
+    {
+      "id": "KB020",
+      "path": "assets/sprites/_entrada/ui/kibyra_medieval_fantasy_ui/UI Icons/icon20.png",
+      "size": [
+        32,
+        32
+      ],
+      "transparent": 483,
+      "partial": 0,
+      "opaque": 541
+    },
+    {
+      "id": "KB023",
+      "path": "assets/sprites/_entrada/ui/kibyra_medieval_fantasy_ui/UI Icons/icon23.png",
+      "size": [
+        32,
+        32
+      ],
+      "transparent": 154,
+      "partial": 0,
+      "opaque": 870
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "exploracao": {
+    "hp": 200,
+    "hp_max": 200,
+    "stamina": 130,
+    "stamina_max": 130,
+    "delay": 30,
+    "frame": 12,
+    "buff": 0,
+    "zoom": 1.35,
+    "fora_status_identico": true
+  },
+  "stamina_vazia": {
+    "hp": 200,
+    "hp_max": 200,
+    "stamina": 0,
+    "stamina_max": 130,
+    "delay": 30,
+    "frame": 12,
+    "buff": 0,
+    "zoom": 1.35,
+    "fora_status_identico": true
+  },
+  "regenerando": {
+    "hp": 200,
+    "hp_max": 200,
+    "stamina": 4.3999999999999995,
+    "stamina_max": 130,
+    "delay": 0,
+    "frame": 57,
+    "buff": 0,
+    "zoom": 1.35,
+    "fora_status_identico": true
+  },
+  "vida_baixa": {
+    "hp": 40,
+    "hp_max": 200,
+    "stamina": 26,
+    "stamina_max": 130,
+    "delay": 0,
+    "frame": 57,
+    "buff": 0,
+    "zoom": 1.35,
+    "fora_status_identico": true
+  },
+  "buff_raiz": {
+    "hp": 40,
+    "hp_max": 200,
+    "stamina": 26,
+    "stamina_max": 130,
+    "delay": 0,
+    "frame": 57,
+    "buff": 180,
+    "zoom": 1.35,
+    "fora_status_identico": true
+  },
+  "combate": {
+    "hp": 200,
+    "hp_max": 200,
+    "stamina": 120,
+    "stamina_max": 130,
+    "delay": 30,
+    "frame": 23,
+    "buff": 0,
+    "zoom": 1.35,
+    "fora_status_identico": true
+  },
+  "chefe": {
+    "hp": 200,
+    "hp_max": 200,
+    "stamina": 120,
+    "stamina_max": 130,
+    "delay": 30,
+    "frame": 11,
+    "buff": 0,
+    "zoom": 1.1398730822600096,
+    "fora_status_identico": true
+  },
+  "movimento": [
+    [
+      154,
+      274,
+      38,
+      64
+    ],
+    [
+      158,
+      320,
+      38,
+      64
+    ],
+    [
+      190,
+      320,
+      38,
+      64
+    ],
+    [
+      222,
+      320,
+      38,
+      64
+    ],
+    [
+      254,
+      320,
+      38,
+      64
+    ],
+    [
+      286,
+      320,
+      38,
+      64
+    ]
+  ]
+}

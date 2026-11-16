@@ -1,5 +1,19 @@
 # Prévias de arte
 
+## Fase F.2 — poção e Ecos Profanos
+
+- [Comparativo compacto, 1×](hud_f2_comparativo.png): cargas 3/1/0, flash,
+  zero/137/19 e 60 dígitos, fundos escuro/claro. Somente CC0 e arte original.
+- [Evidências de cinco cenários reais](hud_f2_evidencias.json) e
+  [relatório completo](../RELATORIO_FASE_F2_HUD.md).
+- Reprodução: `python docs/arte/gerar_previews_f2.py`.
+- Dez capturas completas `hud_f2_*_local.png`, 1280×720, ficam apenas locais;
+  todas usam fallback de LY015. Gerador não importa `main` nem usa saves.
+- `hud_f2_publicacao_local.json` registra o hash e a confirmação remota após o
+  push; recibo local ignorado para não gerar um commit apenas com o próprio hash.
+- As exclusões preexistentes de `hud_f0_atual_*`, `hud_f0_evidencias.json` e
+  `hud_f0_integridade_inicio.json` foram preservadas fora do commit F.2.
+
 ## Fase F.1 — integração experimental do painel de status
 
 [Relatório e capturas antes/depois](../RELATORIO_FASE_F1_HUD.md).

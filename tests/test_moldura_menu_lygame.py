@@ -1,4 +1,5 @@
 import pygame
+import pytest
 
 import ui.moldura_menu_lygame as moldura
 from ui.prompts_teclas import obter_tecla
@@ -12,8 +13,22 @@ ESTADOS = {
 }
 
 
-def test_moldura_lygame_disponivel_e_desenha_estados_distintos():
+@pytest.fixture(autouse=True)
+def cache_limpo():
     moldura.limpar_cache()
+    yield
+    moldura.limpar_cache()
+
+
+def test_moldura_lygame_disponivel_e_desenha_estados_distintos(tmp_path, monkeypatch):
+    # Testa composição/paletas em qualquer clone, sem exigir o pack restrito.
+    for nome in ('Frame1Empty.png', 'Frame1.png'):
+        origem = pygame.Surface((16, 16), pygame.SRCALPHA)
+        if nome == 'Frame1.png':
+            origem.fill((32, 32, 35))
+        pygame.draw.rect(origem, (200, 187, 162), origem.get_rect(), 5)
+        pygame.image.save(origem, tmp_path / nome)
+    monkeypatch.setattr(moldura, '_DIR_UI', str(tmp_path))
     assert moldura.disponivel()
 
     centros = {}

@@ -1,7 +1,14 @@
 # PROFANE ECHO — Fase F.1: painel de status híbrido
 
-Status: **integrado experimentalmente, aguardando aprovação visual**.
+Status: **integrado e preservado na consolidação F.2**.
 Referência: [auditoria F.0](RELATORIO_FASE_F0_HUD.md), proposta C escolhida pelo usuário.
+
+Atualização de 15/11/2026: a continuidade F.2 confirma a proposta C e a stamina
+de 8 px úteis. `status.py` e `trilho_status.py` permanecem sem alterações.
+As fases anteriores já estavam no commit `73f5808638159c04c00d6fba70b853548d26e255`
+da branch `sprites`, também presente no remoto ao iniciar esta rodada.
+Resultados atuais e publicação: [relatório F.2](RELATORIO_FASE_F2_HUD.md).
+Os registros abaixo descrevem a execução histórica da F.1.
 
 ## Resultado
 

@@ -32,6 +32,22 @@ redistribuição. Preencher antes de promover qualquer arquivo para
 | `assets/sprites/itens/consumiveis/raiz_amarga.png` | Crafting Materials / `resources_outlined.png`, célula (8,6) = M067 | Beast Pixels | CC0 | Crédito não obrigatório (registrado) |
 | `assets/sprites/itens/materiais/umbrita.png` | Crafting Materials / `resources_outlined.png`, célula (3,4) = M042; paleta refinada na D.1 | Beast Pixels | CC0 | Crédito não obrigatório (registrado) |
 | `assets/sprites/itens/_default/item_desconhecido.png` | Original do projeto (gerado como fallback) | Profane Echo | — | — |
+| `assets/sprites/itens/ecos/eco_profano.png` | Cópia binária de `docs/arte/propostas_recursos/eco_profano_d1.png`, aprovado na D.1 | Profane Echo | Original do projeto; licença MIT do repositório | Sem pixels de terceiros; integrado ao contador na F.2 |
+
+## Uso na HUD F.2 (15/11/2026)
+
+- M095: mesmo `pocao_vida.png` já aprovado e registrado acima (Beast Crafting
+  Materials, CC0); o cache existente fornece 24×24 → 48×48 com nearest-neighbor.
+  A variante escurecida do frasco vazio existe apenas em memória.
+- Eco D.1: 24×24, 196 pixels opacos; arquivo final idêntico à proposta aprovada.
+  Não usa `SoulFragment.png` nem outro pixel do lygame.
+- Molduras, tecla F, frasco de fallback, halo e fragmentos: código procedural
+  do projeto, reutilizando `desenhar_painel` e `desenhar_eco_profano`.
+- `hud_f2_comparativo.png` contém apenas M095/CC0, Eco original e desenho
+  procedural sobre fundos sintéticos. Capturas completas `hud_f2_*_local.png`
+  ficam ignoradas. Nenhum novo material externo foi baixado.
+- F.1 mantém LY015 opcional, exclusivamente local; as capturas F.2 usam seu
+  fallback procedural. As restrições dos demais packs continuam inalteradas.
 
 ## Observações
 

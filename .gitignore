@@ -55,3 +55,7 @@ docs/arte/previews/*ly006*.png
 # Previas E.0 com AbyssOwl/Kibyra/lygame (licenca restrita ou nao confirmada)
 docs/arte/previews/*restrito*.png
 docs/arte/previews.zip
+
+# Capturas completas F.2 mantidas localmente; publicar apenas comparativo compacto
+docs/arte/previews/hud_f2_*_local.png
+docs/arte/previews/hud_f2_*_local.json

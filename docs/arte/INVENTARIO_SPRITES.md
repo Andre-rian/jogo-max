@@ -2,12 +2,13 @@
 
 Mapa entre elementos do jogo e arquivos aprovados.
 
-**Status (15/11/2026): Fase D.1 concluída para a Umbrita.** Cinco ícones
+**Status (15/11/2026): Fase F.2 integrada; F.1 preservada.** Cinco ícones
 integrados (IDs 1–5), fallback global ativo, prompts de teclado integrados e
 LY005 1× adotado como moldura preferencial do inventário. A moldura anterior
 permanece como fallback. Na E.2, `Frame1Empty`/`Frame1` entraram em teste nos
-slots do menu, com `USAR_MOLDURA_LYGAME` para rollback. Abissita, Nyxita e Eco
-têm propostas aprovadas, mas ainda não integradas.
+slots do menu, com `USAR_MOLDURA_LYGAME` para rollback. Abissita e Nyxita
+têm propostas aprovadas, mas ainda não integradas. O Eco original D.1 está no
+contador da HUD; a poção F reutiliza M095 sem consultar o estoque do ID 2.
 
 ## Itens
 
@@ -107,7 +108,7 @@ padding e legibilidade dos prompts está em
 
 | Elemento | Sprite final / destino | Proposta aprovada (D.1) | Origem | Observações |
 |---|---|---|---|---|
-| Eco Profano | `itens/ecos/eco_profano.png` | [`eco_profano_d1.png`](propostas_recursos/eco_profano_d1.png) | Original do projeto | Aprovado; ainda não integrado |
+| Eco Profano | `assets/sprites/itens/ecos/eco_profano.png` | [`eco_profano_d1.png`](propostas_recursos/eco_profano_d1.png) | Original do projeto | Integrado no contador `player.ecos` na F.2; cópia binária 24×24, sem item/ID novo |
 | Umbrita (+1 a +4) | `itens/materiais/umbrita.png` | [`recurso_m042_d1.png`](propostas_recursos/recurso_m042_d1.png) | Beast CC0 | M042 integrada ao ID 5 em 15/11/2026; M052 descartada |
 | Abissita (+5 a +8) | `itens/materiais/abissita.png` | [`recurso_m025_d1.png`](propostas_recursos/recurso_m025_d1.png) | Beast CC0 | Aprovada; ainda não integrada |
 | Nyxita (+9) | `itens/materiais/nyxita.png` | [`recurso_m023_d1.png`](propostas_recursos/recurso_m023_d1.png) | Beast CC0 | Aprovada; ainda não integrada |
@@ -118,9 +119,19 @@ e refinamento da Fase D.1 em
 [`RELATORIO_FASE_D1_RECURSOS_ESPECIAIS.md`](RELATORIO_FASE_D1_RECURSOS_ESPECIAIS.md).
 Decisão de 15/11/2026: M042, M025, M023 e Eco aprovados; M052 descartada.
 A Umbrita M042 foi copiada para `assets/sprites/itens/materiais/umbrita.png` e
-mapeada ao ID 5, sem criar item ou ID novo. Abissita, Nyxita e Eco continuam
-como propostas aprovadas; a integração delas exige criar itens/IDs em uma etapa
-funcional separada, fora do escopo da D.1.
+mapeada ao ID 5, sem criar item ou ID novo. Abissita e Nyxita continuam
+como propostas aprovadas, reservadas a uma etapa funcional separada.
+O Eco já existia como moeda em `player.ecos`: sua integração visual na F.2
+não exigiu criar itens/IDs nem alterar progressão ou salvamento.
+
+## HUD — F.1 e F.2
+
+- F.1: proposta C, painel grafite, vida vermelha, stamina verde com 8 px úteis;
+  LY015 opcional e fallback procedural preservados.
+- F.2: slot F com M095 em 2×, cargas `atual / máximo`, vazio escurecido e flash
+  de 12 ticks; contador de Ecos com símbolo D.1 em 1× e painel adaptável.
+- Nenhum pack restrito é necessário para os dois componentes da F.2.
+- [Relatório, validações e comparativo](RELATORIO_FASE_F2_HUD.md).
 
 ## Packs em triagem
 

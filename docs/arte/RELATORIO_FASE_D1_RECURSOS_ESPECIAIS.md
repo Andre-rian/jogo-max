@@ -3,6 +3,10 @@
 Data: 15/11/2026
 Branch: `sprites`
 Status: **M042 integrada ao ID 5**; M025, M023 e Eco aprovados; M052 descartada.
+Atualização F.2 (15/11/2026): o Eco aprovado foi integrado visualmente ao
+contador já existente `player.ecos`, sem criar item/ID. A afirmação histórica
+ao final sobre exigir novo item não se aplica a esse contador.
+Ver [relatório F.2](RELATORIO_FASE_F2_HUD.md).
 Escopo: refinar as propostas de Umbrita, Abissita e Nyxita, criar um Eco Profano
 original e simular os ícones no inventário. A integração funcional ficou limitada
 à Umbrita no ID 5.

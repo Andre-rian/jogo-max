@@ -28,15 +28,12 @@ class IndicadorEcos:
         self._linhas = []
 
     def _preparar_painel(self, quantidade, largura_tela):
-        # Limite deixa espaço para a barra de chefe na resolução lógica 1280x720.
-        limite = min(360, largura_tela - 40)
-        chave = (quantidade, limite)
+        limite = min(max(220, self.fonte_media.get_height() * 12), largura_tela - 40)
+        chave = (quantidade, limite, self.fonte_media.get_height())
         if chave == self._chave:
             return
         self._chave = chave
         largura_texto = max(1, limite - 80)
-        # Sem arredondar, abreviar ou cortar dígitos: números extremos quebram
-        # em linhas, somente quando excedem a largura disponível.
         linhas = ['']
         for digito in str(quantidade):
             if linhas[-1] and self.fonte_media.size(linhas[-1] + digito)[0] > largura_texto:
@@ -46,8 +43,7 @@ class IndicadorEcos:
         largura = min(limite, max(196, 80 + max(s.get_width() for s in self._linhas)))
         altura = max(64, 24 + len(linhas) * self.fonte_media.get_linesize())
         self._painel = pygame.Surface((largura, altura), pygame.SRCALPHA)
-        desenhar_painel(self._painel, self._painel.get_rect(), 0,
-                        cor_borda=(107, 118, 137))
+        desenhar_painel(self._painel, self._painel.get_rect(), 0, cor_borda=(107, 118, 137))
         pygame.draw.line(self._painel, Roxo_espectral, (68, 8), (largura - 12, 8))
         y = (altura - len(linhas) * self.fonte_media.get_linesize()) // 2
         for texto in self._linhas:

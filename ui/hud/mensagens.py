@@ -39,7 +39,7 @@ class Mensagens:
             return anterior[1]
         largura = min(limite, max(24, fonte.size(texto)[0]))
         renderizado = texto_em_linhas(fonte, texto, largura)
-        superficie = painel((largura + 32, renderizado.get_height() + 16))
+        superficie = painel((largura + 32, max(fonte.get_height()+16, renderizado.get_height() + 16)))
         superficie.blit(renderizado, (16, 8))
         # Somente os dois conteúdos atuais ficam em cache.
         self._cache[tipo] = (chave, superficie)
@@ -48,11 +48,8 @@ class Mensagens:
     def desenhar(self, tela):
         self.rect_prompt = pygame.Rect(0, 0, 0, 0)
         self.rect_mensagem = pygame.Rect(0, 0, 0, 0)
-        limite = min(800, tela.get_width() - 72)
-        if self._prompt is not None:
-            prompt = self._preparar('prompt', self.fonte_prompt, self._prompt, limite)
-            self.rect_prompt = prompt.get_rect(midtop=(tela.get_width() // 2, tela.get_height() - 158))
-            tela.blit(prompt, self.rect_prompt)
+        limite = min(max(360, int(self.fonte_mensagem.get_height()*18)), tela.get_width() - 72)
+        # Prompts de interacao sao renderizados como sprites no mundo (G.1).
 
         if self._timer_mensagem <= 0:
             return

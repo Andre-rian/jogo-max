@@ -12,23 +12,28 @@ class SlotPocao:
         self._valores = None
         self._pocao_anterior = None
         self._texto = None
-        self._paineis = []
-        for flash in (False, True):
-            painel = pygame.Surface((148, 64), pygame.SRCALPHA)
-            desenhar_painel(painel, painel.get_rect(), 0,
-                            cor_borda=Azul_claro if flash else (107, 118, 137))
-            painel.blit(fonte_pequena.render('POÇÃO', True, Branco_texto), (66, 8))
-            pygame.draw.rect(painel, (107, 118, 137), (118, 36, 20, 20), 1)
-            tecla = fonte_pequena.render('F', True, Branco_texto)
-            painel.blit(tecla, tecla.get_rect(center=(128, 46)))
-            self._paineis.append(painel)
-
-        # ID 2 resolve apenas a arte M095; nenhum dado do inventário é lido.
+        self._construir()
         self._icone = obter_sprite_item(2)
         if self._icone is None:
             self._icone = self._frasco_procedural()
         self._icone_vazio = self._icone.copy()
         self._icone_vazio.fill((90, 90, 105, 255), special_flags=pygame.BLEND_RGBA_MULT)
+
+    def _construir(self):
+        fh = self.fonte_pequena.get_height()
+        self._w = max(148, 100 + fh * 4)
+        self._h = max(64, fh * 3 + 16)
+        self._paineis = []
+        for flash in (False, True):
+            painel = pygame.Surface((self._w, self._h), pygame.SRCALPHA)
+            desenhar_painel(painel, painel.get_rect(), 0,
+                            cor_borda=Azul_claro if flash else (107, 118, 137))
+            painel.blit(self.fonte_pequena.render('POÇÃO', True, Branco_texto), (66, 8))
+            bx, by = self._w - 30, self._h - 28
+            pygame.draw.rect(painel, (107, 118, 137), (bx, by, 20, 20), 1)
+            tecla = self.fonte_pequena.render('F', True, Branco_texto)
+            painel.blit(tecla, tecla.get_rect(center=(bx+10, by+10)))
+            self._paineis.append(painel)
 
     @staticmethod
     def _frasco_procedural():
@@ -50,19 +55,16 @@ class SlotPocao:
         if not hasattr(player, 'pocao'):
             return
         valores = (player.pocao.cargas, player.pocao.cargas_max)
-        # A entrada F usa Pocao.usar diretamente. Observa o uso bem-sucedido
-        # sem consumir cargas, reduzir cooldown ou mudar o estado do Player.
         if (player.pocao is self._pocao_anterior
                 and valores[0] < self._valores[0]
                 and player.pocao._colldown > 0):
             self.flash()
         self._pocao_anterior = player.pocao
-        x, y = 20, tela.get_height() - 84
+        x, y = 20, tela.get_height() - self._h - 20
         tela.blit(self._paineis[self._flash_da_pocao > 0], (x, y))
         icone = self._icone if player.pocao.cargas > 0 else self._icone_vazio
-        tela.blit(icone, (x + 8, y + 8))
+        tela.blit(icone, (x + 8, y + (self._h - icone.get_height()) // 2))
         if valores != self._valores:
             self._valores = valores
-            self._texto = self.fonte_pequena.render(
-                f'{valores[0]} / {valores[1]}', True, Branco_texto)
-        tela.blit(self._texto, (x + 66, y + 35))
+            self._texto = self.fonte_pequena.render(f'{valores[0]} / {valores[1]}', True, Branco_texto)
+        tela.blit(self._texto, (x + 66, y + self._h - self._texto.get_height() - 10))

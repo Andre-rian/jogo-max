@@ -22,9 +22,53 @@ _FONTES_TEXTO   = ("georgia", "constantia", "palatinolinotype", "cambria", "sylf
 
 _fontes_ok = None
 _fonte_cache = {}
+_escala_texto = 1.0
+_versao_escala_texto = 0
+_observadores_escala = []
 
 _cache = {}
 _particulas = None
+
+
+def registrar_observador_escala(callback):
+    if callback not in _observadores_escala:
+        _observadores_escala.append(callback)
+    return callback
+
+
+def definir_escala_texto(escala):
+    global _escala_texto, _versao_escala_texto
+    try:
+        escala = float(escala)
+    except (TypeError, ValueError):
+        escala = 1.0
+    escala = max(0.5, min(3.0, escala))
+    if abs(escala - _escala_texto) < 1e-6:
+        return _escala_texto
+    _escala_texto = escala
+    _versao_escala_texto += 1
+    _fonte_cache.clear()
+    limpar_cache_visual()
+    for callback in list(_observadores_escala):
+        try:
+            callback(_escala_texto)
+        except Exception:
+            pass
+    return _escala_texto
+
+
+def obter_escala_texto():
+    return _escala_texto
+
+
+def versao_escala_texto():
+    return _versao_escala_texto
+
+
+def limpar_cache_visual():
+    _cache.clear()
+    global _particulas
+    _particulas = None
 
 
 def _fontes_disponiveis():
@@ -42,11 +86,17 @@ def _primeira_fonte(candidatos):
     return None
 
 
-def fonte(candidatos, tamanho, negrito=False):
-    chave = (tuple(candidatos), tamanho, negrito)
+def fonte(candidatos, tamanho, negrito=False, escala=None):
+    if escala is None:
+        escala = _escala_texto
+    try:
+        tamanho_final = max(8, int(round(int(tamanho) * float(escala))))
+    except (TypeError, ValueError):
+        tamanho_final = max(8, int(tamanho))
+    chave = (tuple(candidatos), tamanho_final, negrito)
     if chave not in _fonte_cache:
         nome = _primeira_fonte(candidatos)
-        _fonte_cache[chave] = pygame.font.SysFont(nome, tamanho, bold=negrito)
+        _fonte_cache[chave] = pygame.font.SysFont(nome, tamanho_final, bold=negrito)
     return _fonte_cache[chave]
 
 
@@ -93,33 +143,54 @@ def desenhar_linha_ornamental(tela, centro_x, y, meia_largura, cor):
 
 
 def _brilho_radial(raio, cor):
-    chave = ("brilho", raio, cor)
+    # Gradiente suave sem anéis/círculos desenhados; borda some naturalmente.
+    raio = int(raio)
+    chave = ("brilho_suave", raio, cor)
     if chave not in _cache:
         surf = pygame.Surface((raio * 2, raio * 2), pygame.SRCALPHA)
-        for r in range(raio, 0, -1):
-            t = (raio - r) / raio
-            alpha = int(255 * (t ** 1.5))
-            pygame.draw.circle(surf, (*cor, alpha), (raio, raio), r)
+        if raio <= 0:
+            _cache[chave] = surf
+            return surf
+        max_d2 = raio * raio
+        r0, g0, b0 = cor
+        px = pygame.PixelArray(surf)
+        # PixelArray é lento em Python puro para raios grandes, mas cacheado.
+        # Usar abordagem por linhas com math para limitar custo.
+        del px
+        for y in range(raio * 2):
+            dy = y - raio
+            dy2 = dy * dy
+            for x in range(raio * 2):
+                dx = x - raio
+                d2 = dx * dx + dy2
+                if d2 >= max_d2:
+                    continue
+                t = 1.0 - (d2 / max_d2)
+                a = int(255 * (t * t))
+                if a > 0:
+                    surf.set_at((x, y), (r0, g0, b0, a))
         _cache[chave] = surf
     return _cache[chave]
 
 
 def _aplicar_brilho_alpha(tela, cx, cy, raio, cor, alfa):
     surf = _brilho_radial(int(raio), cor)
-    surf.set_alpha(int(alfa))
-    tela.blit(surf, (int(cx - raio), int(cy - raio)))
+    temp = surf.copy()
+    temp.fill((255, 255, 255, max(0, min(255, int(alfa)))), special_flags=pygame.BLEND_RGBA_MULT)
+    tela.blit(temp, (int(cx - raio), int(cy - raio)))
 
 
 def adicionar_brilho(tela, cx, cy, raio, cor, frame, intensidade=0.35,
                      alpha_real=False):
     pulso = 0.6 + 0.4 * math.sin(frame * 0.05)
-    alfa = int(255 * intensidade * pulso)
+    alfa = max(0, min(255, int(255 * intensidade * pulso)))
     if alpha_real:
         _aplicar_brilho_alpha(tela, cx, cy, raio, cor, alfa)
         return
     surf = _brilho_radial(int(raio), cor)
-    surf.set_alpha(alfa)
-    tela.blit(surf, (int(cx - raio), int(cy - raio)), special_flags=pygame.BLEND_ADD)
+    temp = surf.copy()
+    temp.fill((255, 255, 255, alfa), special_flags=pygame.BLEND_RGBA_MULT)
+    tela.blit(temp, (int(cx - raio), int(cy - raio)), special_flags=pygame.BLEND_ADD)
 
 
 def _construir_fundo():
@@ -132,7 +203,8 @@ def _construir_fundo():
         cor = misturar(Cinza_carvao, Preto_absoluto, t)
         pygame.draw.line(base, cor, (0, y), (w, y))
 
-    glow = _brilho_radial(260, Azul_espectral)
+    glow = _brilho_radial(260, Azul_espectral).copy()
+    glow.fill((255, 255, 255, 120), special_flags=pygame.BLEND_RGBA_MULT)
     base.blit(glow, (w // 2 - 260, h // 2 - 130))
 
     rnd = random.Random(7)
@@ -206,11 +278,7 @@ def desenhar_fundo(tela, frame):
         _cache["fundo"] = _construir_fundo()
     tela.blit(_cache["fundo"], (0, 0))
 
-    pulso = 0.5 + 0.5 * math.sin(frame * 0.02)
-    alfa = int(20 + 16 * pulso)
-    _aplicar_brilho_alpha(tela, Screen_widht // 2,
-                          Screen_height // 2 - 120 + 230,
-                          230, Roxo_profundo, alfa)
+    # brilho de fundo removido para evitar círculo/halo visível
 
     _desenhar_particulas(tela, frame)
 
@@ -275,7 +343,8 @@ def desenhar_botao(tela, rect, texto, selecionado, frame,
 
     if selecionado:
         if brilho:
-            adicionar_brilho(tela, cx, cy, w // 2 + 14, Roxo_profundo, frame, intensidade=0.30)
+            # realce suave pequeno, sem halo grande
+            adicionar_brilho(tela, cx, cy, min(28, w // 4), Roxo_profundo, frame, intensidade=0.10, alpha_real=True)
         pygame.draw.rect(tela, Cinza_azulado, rect, border_radius=4)
         cor_borda = misturar(Azul_claro, Roxo_espectral, 0.25 + 0.2 * (0.5 + 0.5 * math.sin(frame * 0.06)))
     else:
@@ -300,12 +369,14 @@ def _fragmento(tela, x, y, cor, tamanho):
     pygame.draw.polygon(tela, cor, pontos)
 
 
-def desenhar_eco_profano(tela, cx, cy, raio, frame, alpha_real=False):
+def desenhar_eco_profano(tela, cx, cy, raio, frame, alpha_real=False, intensidade_halo=0.22, raio_halo=None):
     pulso = 0.5 + 0.5 * math.sin(frame * 0.035)
-    rn = int(raio * (0.5 + 0.08 * pulso))
-
-    adicionar_brilho(tela, cx, cy, int(raio * 2.0), Roxo_profundo, frame,
-                     intensidade=0.22, alpha_real=alpha_real)
+    rn = max(2, int(raio * (0.5 + 0.08 * pulso)))
+    if intensidade_halo and intensidade_halo > 0:
+        if raio_halo is None:
+            raio_halo = int(raio * 1.8)
+        adicionar_brilho(tela, cx, cy, max(rn + 2, int(raio_halo)), Roxo_profundo, frame,
+                         intensidade=intensidade_halo, alpha_real=alpha_real)
 
     pygame.draw.circle(tela, (7, 5, 11), (cx, cy), rn)
     pygame.draw.circle(tela, Roxo_espectral, (cx, cy), rn, 1)

@@ -1,5 +1,10 @@
 # Origens e licenças dos assets de UI e sprites
 
+Fase G (16/11/2026): tecla E reutiliza Gamepad UI de greatdocbrown (CC0),
+`gdb-keyboard-2.png`, recorte `(96,48,16,16)` e escala nearest-neighbor 1,5.
+Fallback com rótulo E procedural. Menu do Ecofoco reutiliza a arte original
+D.1/cache F.2; nenhum novo asset de terceiro foi adicionado.
+
 Registro consolidado de autor, URL, versão, licença, crédito e limites de
 redistribuição. Preencher antes de promover qualquer arquivo para
 `assets/sprites/`.

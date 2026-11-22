@@ -1,5 +1,12 @@
 # Prévias de arte
 
+## Fase G — pausa, interações e Ecofoco
+
+[Relatório e sete capturas locais](../RELATORIO_FASE_G_MENUS_INTERACOES.md).
+Reprodução: `python docs/arte/gerar_previews_g.py`.
+Imagens `fase_g_*_local.png` ignoradas; evidências em `fase_g_evidencias.json`.
+Sala 2: Ecofoco experimental no tile (8,20), pixels (256,640).
+
 ## Fase F.3 — chefe, notificações e mensagens
 
 - [Comparativo compacto 1×](hud_f3_comparativo.png): UI própria e poção M095

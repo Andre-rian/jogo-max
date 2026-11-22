@@ -44,6 +44,8 @@ from ui.hud import Hud
 from ui.particulas import ParticulaEco
 from ui.overlays import desenhar_tela_morte, desenhar_tela_pausa
 from ui.estilo import Fonte_texto
+from ui.prompts_teclas import PromptTeclaMundo
+from core.interacoes import GerenciadorInteracoes
 
 
 
@@ -55,8 +57,17 @@ def _nome_arquivo_normalizado(nome):
 
 
 AMBIENCIA_POR_SALA = {
-    "calabouço_4": "sala_descanso",
-    "calabouço_5": "arena_boss",
+    "calabou�o_4": "sala_descanso",
+    "calabou�o_5": "arena_boss",
+}
+
+# H.1: exploração prioriza ambiência nas salas comuns. Mapa preparado para reativar música por sala.
+MUSICA_POR_SALA = {
+    "calabou�o_1": None,
+    "calabou�o_2": None,
+    "calabou�o_3": None,
+    "calabou�o_4": "descanso",
+    "calabou�o_5": None,
 }
 
 
@@ -87,6 +98,12 @@ class Gamescene:
 
         #menu da fogueira
         self.menu_fogueira = MenuFogueira(self.tela, self.player, callback_descansar=self._descansar_fogueira, callback_fechar=self._fechar_menu_fogueira)
+        self.boss_batalha_ativa = False
+
+        #interacoes e prompt de tecla no mundo (G.1)
+        self.interacoes = GerenciadorInteracoes()
+        self.prompt_interacao_mundo = PromptTeclaMundo("e", escala=1.0)
+        self._alvo_interacao_atual = None
 
 
         #baus
@@ -125,7 +142,7 @@ class Gamescene:
 
         self.morrendo = False
         self.timer_morto = 0
-        self.duraçao_morte = 180
+        self.duracao_morte = 180
 
         #projeteis  
         self.projeteis = []
@@ -140,8 +157,9 @@ class Gamescene:
         #menu de pausa
         self.pausado = False
         self._menu_callback = None #sera setado no main
-        self.opçoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
-        self.opçoes_selecionadas = 0
+        self.opcoes_pause = ["Continuar", "Inventário", "Salvar", "Menu principal", "Sair"]
+        self.ACOES_PAUSA = ["continuar", "inventario", "salvar", "menu_principal", "sair"]
+        self.opcao_pausa_selecionada = 0
         self._frame_pausa = 0
 
         #debug: mostra o que o engine considera plataforma/escada (F3 no jogo)
@@ -226,6 +244,8 @@ class Gamescene:
 
         self.sala_atual = nome_sala
         self.player.material_piso = MATERIAL_PISO.get(nome_sala, "pedra")
+
+        self._limpar_estado_interacao()
 
         parar_mundo = getattr(audio, "stop_world_sfx", None)
         if parar_mundo is not None:
@@ -375,18 +395,32 @@ class Gamescene:
         #ajusta as fogueiras nas salas
 
         self.fogueiras = []
+        posicoes_fogueira = set()
+
+        def _adicionar_fogueira(col_idx, linha_idx):
+            chave = (col_idx, linha_idx)
+            if chave in posicoes_fogueira:
+                return
+            fogueira = Fogueira(
+                col_idx * Tile_size,
+                linha_idx * Tile_size,
+                col_idx, linha_idx,
+                callback_descanso=self._descansar_fogueira
+            )
+            fogueira._callback_abrir_menu = self._abrir_menu_fogueira
+            posicoes_fogueira.add(chave)
+            self.fogueiras.append(fogueira)
+
+        if objetos_tmx is not None:
+            for obj in objetos_tmx:
+                if obj.get("tipo") != "fogueira":
+                    continue
+                _adicionar_fogueira(obj["col"], obj["linha"])
+
         for linha_idx, linha in enumerate(Salas[nome_sala]):
             for col_idx, tile in enumerate(linha):
                 if tile == 9:
-                    fogueira = Fogueira(
-                        col_idx * Tile_size,
-                        linha_idx * Tile_size,
-                        col_idx, linha_idx,
-                        callback_descanso=self._descansar_fogueira
-                    )
-                    fogueira._callback_abrir_menu = self._abrir_menu_fogueira
-                    logger.debug(f"setado na fogueira id={id(fogueira)}, col={fogueira.col}")
-                    self.fogueiras.append(fogueira)
+                    _adicionar_fogueira(col_idx, linha_idx)
 
         for fogueira in self.fogueiras:
             if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
@@ -510,7 +544,7 @@ class Gamescene:
                     boss._indice_spawn = indice
                     self.inimigos.append(boss)
                     self.boss_atual = boss
-                    self._tocar_entrada_boss(boss)
+                    self.boss_batalha_ativa = False
                     continue
 
                 if indice in mortos:
@@ -551,24 +585,51 @@ class Gamescene:
 
         self._atualizar_audio_sala()
 
-    def _atualizar_audio_sala(self):
+    def _contexto_musical_sala(self):
+        menu = getattr(self, "menu_fogueira", None)
+        boss = getattr(self, "boss_atual", None)
+        if boss is not None and boss.vivo and getattr(self, "boss_batalha_ativa", False):
+            return "boss", "batalha_chefe_ativa"
+        if menu is not None and menu.aberto:
+            return "descanso", "menu_fogueira_aberto"
+        contexto_sala = MUSICA_POR_SALA.get(self.sala_atual)
+        if contexto_sala == "descanso":
+            return "descanso", "sala_descanso"
+        if contexto_sala:
+            return contexto_sala, f"musica_sala_{self.sala_atual}"
+        return None, "exploracao_prioriza_ambiencia"
+
+    def _atualizar_audio_sala(self, forcar=False, motivo_extra=""):
+        ambiencia = AMBIENCIA_POR_SALA.get(self.sala_atual, "calabouco")
+        set_sala = getattr(audio, "set_contexto_sala", None)
+        if set_sala is not None:
+            set_sala(self.sala_atual, ambiencia)
         tocar_ambiente = getattr(audio, "play_ambiente", None)
         if tocar_ambiente is not None:
-            tocar_ambiente(AMBIENCIA_POR_SALA.get(self.sala_atual, "calabouco"))
+            tocar_ambiente(ambiencia)
         tocar_tochas = getattr(audio, "play_tochas", None)
         if tocar_tochas is not None:
             tocar_tochas(bool(getattr(self, "tochas", [])))
+
+        contexto, motivo = self._contexto_musical_sala()
+        if motivo_extra:
+            motivo = f"{motivo}:{motivo_extra}"
+        if contexto is None:
+            stop = getattr(audio, "stop_music", None)
+            if stop is not None:
+                try:
+                    stop(fade_ms=800, motivo=motivo)
+                except TypeError:
+                    if getattr(audio, "_musica_contexto", None) not in (None, "menu"):
+                        stop()
+            return
         tocar_musica = getattr(audio, "play_music", None)
         if tocar_musica is not None:
-            boss = getattr(self, "boss_atual", None)
-            menu = getattr(self, "menu_fogueira", None)
-            if boss is not None and boss.vivo:
-                contexto = "boss"
-            elif (menu is not None and menu.aberto) or AMBIENCIA_POR_SALA.get(self.sala_atual) == "sala_descanso":
-                contexto = "descanso"
-            else:
-                contexto = "exploracao"
-            tocar_musica(contexto)
+            fade_ms = 1200 if contexto == "descanso" else 800
+            try:
+                tocar_musica(contexto, origem="game_scene", fade_ms=fade_ms, fade_out_ms=800, motivo=motivo)
+            except TypeError:
+                tocar_musica(contexto)
 
     def _fazer_callback_drop_inimigo(self, drops, sala):
         def _callback(ix, iy):
@@ -593,45 +654,30 @@ class Gamescene:
 
 
     def _resolver_spwan(self, nome_sala, grid, spwans_tmx):
-        #define a posiçao inicial do player ao entrar numa sala
-        #prioriza o spwan do TMX (default ou o do lado onde se entra), 
-        #depois o lado da entrada com a config de fallback
-        # em qualquer caso valida a posição final contra a grade de colisao
-        # pra garantir que o player nasça de pé, nunca enterrado
-
+        # define posição inicial; prioriza spawns TMX e valida com _spawn_seguro
         lado = getattr(self, "_entrada_lado", None)
 
         if spwans_tmx:
             if lado is not None and lado in spwans_tmx:
-                return spwans_tmx[lado]
-            if spwans_tmx.get("default") is not None:
-                return spwans_tmx["default"]
+                col, linha = spwans_tmx[lado]
+            elif "default" in spwans_tmx:
+                col, linha = spwans_tmx["default"]
             else:
                 logger.warning(
                     f"[SPAWN] '{nome_sala}': TMX tem spawns mas nenhum bate com "
                     f"lado='{lado}' nem 'default', usando fallback de grade"
                 )
-                col, linha = self._spwanar_fallback(nome_sala, grid, lado)
+                col, linha = self._spwan_fallback_grid(nome_sala, grid, lado)
         else:
-            logger.warning(
-                f"[SPAWN] '{nome_sala}': sem spawns no TMX (layer 'objetos' ausente "
-                f"ou sem objeto tipo 'spwan'), usando fallback de grade"
-            )
-            col, linha = self._spwanar_fallback(nome_sala, grid, lado)
+            col, linha = self._spwan_fallback_grid(nome_sala, grid, lado)
 
-                        
-        col_final, linha_final = self._spwan_fallback_grid(nome_sala, grid, lado)
-                
+        col_final, linha_final = self._spawn_seguro(col, linha, grid)
         if (col_final, linha_final) != (col, linha):
             logger.info(
-                f"[SPAWN] '{nome_sala}': posiçao bruta ({col},{linha}) ajustada "
-                f"para ({col_final},{linha_final}) pelo _spawn_seguro"
+                f"[SPAWN] '{nome_sala}': posição bruta ({col},{linha}) ajustada "
+                f"para ({col_final},{linha_final})"
             )
-        else:
-            logger.info(f"[SPAWN] '{nome_sala}': posiçao resolvida ({col_final},{linha_final})")
-
         return col_final, linha_final
-
 
     def _spwan_fallback_grid(self, nome_sala, grid, lado):
         # spwan vindo da grade pythob
@@ -710,6 +756,50 @@ class Gamescene:
 
 
     #ATUALIZAR  
+
+
+    def _contexto_suprime_interacao(self):
+        return (
+            bool(getattr(self, "pausado", False))
+            or bool(getattr(self, "morrendo", False))
+            or bool(getattr(self, "inventario", None) and self.inventario.aberto)
+            or bool(getattr(self, "menu_fogueira", None) and self.menu_fogueira.aberto)
+        )
+
+
+    def _selecionar_alvo_interacao(self, teclas):
+        contexto = {
+            'baus': getattr(self, 'baus', []),
+            'drops': getattr(self, 'drops', []),
+            'drops_ecos': getattr(self, 'drops_ecos', []),
+            'fogueiras': getattr(self, 'fogueiras', []),
+            'portas': getattr(self, 'portas', []),
+            'pausado': bool(getattr(self, 'pausado', False)),
+            'inventario_aberto': bool(getattr(self, 'inventario', None) and self.inventario.aberto),
+            'menu_fogueira_aberto': bool(getattr(self, 'menu_fogueira', None) and self.menu_fogueira.aberto),
+            'morrendo': bool(getattr(self, 'morrendo', False)),
+            'suprimido': False,
+        }
+        gerenciador = getattr(self, 'interacoes', None)
+        if gerenciador is None:
+            self._alvo_interacao_atual = None
+            return None
+        alvo = gerenciador.atualizar(self.player, self.hud, teclas, contexto)
+        self._alvo_interacao_atual = alvo
+        return alvo
+
+    def _limpar_estado_interacao(self):
+        self._alvo_interacao_atual = None
+        hud = getattr(self, 'hud', None)
+        if hud is not None:
+            try:
+                hud.limpar_prompt_interacao()
+            except Exception:
+                try:
+                    hud.limpar_prompt()
+                except Exception:
+                    pass
+
     def atualizar(self, eventos): 
         teclas = pygame.key.get_pressed()
 
@@ -728,11 +818,13 @@ class Gamescene:
             return
 
         if self.menu_fogueira.aberto:
+            self._limpar_estado_interacao()
             self.menu_fogueira.atualizar(eventos)
             return
 
 
         if self.pausado:
+            self._limpar_estado_interacao()
             self._atualizar_pausa(eventos)
             return
             
@@ -740,6 +832,7 @@ class Gamescene:
         rects_solidos = self.mapa.rects_solidos + self.parede_boss + [p.rect for p in self.portas if not p.aberta]
         
         if self.inventario.aberto:
+            self._limpar_estado_interacao()
             self.inventario.atualizar(eventos, self.player)
 
         #hitstop: congela o mundo por alguns frames após um acerto confirmado
@@ -752,6 +845,7 @@ class Gamescene:
 
         #bloquueia os outros atualizar se o player estiver morto
         if self.morrendo:
+            self._limpar_estado_interacao()
             #atualizar o player
             self.player.atualizar(rects_solidos, self.camera,
                                   rects_plataforma=self.mapa.rects_plataforma,
@@ -765,6 +859,8 @@ class Gamescene:
             self.hud.atualizar()
             return
 
+        self._atualizar_estado_batalha_chefe()
+
         #atualizar o player
         self.player.atualizar(rects_solidos, self.camera,
                               rects_plataforma=self.mapa.rects_plataforma,
@@ -773,24 +869,49 @@ class Gamescene:
         #atualizar a transiçao de cena
         self._checar_transiçao()
 
-        #atualizar os baus
+        #interacoes: selecao deterministica + prompt no mundo (G.1)
         teclas = pygame.key.get_pressed()
+        alvo_interacao = self._selecionar_alvo_interacao(teclas)
+
         for bau in self.baus:
-            bau.atualizar(self.player, teclas, self.mapa, self.hud)
+            bau.atualizar(self.player, teclas, self.mapa, self.hud,
+                          selecionado=(bau is alvo_interacao))
 
         for drop in self.drops:
-            drop.atualizar(self.player, teclas, self.hud)
+            drop.atualizar(self.player, teclas, self.hud,
+                           selecionado=(drop is alvo_interacao))
 
         for drop in self.drops_ecos:
-            drop.atualizar(self.player, teclas, self.hud)
+            drop.atualizar(self.player, teclas, self.hud,
+                           selecionado=(drop is alvo_interacao))
         self.drops_ecos = [d for d in self.drops_ecos if d.ativo]
-        
 
         for fogueira in self.fogueiras:
-            fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual, self.fogueiras_ativas)
+            fogueira.atualizar(self.player, teclas, self.hud, self.sala_atual,
+                               self.fogueiras_ativas,
+                               selecionado=(fogueira is alvo_interacao))
 
         for porta in self.portas:
-            porta.atualizar(self.player, teclas, self.hud, self.portas_abertas)
+            porta.atualizar(self.player, teclas, self.hud, self.portas_abertas,
+                            selecionado=(porta is alvo_interacao))
+
+        # atualiza animacao do prompt (estado/deslocamento discreto e press real)
+        if hasattr(self, "prompt_interacao_mundo"):
+            tecla_prompt = getattr(alvo_interacao, "tecla_prompt", "e") if alvo_interacao else "e"
+            self.prompt_interacao_mundo.tecla = tecla_prompt
+            pressionada = bool(alvo_interacao and teclas[pygame.K_e]
+                               and alvo_interacao.disponivel_para_prompt(self.player))
+            self.prompt_interacao_mundo.atualizar(pressionada=pressionada)
+        # revalida alvo apos execucao/consumo (evita sprite preso)
+        if alvo_interacao is not None and not getattr(alvo_interacao, "ativo", True):
+            self._limpar_estado_interacao()
+        elif alvo_interacao is not None and not alvo_interacao.disponivel_para_prompt(self.player):
+            # mantem oculto se nao mais disponivel; proximo frame re-seleciona
+            self._alvo_interacao_atual = None
+            try:
+                self.hud.limpar_prompt_interacao()
+            except Exception:
+                self.hud.limpar_prompt()
 
         for tocha in self.tochas:
             tocha.atualizar()
@@ -884,74 +1005,101 @@ class Gamescene:
 
     def _atualizar_zoom_camera(self):
         #aproxima a camera no dia a dia; em luta de boss ela desaproxima
-        lutando = self.boss_atual is not None and self.boss_atual.vivo
+        lutando = self.boss_atual is not None and self.boss_atual.vivo and self.boss_batalha_ativa
         self.camera.zoom_alvo = ZOOM_BOSS if lutando else ZOOM_PADRAO
 
 
     def _atualizar_pausa(self, eventos):
 
-
         pos_mouse = pygame.mouse.get_pos()
-        fonte_opçao = Fonte_texto(28)
+        fonte_opcao = Fonte_texto(28)
 
         itens_com_rect = []
-        
-        #houver com mouse
-        for i, opçao in enumerate(self.opçoes_pause):
-            texto = fonte_opçao.render(opçao, True, (255, 255, 255))
+        for i, opcao in enumerate(self.opcoes_pause):
+            texto = fonte_opcao.render(opcao, True, (255, 255, 255))
             x = Screen_widht // 2 - texto.get_width() // 2
             y = 320 + i * 50
-            rect_opçao = pygame.Rect(x - 10, y - 5, texto.get_width() + 20, texto.get_height() + 10)
-            itens_com_rect.append((i, rect_opçao))
+            rect_opcao = pygame.Rect(x - 10, y - 5, texto.get_width() + 20, texto.get_height() + 10)
+            itens_com_rect.append((i, rect_opcao))
 
+        indice_houver = hover_index(eventos, pos_mouse, itens_com_rect)
+        if indice_houver is not None and indice_houver != self.opcao_pausa_selecionada:
+            self.opcao_pausa_selecionada = indice_houver
+            audio.play_sfx("ui_move")
 
-        indice_houver = hover_index(eventos, pos_mouse, itens_com_rect)   
-        if indice_houver is not None:
-            self.opçoes_selecionadas = indice_houver
-
-        #navega o menu com as setas e confirma com enter
         for evento in eventos:
             if evento.type == pygame.KEYDOWN:
 
                 if evento.key == pygame.K_UP:
-                    self.opçoes_selecionadas = (self.opçoes_selecionadas - 1) % len(self.opçoes_pause)
-                    audio.play_sfx("ui_move")
-                
+                    novo = (self.opcao_pausa_selecionada - 1) % len(self.opcoes_pause)
+                    if novo != self.opcao_pausa_selecionada:
+                        self.opcao_pausa_selecionada = novo
+                        audio.play_sfx("ui_move")
+
                 elif evento.key == pygame.K_DOWN:
-                    self.opçoes_selecionadas = (self.opçoes_selecionadas + 1) % len(self.opçoes_pause)
-                    audio.play_sfx("ui_move")
+                    novo = (self.opcao_pausa_selecionada + 1) % len(self.opcoes_pause)
+                    if novo != self.opcao_pausa_selecionada:
+                        self.opcao_pausa_selecionada = novo
+                        audio.play_sfx("ui_move")
 
                 elif evento.key == pygame.K_RETURN:
-                    self._confirma_opçao_pausa()
+                    self._ativar_opcao_pausa()
 
-            elif evento.type == pygame.MOUSEBUTTONDOWN:
-                if evento.button == 1: #clique esquerdo
-                    self._confirma_opçao_pausa()
+            elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                for indice, rect_opcao in itens_com_rect:
+                    if rect_opcao.collidepoint(pos_mouse):
+                        self.opcao_pausa_selecionada = indice
+                        self._ativar_opcao_pausa()
+                        break
 
 
-    def _confirma_opçao_pausa(self):
-        opçao = self.opçoes_pause[self.opçoes_selecionadas]
+    def _abrir_inventario_por_pausa(self):
+        self._fechar_pausa(tocar_som=False)
+        self.inventario.abrir()
+        self._inventario_aberto_por_pausa = True
+        try:
+            if not self.inventario.aberto:
+                audio.play_sfx("ui_error")
+                log.warning("[pausa] Inventario.abrir() nao manteve estado aberto")
+        except Exception:
+            log.exception("[pausa] falha ao validar abertura do inventario")
 
-        if opçao == "Continuar":
-            self._fechar_pausa()
-        elif opçao == "Salvar":
+    def _ativar_opcao_pausa(self):
+        opcao = self.opcoes_pause[self.opcao_pausa_selecionada]
+        acoes = getattr(self, "ACOES_PAUSA", None)
+        acao = acoes[self.opcao_pausa_selecionada] if acoes and self.opcao_pausa_selecionada < len(acoes) else opcao
+        if acao in ("inventario", "Invent?rio", "Invent?rio"):
+            self._abrir_inventario_por_pausa()
+            return
+        if acao in ("salvar", "Salvar"):
             if self._save_callback:
                 self._save_callback()
-        elif opçao == "Menu principal":
+            else:
+                audio.play_sfx("ui_error")
+            return
+        if acao in ("continuar", "Continuar"):
+            self._fechar_pausa()
+            return
+        if acao in ("menu_principal", "Menu principal"):
             audio.play_sfx("ui_confirm")
             self._fechar_pausa(tocar_som=False)
             if self._menu_callback:
                 self._menu_callback()
-        elif opçao == "Inventário":
-             self._fechar_pausa(tocar_som=False)
-             self.inventario.abrir()
-
-        elif opçao == "Sair":
+            return
+        if acao in ("sair", "Sair"):
             audio.play_sfx("ui_confirm")
-            pygame.quit()
-            sys.exit()
+            self._fechar_pausa(tocar_som=False)
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            return
+        audio.play_sfx("ui_confirm")
 
 
+    def _confirma_opcao_pausa(self):
+        self._confirmar_opcao_pausa()
+
+    def _confirmar_opcao_pausa(self):
+        # compatibilidade: acao unificada sem recursao
+        self._ativar_opcao_pausa()
 
     def _spwanar_inimigos(self, nome_sala):
         #tipos dos inimigos
@@ -987,7 +1135,7 @@ class Gamescene:
                 boss._indice_spawn = i  #marca o boss com um indice para rastrear se ele morreu
                 self.inimigos.append(boss)
                 self.boss_atual = boss
-                self._tocar_entrada_boss(boss)
+                self.boss_batalha_ativa = False
 
             else:
                 if i in mortos:
@@ -1096,7 +1244,7 @@ class Gamescene:
         if not self.player.vivo and not self.morrendo:
             #inicia o timer de morte
             self.morrendo = True
-            self.timer_morto = self.duraçao_morte
+            self.timer_morto = self.duracao_morte
             audio.play_sfx("player_death")
 
 
@@ -1172,11 +1320,31 @@ class Gamescene:
         if tocar is not None:
             tocar(boss.SOM_ID)
 
+    def _atualizar_estado_batalha_chefe(self):
+        boss = getattr(self, "boss_atual", None)
+        if boss is None or not boss.vivo:
+            if getattr(self, "boss_batalha_ativa", False):
+                self.boss_batalha_ativa = False
+                self._atualizar_audio_sala(motivo_extra="chefe_inativo")
+            return
+        if getattr(self, "boss_batalha_ativa", False):
+            return
+        # H.1: batalha do chefe só começa quando jogador realmente entra no encontro.
+        # Reaproveita detecção de aggro/entrada do boss (Alcance_detec/rugido emitido).
+        dist = abs(self.player.rect.centerx - boss.rect.centerx)
+        detectado = dist < getattr(boss, "Alcance_detec", 0)
+        aggro = bool(getattr(boss, "_rugido_emitido", False)) or getattr(boss, "estado", None) in ("Perseguir", "Atacando")
+        if self.player.vivo and (detectado or aggro):
+            self.boss_batalha_ativa = True
+            self._tocar_entrada_boss(boss)
+            self._atualizar_audio_sala(motivo_extra="batalha_chefe_iniciada")
+
     def _abrir_parede_boss(self, x, y):
         self.parede_boss = []
         self.boss_atual = None
+        self.boss_batalha_ativa = False
         self.bosses_derrotados.add(self.sala_atual)
-        self._atualizar_audio_sala()
+        self._atualizar_audio_sala(motivo_extra="chefe_derrotado")
         tocar_mecanismo = getattr(audio, "play_mecanismo", None)
         if tocar_mecanismo is not None:
             tocar_mecanismo()
@@ -1219,7 +1387,7 @@ class Gamescene:
             self._fechar_pausa()
         else:
             self.pausado = True
-            self.opçoes_selecionadas = 0 #reseta ao sair do menu
+            self.opcao_pausa_selecionada = 0 #reseta ao sair do menu
             audio.play_sfx("ui_pause_open")
     
     def carregar_save(self, dados):
@@ -1360,6 +1528,20 @@ class Gamescene:
         for fogueira in self.fogueiras:
             fogueira.desenhar(vista, self.camera)
 
+        # prompt de interacao no mundo (sprite de tecla sobre a cabeca do player)
+        if (not self._contexto_suprime_interacao() and
+                getattr(self, "_alvo_interacao_atual", None) is not None and
+                hasattr(self, "prompt_interacao_mundo")):
+            alvo = self._alvo_interacao_atual
+            try:
+                disponivel = alvo.disponivel_para_prompt(self.player)
+            except Exception:
+                disponivel = False
+            if disponivel:
+                ax = self.player.rect.centerx
+                ay = self.player.rect.top - 4
+                self.prompt_interacao_mundo.desenhar(vista, self.camera, ax, ay, visivel=True)
+
         if DEBUG:
             pygame.draw.rect(vista, (0, 255, 0), sr_player, 2)
 
@@ -1402,11 +1584,11 @@ class Gamescene:
 
         #tela de morte - desenhada por cima de tudo
         if self.morrendo:
-            progresso = 1 - (self.timer_morto / self.duraçao_morte)
+            progresso = 1 - (self.timer_morto / self.duracao_morte)
             desenhar_tela_morte(self.tela, progresso)
 
 
         #tela de menu
         if self.pausado:
             desenhar_tela_pausa(self.tela, self._frame_pausa,
-                                self.opçoes_pause, self.opçoes_selecionadas)
+                                self.opcoes_pause, self.opcao_pausa_selecionada)

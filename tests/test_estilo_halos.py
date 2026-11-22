@@ -22,7 +22,7 @@ def test_halo_com_alpha_tem_queda_gradual():
     assert len(set(valores)) >= 3
 
 
-def test_halo_central_continua_em_y_470(monkeypatch):
+def test_fundo_sem_halo_central_grande(monkeypatch):
     def fundo_preto():
         surf = pygame.Surface((Screen_widht, Screen_height))
         surf.fill((0, 0, 0))
@@ -35,14 +35,12 @@ def test_halo_central_continua_em_y_470(monkeypatch):
     tela = pygame.Surface((Screen_widht, Screen_height))
     estilo.desenhar_fundo(tela, 0)
 
-    centro = _brilho(tela, 640, 470)
-    perto = _brilho(tela, 640, 450)
-    meio = _brilho(tela, 640, 350)
-    borda = _brilho(tela, 640, 300)
-    fora = _brilho(tela, 640, 239)
+    amostras = [
+        _brilho(tela, 640, y)
+        for y in (470, 450, 350, 300, 239)
+    ]
 
-    assert centro > perto > meio > borda
-    assert borda > fora
-    assert fora == 0
+    # Critério: sem halo grande/círculo visível no fundo.
+    assert max(amostras) == 0
 
     estilo._cache.pop("fundo", None)

@@ -18,6 +18,7 @@ ENV/
 
 # Artefatos do jogo
 saves.db
+configuracoes_usuario.json
 jogo.log
 jogo.log.*
 sdlaudio.raw
@@ -59,6 +60,8 @@ docs/arte/previews.zip
 # Capturas completas F.2 mantidas localmente; publicar apenas comparativo compacto
 docs/arte/previews/hud_f2_*_local.png
 docs/arte/previews/hud_f2_*_local.json
+docs/arte/previews/fase_g_*_local.png
+docs/arte/previews/fase_g_*_local.json
 
 # Capturas completas e recibo F.3 locais; somente comparativo próprio/CC0 público
 docs/arte/previews/hud_f3_*_local.png

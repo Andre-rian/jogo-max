@@ -40,14 +40,14 @@ class NotificacaoItem:
         self._chave = chave
         largura_texto = max(self.fonte_media.size(item.nome)[0],
                             self.fonte_media.size(str(self._notif_quantidade))[0])
-        largura = min(largura, max(340, largura_texto + 96))
-        nome = texto_em_linhas(self.fonte_media, item.nome, largura - 96)
+        largura = min(largura, max(340, min(largura, largura_texto + 96)))
+        nome = texto_em_linhas(self.fonte_media, item.nome, max(120, largura - 96))
         quantidade = None
         if self._notif_quantidade > 1:
             quantidade = texto_em_linhas(self.fonte_media, str(self._notif_quantidade),
-                                        largura - 96, (168, 178, 202))
+                                        max(60, largura - 96), (168, 178, 202))
         altura_texto = nome.get_height() + (quantidade.get_height() + 4 if quantidade else 0)
-        altura = max(64, altura_texto + 24)
+        altura = max(self.fonte_media.get_height() + 34, altura_texto + 24)
         self._painel = painel((largura, altura))
         sprite = obter_sprite_de_item(item)
         if sprite is not None:

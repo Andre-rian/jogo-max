@@ -31,16 +31,17 @@ class BarraBoss:
 
     def _preparar(self, boss, largura):
         dano = f'-{self._boss_ultimo_dano}' if self._boss_timer_dano > 0 else ''
-        chave = (boss.nome, dano, largura)
+        chave = (boss.nome, dano, largura, self.fonte_media.get_height())
         if chave == self._chave:
             return
         self._chave = chave
         nome = texto_em_linhas(self.fonte_media, boss.nome, largura - 144)
-        texto_dano = texto_em_linhas(self.fonte_media, dano, 100, COR_ATRASADA)
-        altura = max(64, 44 + max(nome.get_height(), texto_dano.get_height()))
+        texto_dano = texto_em_linhas(self.fonte_media, dano, 100, COR_ATRASADA) if dano else None
+        altura = max(64, 44 + max(nome.get_height(), texto_dano.get_height() if texto_dano else 0))
         self._painel = painel((largura, altura))
         self._painel.blit(nome, (16, 12))
-        self._painel.blit(texto_dano, (largura - 116, 12))
+        if texto_dano:
+            self._painel.blit(texto_dano, (largura - 116, 12))
         self._trilho = obter_trilho(largura - 32, 10)
         self._painel.blit(self._trilho, (16, altura - 28))
 
@@ -66,7 +67,7 @@ class BarraBoss:
         self._boss_hp_display = max(boss.hp, self._boss_hp_display)
         self._boss_hp_anterior = boss.hp
 
-        self._preparar(boss, min(480, tela.get_width() - 40))
+        self._preparar(boss, min(max(480, self.fonte_media.get_height()*22), tela.get_width() - 40))
         self.rect = self._painel.get_rect(midbottom=(tela.get_width() // 2, tela.get_height() - 20))
         tela.blit(self._painel, self.rect)
         self.interior = pygame.Rect(self.rect.x + 19, self.rect.bottom - 25,

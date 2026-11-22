@@ -31,31 +31,45 @@ def desenhar_tela_morte(tela, progresso):
                                   escurecer(Vermelho_ritual, 0.3))
 
 
-def desenhar_tela_pausa(tela, frame, opçoes, opçao_selecionada, fonte_opçao=None):
-    # fundo semitransparente
-    desenhar_overlay(tela, 170)
+def desenhar_tela_pausa(tela, frame, opcoes, opcao_selecionada, fonte_opcao=None):
+    # fundo escurecido com vinheta + leve brilho central
+    desenhar_overlay(tela, 185)
 
-    if fonte_opçao is None:
-        fonte_opçao = Fonte_texto(28)
+    if fonte_opcao is None:
+        fonte_opcao = Fonte_texto(28)
+    fonte_titulo = Fonte_titulo(54, negrito=True)
 
-    adicionar_brilho(tela, Screen_widht // 2, 230, 240, Roxo_profundo,
-                     frame, intensidade=0.25)
+    # Painel central sutil para leitura
+    largura_painel = min(Screen_widht - 120, 560)
+    altura_opcao = max(44, fonte_opcao.get_height() + 18)
+    espacamento = max(altura_opcao + 8, int(altura_opcao * 1.16))
+    altura_painel = min(Screen_height - 120, 170 + len(opcoes) * espacamento)
+    painel = pygame.Rect(Screen_widht // 2 - largura_painel // 2,
+                         Screen_height // 2 - altura_painel // 2,
+                         largura_painel, altura_painel)
 
-    # titulo
-    desenhar_titulo(tela, "PAUSA", Fonte_titulo(54, negrito=True), Roxo_espectral,
-                    Screen_widht // 2, 200, espacamento=4)
-    desenhar_linha_ornamental(tela, Screen_widht // 2, 268, 200,
+    # sem halo grande; apenas realce de borda/painel no desenho abaixo
+
+    # painel
+    from ui.estilo import desenhar_painel, Cinza_texto_escuro
+    desenhar_painel(tela, painel, frame, cor_borda=Roxo_espectral)
+
+    y_titulo = painel.top + 18
+    desenhar_titulo(tela, "PAUSA", fonte_titulo, Roxo_espectral,
+                    painel.centerx, y_titulo, espacamento=4)
+    y_linha = y_titulo + fonte_titulo.get_height() + 10
+    desenhar_linha_ornamental(tela, painel.centerx, y_linha, min(180, painel.width // 3),
                               Roxo_espectral)
-    desenhar_eco_profano(tela, Screen_widht // 2, 268, 10, frame)
+    desenhar_eco_profano(tela, painel.centerx, y_linha, 6, frame,
+                         alpha_real=True, intensidade_halo=0.0, raio_halo=0)
 
-    # opções
-    for i, opçao in enumerate(opçoes):
-        selecionado = i == opçao_selecionada
-        texto = fonte_opçao.render(opçao, True, Branco_texto)
-        x = Screen_widht // 2 - texto.get_width() // 2
-        y = 320 + i * 50
-        rect_opçao = pygame.Rect(x - 10, y - 5,
-                                 texto.get_width() + 20,
-                                 texto.get_height() + 10)
-        desenhar_botao(tela, rect_opçao, opçao, selecionado,
-                       frame, fonte_btn=fonte_opçao)
+    y_base = y_linha + 34
+    for i, opcao in enumerate(opcoes):
+        selecionado = i == opcao_selecionada
+        bw = min(painel.width - 80, 360)
+        bh = altura_opcao
+        bx = painel.centerx - bw // 2
+        by = y_base + i * espacamento
+        rect_opcao = pygame.Rect(bx, by, bw, bh)
+        desenhar_botao(tela, rect_opcao, opcao, selecionado,
+                       frame, fonte_btn=fonte_opcao, brilho=False)

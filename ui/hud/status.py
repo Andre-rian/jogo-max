@@ -8,21 +8,33 @@ ALTURA_STAMINA = 8
 class BarrasStatus:
     def __init__(self, fonte_pequena, *, altura_stamina=ALTURA_STAMINA, usar_asset=True):
         self.fonte_pequena = fonte_pequena
-        self._painel = pygame.Surface((276, 88))
-        self._painel.fill((24, 26, 34))
-        pygame.draw.rect(self._painel, (81, 94, 120), (0, 0, 276, 88), 1)
-        pygame.draw.rect(self._painel, (112, 64, 160), (0, 0, 3, 88))
-        for x, y in ((272, 3), (272, 84)):
-            pygame.draw.polygon(self._painel, (143, 146, 163),
-                                [(x, y-3), (x+3, y), (x, y+3), (x-3, y)])
-        self._painel.blit(fonte_pequena.render('VIDA', True, (220, 224, 235)), (12, 6))
-        self._hp_trilho = obter_trilho(252, 6, usar_asset)
-        self._st_trilho = obter_trilho(252, altura_stamina, usar_asset)
-        self._hp_interior = pygame.Rect(35, 50, 246, 6)
-        self._st_interior = pygame.Rect(35, 76, 246, altura_stamina)
-        self._aviso = fonte_pequena.render('...', True, (80, 160, 80))
+        self.altura_stamina = altura_stamina
+        self.usar_asset = usar_asset
+        self._construir()
         self._valores_hp = None
         self._texto_hp = None
+
+    def _construir(self):
+        fh = self.fonte_pequena.get_height()
+        self._w = max(276, 220 + fh * 4)
+        self._h = max(88, fh * 4 + 24)
+        self._painel = pygame.Surface((self._w, self._h))
+        self._painel.fill((24, 26, 34))
+        pygame.draw.rect(self._painel, (81, 94, 120), (0, 0, self._w, self._h), 1)
+        pygame.draw.rect(self._painel, (112, 64, 160), (0, 0, 3, self._h))
+        for x, y in ((self._w - 4, 3), (self._w - 4, self._h - 4)):
+            pygame.draw.polygon(self._painel, (143, 146, 163),
+                                [(x, y-3), (x+3, y), (x, y+3), (x-3, y)])
+        self._painel.blit(self.fonte_pequena.render('VIDA', True, (220, 224, 235)), (12, 6))
+        tw = self._w - 24
+        self._hp_trilho = obter_trilho(tw, 6, self.usar_asset)
+        self._st_trilho = obter_trilho(tw, self.altura_stamina, self.usar_asset)
+        # coordenadas absolutas na tela (painel em 20,20)
+        self._hp_y = 20 + 6 + fh + 8
+        self._st_y = self._hp_y + 6 + max(10, fh)
+        self._hp_interior = pygame.Rect(35, self._hp_y + 3, tw - 6, 6)
+        self._st_interior = pygame.Rect(35, self._st_y + 3, tw - 6, self.altura_stamina)
+        self._aviso = self.fonte_pequena.render('...', True, (80, 160, 80))
 
     @staticmethod
     def _proporcao(valor, maximo):
@@ -31,8 +43,8 @@ class BarrasStatus:
 
     def desenhar(self, tela, player):
         tela.blit(self._painel, (20, 20))
-        tela.blit(self._hp_trilho, (32, 47))
-        tela.blit(self._st_trilho, (32, 73))
+        tela.blit(self._hp_trilho, (32, self._hp_y))
+        tela.blit(self._st_trilho, (32, self._st_y))
         hp = self._proporcao(player.hp, player.hp_max)
         stamina = self._proporcao(player.stamina, player.stamina_max)
         cor_hp = (184, 51, 65) if hp > .3 else (200, 30, 40)
@@ -50,17 +62,17 @@ class BarrasStatus:
             self._texto_hp = self.fonte_pequena.render(
                 f'{player.hp} / {player.hp_max}', True, (220, 224, 235))
         clip = tela.get_clip()
-        tela.set_clip(clip.clip(pygame.Rect(90, 24, 194, 22)))
-        tela.blit(self._texto_hp, (284-self._texto_hp.get_width(), 26))
+        area_txt = pygame.Rect(90, 24, self._w - 102, self.fonte_pequena.get_height() + 4)
+        tela.set_clip(clip.clip(area_txt))
+        tela.blit(self._texto_hp, (20 + self._w - 12 - self._texto_hp.get_width(), 26))
         tela.set_clip(clip)
 
-        # Mesmas condições e fase de piscar; nenhum timer avança aqui.
         if player.stamina_delay > 0 and player.stamina < player.stamina_max:
             if player._frame_atual % 20 < 10:
-                tela.blit(self._aviso, (262, 89))
+                tela.blit(self._aviso, (20 + self._w - 34, self._st_y + self.altura_stamina + 8))
 
         if player.buff_stamina_duracao > 0:
-            bx, by = 32, 88
+            bx, by = 32, self._st_y + self.altura_stamina + 8
             pygame.draw.circle(tela, (22, 46, 38), (bx+8, by+8), 8)
             pygame.draw.circle(tela, (60, 170, 110), (bx+8, by+8), 8, 2)
             pygame.draw.line(tela, (70, 190, 120), (bx+10, by+2), (bx+6, by+8), 2)

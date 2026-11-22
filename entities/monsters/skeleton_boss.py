@@ -346,4 +346,7 @@ class EsqueletoBoss(InimigoBase):
 
     def _desenhar_extra(self, tela, sr):
         if self._escudo_ativo:
-            pygame.draw.rect(tela, (0, 150, 255), sr, 3)
+            margem = 2
+            x = sr.right - 6 if self.olhando_dir else sr.left + 2
+            faixa = pygame.Rect(x, sr.top + margem, 4, max(1, sr.height - margem * 2))
+            pygame.draw.rect(tela, (0, 150, 255), faixa, 2)

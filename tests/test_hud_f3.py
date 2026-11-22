@@ -222,11 +222,15 @@ def test_mensagens_temporizadores_prioridade_limpeza_e_conteudo():
     fonte = FonteRegistrada(Fonte_titulo(18))
     mensagens, superficie = Mensagens(fonte, fonte), tela()
     mensagens.mostrar('Jogo salvo', 180)
+    # Prompts de interacao migraram para sprites no mundo (G.1): HUD nao renderiza prompt.
     mensagens.mostrar_prompt('[E] Abrir porta')
     for _ in range(3):
         mensagens.desenhar(superficie)
     assert mensagens._timer_mensagem == 180
-    assert 'Jogo salvo' in fonte.textos and '[E] Abrir porta' in fonte.textos
+    assert 'Jogo salvo' in fonte.textos
+    assert '[E] Abrir porta' not in fonte.textos
+    assert mensagens.rect_mensagem
+    assert not mensagens.rect_prompt
     mensagens.mostrar('Mensagem prioritária', 10)
     for _ in range(9):
         mensagens.atualizar()
@@ -234,14 +238,12 @@ def test_mensagens_temporizadores_prioridade_limpeza_e_conteudo():
     assert mensagens._cache['mensagem'][1].get_alpha() == 5
     mensagens.atualizar()
     mensagens.desenhar(superficie)
-    assert not mensagens.rect_mensagem and mensagens.rect_prompt
+    assert not mensagens.rect_mensagem
     mensagens.limpar_prompt()
-    mensagens.desenhar(superficie)
-    assert not mensagens.rect_prompt
+    assert mensagens._prompt is None
     mensagens.mostrar('Outra mensagem')
     mensagens.limpar()
     assert mensagens._timer_mensagem == 0
-
 
 @pytest.mark.parametrize('falha', ['ausente', 'corrompido'])
 def test_fallback_e_cache_sem_leitura_escala_ou_render_por_frame(tmp_path, monkeypatch, falha):
@@ -291,8 +293,10 @@ def test_clip_do_chamador_preservado(componente):
         notif.desenhar(superficie)
     else:
         msg = Mensagens(fonte, fonte)
-        msg.mostrar_prompt('[E] Abrir')
+        # prompts de interacao migraram para sprites no mundo (G.1)
         msg.mostrar('Mensagem')
+        clip = pygame.Rect(0, 220, 1280, 120)
+        superficie.set_clip(clip)
         msg.desenhar(superficie)
     assert superficie.get_clip() == clip
     assert clip.contains(superficie.get_bounding_rect())

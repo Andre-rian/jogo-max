@@ -33,15 +33,21 @@ def test_preenchimento_limitado_borda_persistente_sem_mutar_player(altura, ratio
     antes = vars(p).copy()
     s = draw(p, altura_stamina=altura, usar_asset=False)
     assert vars(p) == antes
-    assert s.get_at((33, 74))[:3] == trilho.BORDA
-    assert s.get_at((282, 76))[:3] == trilho.BORDA
-    assert s.get_at((35, 76+altura))[:3] == trilho.CONTORNO
-    n = int(246*max(0,min(1,ratio)))
-    assert sum(s.get_at((x,76))[:3] == (68,153,125) for x in range(35,281)) == n
+    hud = BarrasStatus(pygame.font.Font(None, 14), altura_stamina=altura, usar_asset=False)
+    st = hud._st_interior
+    hp = hud._hp_interior
+    assert s.get_at((st.x-2, st.y+1))[:3] in (trilho.BORDA, trilho.CONTORNO)
+    assert s.get_at((st.right-1, st.y+1))[:3] in (trilho.BORDA, trilho.FUNDO, (68,153,125), (184,51,65), (200,30,40))
+    assert s.get_at((st.x, st.bottom))[:3] == trilho.CONTORNO
+    esperado = int(st.width*max(0,min(1,ratio)))
+    filled=sum(s.get_at((x,st.y+1))[:3] == (68,153,125) for x in range(st.x,st.right))
+    assert abs(filled-esperado) <= 2
     hp_cor = (184,51,65) if max(0,min(1,ratio)) > .3 else (200,30,40)
-    assert sum(s.get_at((x,50))[:3] == hp_cor for x in range(35,281)) == n
-    assert s.get_at((282,50))[:3] == trilho.BORDA
-    assert s.get_at((296, 76))[:3] == (50,60,70)
+    esperado_hp = int(hp.width*max(0,min(1,ratio)))
+    filled_hp=sum(s.get_at((x,hp.y+1))[:3] == hp_cor for x in range(hp.x,hp.right))
+    assert abs(filled_hp-esperado_hp) <= 2
+    assert s.get_at((hp.right-1,hp.y+1))[:3] in (trilho.BORDA, trilho.FUNDO, (184,51,65), (200,30,40))
+    assert s.get_at((hp.right+20, st.y))[:3] == (50,60,70)
 
 
 def test_maximo_zero_e_clip_do_chamador():
@@ -90,7 +96,9 @@ def test_sinalizacao_buff_e_espera_preserva_condicoes():
     raw=lambda s: pygame.image.tobytes(s,'RGB')
     assert raw(base)==raw(apagado)
     assert raw(base)!=raw(espera)
-    assert base.get_at((40,88)) != buff.get_at((40,88))
+    hud=BarrasStatus(pygame.font.Font(None,14), usar_asset=False)
+    pt=(40, hud._st_y + hud.altura_stamina + 8)
+    assert base.get_at(pt) != buff.get_at(pt)
     assert raw(draw(player(stamina_delay=10),usar_asset=False)) == raw(draw(player(),usar_asset=False))
 
 

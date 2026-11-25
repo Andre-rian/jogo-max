@@ -1,0 +1,99 @@
+{
+  "frames": 5000,
+  "marcos": [
+    {
+      "nome": "01_celas",
+      "sala": "bloco_celas_esquecidas",
+      "frame": 15,
+      "hp": 200,
+      "posicao": [
+        352,
+        320
+      ]
+    },
+    {
+      "nome": "02_arsenal",
+      "sala": "antigo_arsenal_guardas",
+      "frame": 1294,
+      "hp": 200,
+      "posicao": [
+        326,
+        576
+      ]
+    },
+    {
+      "nome": "02b_inventario",
+      "sala": "antigo_arsenal_guardas",
+      "frame": 1735,
+      "hp": 200,
+      "posicao": [
+        1261,
+        576
+      ]
+    },
+    {
+      "nome": "03a_galeria",
+      "sala": "corredores_profundos",
+      "frame": 2689,
+      "hp": 200,
+      "posicao": [
+        871,
+        384
+      ]
+    },
+    {
+      "nome": "03b_ecofoco_menu",
+      "sala": "corredores_profundos",
+      "frame": 3919,
+      "hp": 161,
+      "posicao": [
+        3360,
+        576
+      ]
+    },
+    {
+      "nome": "03_corredores",
+      "sala": "corredores_profundos",
+      "frame": 3920,
+      "hp": 200,
+      "posicao": [
+        3360,
+        576
+      ]
+    },
+    {
+      "nome": "save_load_morte_respawn",
+      "resultado": "ok"
+    },
+    {
+      "nome": "04_arena",
+      "sala": "arena_chefe",
+      "frame": 4114,
+      "hp": 200,
+      "posicao": [
+        684,
+        576
+      ]
+    },
+    {
+      "nome": "05_fim_beta",
+      "sala": "arena_chefe",
+      "frame": 4999,
+      "hp": 150,
+      "posicao": [
+        967,
+        576
+      ]
+    }
+  ],
+  "inimigos_derrotados": [
+    "Skeleton",
+    "Globin",
+    "Globin",
+    "Skeleton",
+    "Mushroom",
+    "FlyingEye",
+    "EsqueletoBoss"
+  ],
+  "metodo": "Teclado simulado, física/IA/combate reais; morte induzida em cena separada; SQLite temporário."
+}

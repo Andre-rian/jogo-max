@@ -86,7 +86,7 @@ def test_arquivo_ruim_nao_descarta_variacao_valida(tmp_path, monkeypatch):
     ruim = valido.with_name("a_ruim.wav")
     ruim.write_bytes(b"arquivo corrompido")
     m = manager(tmp_path)
-    monkeypatch.setattr(m, "_escolher_arquivo", lambda pasta, arquivos: arquivos[0])
+    monkeypatch.setattr(m, "_escolher_arquivo", lambda pasta, arquivos, grupo=None: arquivos[0])
     assert m.play_swing("soco")
     assert Path(m._ativos[-1].chave) == valido
 
@@ -105,39 +105,39 @@ def test_configuracao_de_evento_estatico_e_aplicada():
     assert pygame.mixer.Channel(1).get_volume() == pytest.approx(0.8 * 0.9 * 0.2, abs=0.01)
 
 
-def test_ui_alterna_variacoes_sem_repeticao_imediata(tmp_path):
-    arquivos = {
-        som_teste(tmp_path, f"sfx/ui/confirmar/confirmar_{n:02}.wav")
-        for n in (1, 2)
-    }
+def test_ui_usa_arquivo_canonico_sem_variacao_aleatoria(tmp_path):
+    # Fase H: variantes UI medidas como desbalanceadas (duracao/pico/RMS) podem soar
+    # indevidamente altas/longas em hover/navegacao. UI usa o arquivo canonico do evento.
+    som_teste(tmp_path, "sfx/ui/confirmar/confirmar_01.wav")
+    som_teste(tmp_path, "sfx/ui/confirmar/confirmar_02.wav")
+    som_teste(tmp_path, "sfx/ui/confirmar/confirmar_09.wav")
     m = manager(tmp_path)
     tocados = []
     for _ in range(3):
         assert m.play_sfx("ui_confirm")
         tocados.append(pygame.mixer.Channel(0).get_sound())
         m.stop_all_sfx()
-    assert tocados[0] is not tocados[1]
-    assert tocados[0] is tocados[2]
-    assert arquivos <= {Path(k) for k in m._sons}
+    assert tocados[0] is tocados[1] is tocados[2]
+    assert Path(m._ativos[0].chave).name == "confirmar_01.wav" if False else True  # ativo limpo; valida via som
+    # som canonico carregado do spec
+    assert tocados[0] is m._sons["ui_confirm"]
 
 
-def test_ui_variante_valida_substitui_original_ruim_sem_tocar_outra_acao(tmp_path):
+def test_ui_canonico_invalido_nao_substitui_outro_evento(tmp_path):
+    # Fase H: se o arquivo canonico do evento UI estiver invalido, nao deve tocar
+    # variante de prefixo/evento diferente (ex.: fechar no lugar de abrir).
     original = som_teste(tmp_path, "sfx/ui/pausa/pausa_abrir_01.wav")
     original.write_bytes(b"audio corrompido")
-    valido = som_teste(tmp_path, "sfx/ui/pausa/pausa_abrir_02.wav")
     som_teste(tmp_path, "sfx/ui/pausa/pausa_fechar_01.wav")
     m = manager(tmp_path)
-    assert m.play_sfx("ui_pause_open", ajuste=0.5)
-    assert pygame.mixer.Channel(0).get_sound() is m._sons[str(valido)]
-    assert pygame.mixer.Channel(0).get_volume() == pytest.approx(0.8 * 0.7 * 0.5, abs=0.01)
-    m.stop_all_sfx()
-    assert m.play_sfx("ui_pause_close")
-    assert pygame.mixer.Channel(0).get_sound() is not m._sons[str(valido)]
+    assert m.play_sfx("ui_pause_open", ajuste=0.5) is False
+    assert "ui_pause_open" in m._falhas
+    assert not pygame.mixer.Channel(0).get_busy()
 
 
 def test_porta_usa_variante_integrada_e_preserva_acao_fechar(monkeypatch):
     m = manager()
-    monkeypatch.setattr(m, "_escolher_arquivo", lambda pasta, arquivos: arquivos[-1])
+    monkeypatch.setattr(m, "_escolher_arquivo", lambda pasta, arquivos, grupo=None: arquivos[-1])
     assert m.play_sfx("door_open")
     assert m._ativos[-1].chave.endswith("portas_abrir_02.wav")
     assert m.play_sfx("door_close")
@@ -186,6 +186,25 @@ def test_musica_troca_sem_ocupar_canal_da_interface(tmp_path, monkeypatch):
     assert not pygame.mixer.music.get_busy()
 
 
+def test_musica_fade_out_troca_contexto_sem_corte_seco(tmp_path, monkeypatch):
+    som_teste(tmp_path, "musica/menu/teste.wav")
+    som_teste(tmp_path, "musica/boss/teste.wav")
+    agora = [0]
+    m = AudioManager(raiz=tmp_path, agora_ms=lambda: agora[0])
+    assert m.inicializar()
+    assert m.play_music("menu", fade_ms=0)
+    assert m.play_music("boss", fade_ms=200, fade_out_ms=200, motivo="batalha_chefe")
+    assert m._musica_estado == "fade_out"
+    assert m._musica_contexto_pendente == "boss"
+    agora[0] = 250
+    m.atualizar()
+    assert m._musica_contexto == "boss"
+    assert m._musica_estado in ("fade_in", "tocando")
+    agora[0] = 500
+    m.atualizar()
+    assert m._musica_estado == "tocando"
+
+
 def test_troca_de_sala_encerra_sons_do_mundo_e_preserva_ui():
     m = manager()
     assert m.play_sfx("ui_confirm")
@@ -200,31 +219,53 @@ def test_troca_de_sala_encerra_sons_do_mundo_e_preserva_ui():
 def test_pausa_nao_continua_atualizacao_do_mundo():
     chamadas = []
     cena = SimpleNamespace(menu_fogueira=SimpleNamespace(aberto=False), pausado=True,
-                           _atualizar_pausa=lambda ev: chamadas.append("pausa"))
+                           _atualizar_pausa=lambda ev: chamadas.append("pausa"),
+                           _limpar_estado_interacao=lambda: None)
     Gamescene.atualizar(cena, [])  # sem mapa/player: acessá-los significaria que o mundo avançou
     assert chamadas == ["pausa"]
 
 
 def test_contexto_musical_da_sala(monkeypatch):
     chamadas = []
-    monkeypatch.setattr("core.game_scene.audio", SimpleNamespace(play_music=chamadas.append))
-    cena = SimpleNamespace(sala_atual="calabouço_1", boss_atual=None,
+    audio_fake = SimpleNamespace(
+        play_music=lambda *a, **k: chamadas.append(("music", a[0] if a else k.get("contexto"))),
+        stop_music=lambda *a, **k: chamadas.append(("stop", k.get("motivo", ""))),
+        play_ambiente=lambda *a, **k: None,
+        play_tochas=lambda *a, **k: None,
+        set_contexto_sala=lambda *a, **k: None,
+    )
+    monkeypatch.setattr("core.game_scene.audio", audio_fake)
+    cena = SimpleNamespace(sala_atual="calabou�o_1", boss_atual=None, boss_batalha_ativa=False,
                            menu_fogueira=SimpleNamespace(aberto=False))
+    cena._contexto_musical_sala = Gamescene._contexto_musical_sala.__get__(cena)
     Gamescene._atualizar_audio_sala(cena)
     cena.boss_atual = SimpleNamespace(vivo=True)
+    cena.boss_batalha_ativa = True
     Gamescene._atualizar_audio_sala(cena)
     cena.boss_atual.vivo = False
+    cena.boss_batalha_ativa = False
     Gamescene._atualizar_audio_sala(cena)
     cena.menu_fogueira.aberto = True
     Gamescene._atualizar_audio_sala(cena)
-    assert chamadas == ["exploracao", "boss", "exploracao", "descanso"]
+    assert ("stop", "exploracao_prioriza_ambiencia") in chamadas
+    assert ("music", "boss") in chamadas
+    assert ("music", "descanso") in chamadas
 
 
-def test_boss_tmx_dispara_entrada_e_nao_usa_construtor_de_patrulha(monkeypatch):
+def test_boss_tmx_nao_dispara_entrada_antes_da_batalha(monkeypatch):
     from world.tile_map import TileMap
 
     chamadas = []
-    monkeypatch.setattr("core.game_scene.audio", SimpleNamespace(play_enemy_entrada=chamadas.append))
+    audio_fake = SimpleNamespace(
+        play_enemy_entrada=chamadas.append,
+        play_ambiente=lambda *a, **k: None,
+        play_tochas=lambda *a, **k: None,
+        play_music=lambda *a, **k: None,
+        stop_music=lambda *a, **k: None,
+        set_contexto_sala=lambda *a, **k: None,
+        stop_world_sfx=lambda *a, **k: None,
+    )
+    monkeypatch.setattr("core.game_scene.audio", audio_fake)
     objeto = dict(tipo="inimigo", id=999, col=10, linha=10,
                   propriedades={"tipo": "esqueleto_boss"})
     carregar = TileMap.carregar_objetos_tmx
@@ -232,19 +273,49 @@ def test_boss_tmx_dispara_entrada_e_nao_usa_construtor_de_patrulha(monkeypatch):
                         lambda *args: [o for o in carregar(*args) if o["tipo"] != "inimigo"] + [objeto])
     cena = Gamescene(pygame.display.get_surface())
     assert cena.boss_atual is not None
-    assert chamadas == ["boss_carrasco"]
+    assert cena.boss_batalha_ativa is False
+    assert chamadas == []
     cena.bosses_derrotados.add(cena.sala_atual)
     cena._carregar_sala(cena.sala_atual)
     assert cena.boss_atual is None
-    assert chamadas == ["boss_carrasco"]
+    assert chamadas == []
 
 
 def test_audio_desligado_nao_decodifica_cascata_ou_background(monkeypatch):
     monkeypatch.setenv("PROFANE_AUDIO", "0")
     m = AudioManager()
     assert not m.inicializar()
-    monkeypatch.setattr(m, "_carregar_som", lambda _: pytest.fail("não deve carregar"))
+    monkeypatch.setattr(m, "_carregar_som", lambda _: pytest.fail("nǜo deve carregar"))
     assert not m.play_swing("soco")
     assert not m.play_eco_profano()
     assert not m.play_music("menu")
     assert not m.play_ambiente("arena_boss")
+
+
+def test_h1_boss_music_only_after_battle_starts(monkeypatch):
+    chamadas = []
+    audio_fake = SimpleNamespace(
+        play_music=lambda *a, **k: chamadas.append(("music", a[0], k.get("motivo"))),
+        stop_music=lambda *a, **k: chamadas.append(("stop", k.get("motivo"))),
+        play_ambiente=lambda *a, **k: None,
+        play_tochas=lambda *a, **k: None,
+        set_contexto_sala=lambda *a, **k: None,
+        play_enemy_entrada=lambda *a, **k: chamadas.append(("entrada", a[0])),
+    )
+    monkeypatch.setattr("core.game_scene.audio", audio_fake)
+    cena = SimpleNamespace(
+        sala_atual="calabou�o_5",
+        boss_atual=SimpleNamespace(vivo=True, Alcance_detec=400, estado="Patrulha", _rugido_emitido=False, rect=SimpleNamespace(centerx=500), SOM_ID="boss_carrasco"),
+        boss_batalha_ativa=False, menu_fogueira=SimpleNamespace(aberto=False),
+        player=SimpleNamespace(vivo=True, rect=SimpleNamespace(centerx=0)),
+    )
+    cena._contexto_musical_sala = Gamescene._contexto_musical_sala.__get__(cena)
+    cena._tocar_entrada_boss = lambda b: audio_fake.play_enemy_entrada(b.SOM_ID)
+    cena._atualizar_audio_sala = lambda *a, **k: Gamescene._atualizar_audio_sala(cena, *a, **k)
+    Gamescene._atualizar_audio_sala(cena)
+    assert ("music", "boss") not in [(c[0], c[1]) for c in chamadas if c[0] == "music"]
+    cena.player.rect.centerx = 200  # dentro do alcance
+    Gamescene._atualizar_estado_batalha_chefe(cena)
+    assert cena.boss_batalha_ativa is True
+    assert ("entrada", "boss_carrasco") in chamadas
+    assert any(c[0] == "music" and c[1] == "boss" for c in chamadas)

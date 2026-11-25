@@ -3,9 +3,36 @@
 import pygame
 
 from ui.estilo import Roxo_espectral, Azul_espectral, Azul_claro, Branco_texto
+from ui.sprites_itens import obter_fallback, obter_sprite_de_item
+
+
+ICONS_COM_CONTAGEM = {"pocao", "raiz", "atadura", "cinzas", "lasca_umbrita"}
+
+
+def _desenhar_contagem(tela, item, sx, sy, slot_size, fonte_pequena):
+    icone = getattr(item, "icone", None)
+    if icone not in ICONS_COM_CONTAGEM:
+        return
+    if icone == "pocao":
+        valor = item.cargas if item.cargas is not None else item.quantidade
+    else:
+        valor = item.quantidade
+    txt = fonte_pequena.render(str(valor), True, Branco_texto)
+    tela.blit(txt, (sx + slot_size - 16, sy + slot_size - 18))
 
 
 def desenhar_icone_item(tela, item, cx, cy, sx, sy, slot_size, fonte_pequena):
+    sprite = obter_sprite_de_item(item)
+    if sprite is None:
+        sprite = obter_fallback()
+    if sprite is not None:
+        if sprite.get_width() > slot_size or sprite.get_height() > slot_size:
+            sprite = pygame.transform.scale(sprite, (slot_size, slot_size))
+        tela.blit(sprite, (sx + (slot_size - sprite.get_width()) // 2,
+                           sy + (slot_size - sprite.get_height()) // 2))
+        _desenhar_contagem(tela, item, sx, sy, slot_size, fonte_pequena)
+        return
+
     if item.icone == "espada":
         # lamina longa apontando para baixo
         pygame.draw.polygon(tela, (170, 176, 200), [

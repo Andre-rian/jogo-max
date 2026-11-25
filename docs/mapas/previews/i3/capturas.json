@@ -1,0 +1,244 @@
+{
+  "01_ad_spawn": {
+    "player": [
+      352,
+      320,
+      38,
+      64
+    ],
+    "camera": [
+      0.0,
+      50.45968244310018
+    ],
+    "zoom": 1.35,
+    "dica": "movimento",
+    "teclas": [
+      "a",
+      "d"
+    ],
+    "alpha": 224,
+    "estados": {
+      "a": "normal",
+      "d": "normal"
+    },
+    "concluidas": []
+  },
+  "02_d_pressionado": {
+    "player": [
+      356,
+      320,
+      38,
+      64
+    ],
+    "camera": [
+      0.0,
+      69.1378673388306
+    ],
+    "zoom": 1.35,
+    "dica": "movimento",
+    "teclas": [
+      "a",
+      "d"
+    ],
+    "alpha": 255,
+    "estados": {
+      "a": "normal",
+      "d": "pressionado"
+    },
+    "concluidas": []
+  },
+  "03_a_pressionado": {
+    "player": [
+      352,
+      320,
+      38,
+      64
+    ],
+    "camera": [
+      0.0,
+      71.08132325817094
+    ],
+    "zoom": 1.35,
+    "dica": "movimento",
+    "teclas": [
+      "a",
+      "d"
+    ],
+    "alpha": 255,
+    "estados": {
+      "a": "pressionado",
+      "d": "normal"
+    },
+    "concluidas": []
+  },
+  "04_s_topo_escada": {
+    "player": [
+      614,
+      320,
+      38,
+      64
+    ],
+    "camera": [
+      129.7755231589506,
+      85.3333312186527
+    ],
+    "zoom": 1.35,
+    "dica": "escada",
+    "teclas": [
+      "s"
+    ],
+    "alpha": 224,
+    "estados": {
+      "s": "normal"
+    },
+    "concluidas": [
+      "movimento"
+    ]
+  },
+  "05_s_descendo": {
+    "player": [
+      669,
+      341,
+      38,
+      64
+    ],
+    "camera": [
+      185.50314487706282,
+      92.43817677180496
+    ],
+    "zoom": 1.35,
+    "dica": "escada",
+    "teclas": [
+      "w",
+      "s"
+    ],
+    "alpha": 255,
+    "estados": {
+      "w": "normal",
+      "s": "pressionado"
+    },
+    "concluidas": [
+      "movimento"
+    ]
+  },
+  "08_espaco_degrau": {
+    "player": [
+      995,
+      768,
+      38,
+      64
+    ],
+    "camera": [
+      510.6357877828256,
+      490.66666666666674
+    ],
+    "zoom": 1.35,
+    "dica": "pulo",
+    "teclas": [
+      "espaco"
+    ],
+    "alpha": 224,
+    "estados": {
+      "espaco": "normal"
+    },
+    "concluidas": [
+      "escada",
+      "movimento"
+    ]
+  },
+  "09_espaco_pressionado": {
+    "player": [
+      1027,
+      755,
+      38,
+      64
+    ],
+    "camera": [
+      542.6081270743059,
+      490.66666666666674
+    ],
+    "zoom": 1.35,
+    "dica": "pulo",
+    "teclas": [
+      "espaco"
+    ],
+    "alpha": 255,
+    "estados": {
+      "espaco": "pressionado"
+    },
+    "concluidas": [
+      "escada",
+      "movimento"
+    ]
+  },
+  "10_retorno_sem_dicas": {
+    "player": [
+      343,
+      320,
+      38,
+      64
+    ],
+    "camera": [
+      0.0,
+      85.33332541064796
+    ],
+    "zoom": 1.35,
+    "dica": null,
+    "teclas": [],
+    "alpha": 0,
+    "estados": {},
+    "concluidas": [
+      "escada",
+      "movimento",
+      "pulo"
+    ]
+  },
+  "06_w_base_escada": {
+    "player": [
+      678,
+      768,
+      38,
+      64
+    ],
+    "camera": [
+      222.5027273121548,
+      463.34092779783117
+    ],
+    "zoom": 1.35,
+    "dica": "escada",
+    "teclas": [
+      "w"
+    ],
+    "alpha": 224,
+    "estados": {
+      "w": "normal"
+    },
+    "concluidas": [
+      "movimento"
+    ]
+  },
+  "07_w_subindo": {
+    "player": [
+      669,
+      764,
+      38,
+      64
+    ],
+    "camera": [
+      221.84582171387908,
+      490.66666666666674
+    ],
+    "zoom": 1.35,
+    "dica": "escada",
+    "teclas": [
+      "w"
+    ],
+    "alpha": 255,
+    "estados": {
+      "w": "pressionado"
+    },
+    "concluidas": [
+      "movimento"
+    ]
+  }
+}

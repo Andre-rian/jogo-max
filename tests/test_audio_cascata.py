@@ -76,7 +76,9 @@ def test_play_swing_encontra_arma_especifica():
     assert manager.inicializar()
 
     assert manager.play_swing("espada_longa")
-    assert "sfx/player/armas/espada_longa" in Path(manager._ativos[-1].chave).as_posix()
+    # espada_longa swing assets t?m impacto met?lico; H.2.1 usa whoosh default.
+    assert "sfx/player/armas/_default" in Path(manager._ativos[-1].chave).as_posix()
+    assert "hit" not in Path(manager._ativos[-1].chave).name.lower()
 
 
 def test_play_step_pedra_encontra_som_de_pedra():

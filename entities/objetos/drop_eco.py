@@ -1,132 +1,269 @@
 import pygame
+
 import math
+
 import random
+
 from core.audio import audio
+
 from settings import Tile_size
+
+
 
 class DropEco:
 
+
+
     Alcance_coleta = 60
 
+
+
     def __init__(self, x, y, quantidade):
+
         self.x = float(x)
+
         self.y = float(y)
+
         self.quantidade = quantidade
+
         self.ativo = True
+
+
+
 
 
         self.rect = pygame.Rect(int(x) - 16, int(y) - 16, 32, 32)
 
+
+
         #area de interaçao com folga - pega quando o player passa por cima/encostado
+
         self.interacao = self.rect.inflate(Tile_size // 2, Tile_size // 2)
 
+
+
         self._timer = 0
+
+        self.tecla_prompt = "e"
+
         self._fragmentos = []
 
+
+
         #gera os fragmentos obitidos
+
         for i in range(6):
+
             angulo = (i / 6) * math.pi * 2
+
             vel = random.uniform(0.01, 0.03)
+
             dist = random.uniform(4, 7)
+
             cor = random.choice([
+
                 (100, 60, 180),
+
                 (140, 80, 220),
+
                 (160, 100, 255),
+
                 (80, 40, 140)
+
             ])
+
             self._fragmentos.append({
+
                 "angulo": angulo,
-                "vel": vel,             
+
+                "vel": vel,
+
                 "dist": dist,
+
                 "cor": cor,
+
                 "raio": 1
+
             })
+
+
 
         #particulas subindo
+
         self._particulas = []
 
-    def atualizar(self, player, teclas, hud):
+
+
+    def disponivel_para_prompt(self, player):
+
+        return (self.ativo and player.rect.colliderect(self.interacao)
+
+                and getattr(player, "cooldown_interacao", 0) <= 0)
+
+
+
+    def prompt_anchor_mundo(self):
+
+        return self.rect.centerx, self.rect.top - 8
+
+
+
+    def atualizar(self, player, teclas, hud, selecionado=True):
+
         if not self.ativo:
+
             return
-        
+
+
+
         self._timer += 1
+
         self.rect.centerx = int(self.x)
+
         self.rect.centery = int(self.y)
 
+
+
         #atulizar o movimentos dos fragementos em obita
+
         for f in self._fragmentos:
+
             f["angulo"] += f["vel"]
 
+
+
         # spwana as particulas subindo
+
         if self._timer % 8 == 0:
+
             self._particulas.append({
+
                 "x": self.x + random.uniform(-3, 3),
+
                 "y": self.y,
+
                 "vel_y": random.uniform(-0.3, -0.8),
+
                 "alpha": 255,
+
                 "cor": random.choice([(100, 60, 180), (140, 80, 220)]),
+
             })
 
-        #atualizar as particulas 
+
+
+        #atualizar as particulas
+
         for p in self._particulas:
+
             p["y"] += p["vel_y"]
+
             p["alpha"] -= 4
+
         self._particulas = [p for p in self._particulas if p["alpha"] > 0]
 
 
-        #checar a coleta
+
         colide = player.rect.colliderect(self.interacao)
-        if colide:
+
+        if selecionado and colide:
+
             hud.mostrar_prompt("E - para recupera Ecos perdidos")
-            if teclas[pygame.K_e] and player.cooldown_interaçao <= 0:
+
+            if teclas[pygame.K_e] and getattr(player, "cooldown_interacao", 0) <= 0:
+
                 player.ecos += self.quantidade
+
                 tocar_eco = getattr(audio, "play_eco_profano", None)
+
                 if tocar_eco is not None:
+
                     tocar_eco()
+
                 else:
+
                     audio.play_sfx("eco_pickup")
-                player.cooldown_interaçao = 30
+
+                player.cooldown_interacao = 30
+
                 self.ativo = False
+
                 hud.limpar_prompt()
-        else:
+
+        elif selecionado:
+
             hud.limpar_prompt()
-        
 
     def desenhar(self, tela, camera):
+
         if not self.ativo:
+
             return
-        
+
+
+
         sr = camera.aplicar(self.rect)
+
         cx = sr.centerx
+
         cy = sr.centery
+
+
+
 
 
         #pulsar o chao abaixo
 
+
+
         pulso = abs((self._timer % 90) - 45) / 45
+
         raio_nucleo = int(4 + pulso * 1.5)
 
+
+
         #escure o chao abaixo
+
         sombra = pygame.Surface((30, 10), pygame.SRCALPHA)
+
         sombra.fill((20, 0, 40, 80))
+
         tela.blit(sombra, (cx - 15, cy + 6))
 
 
+
+
+
         #nucleo vazio escuro
+
         pygame.draw.circle(tela, (10, 0, 20), (cx, cy), raio_nucleo)
+
         pygame.draw.circle(tela, (80, 40, 120), (cx, cy), raio_nucleo, 1)
 
 
+
+
+
         #fragmentos obitandos
+
         for f in self._fragmentos:
+
             fx = int(cx + math.cos(f["angulo"]) * f["dist"])
+
             fy = int(cy + math.sin(f["angulo"]) * f["dist"])
-            
+
+
+
             pygame.draw.circle(tela, f["cor"], (fx, fy), f["raio"])
 
-        #particulas subindo
-        for p in self._particulas:
-            pos = camera.aplicar(pygame.Rect(int(p["x"]), int(p["y"]), 1, 1))
-            alpha_cor = tuple(int(c * p["alpha"] / 255) for c in p["cor"])
-            pygame.draw.circle(tela, alpha_cor, (pos.x, pos.y), 1)
 
+
+        #particulas subindo
+
+        for p in self._particulas:
+
+            pos = camera.aplicar(pygame.Rect(int(p["x"]), int(p["y"]), 1, 1))
+
+            alpha_cor = tuple(int(c * p["alpha"] / 255) for c in p["cor"])
+
+            pygame.draw.circle(tela, alpha_cor, (pos.x, pos.y), 1)

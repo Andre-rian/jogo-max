@@ -1,0 +1,197 @@
+"""Fonte reproduzível do TMX I.2. Reutiliza somente imagens/TSX do projeto.
+
+Executar da raiz: python scripts/gerar_bloco_celas.py
+O TMX resultante também pode ser editado diretamente no Tiled.
+"""
+from pathlib import Path
+import random
+import xml.etree.ElementTree as ET
+
+
+RAIZ = Path(__file__).resolve().parents[1]
+DESTINO = RAIZ / "assets/maps/bloco_celas_esquecidas.tmx"
+LARGURA, ALTURA = 128, 32
+
+
+def gerar():
+    rng = random.Random(12026)
+    nomes = ("fundo", "decoracao_fundo", "escadas", "plataformas", "colisao", "decoracao")
+    grids = {nome: [[0] * LARGURA for _ in range(ALTURA)] for nome in nomes}
+
+    def ret(nome, x, y, w, h, gid):
+        for j in range(y, y + h):
+            for i in range(x, x + w):
+                grids[nome][j][i] = gid
+
+    def selo(nome, x, y, matriz):
+        for j, linha in enumerate(matriz):
+            for i, gid in enumerate(linha):
+                if gid:
+                    grids[nome][y + j][x + i] = gid
+
+    def corrente(x, y, h=3):
+        ret("decoracao", x, y, 1, h, 2639)
+        ret("decoracao", x, y + h, 1, 1, 2641)
+
+    def nicho(x, y):
+        # Nicho visual discreto: evita tiles com fundo embutido/opaco.
+        selo("decoracao", x, y, [[0, 0, 0], [0, 0, 0],
+                                [0, 0, 0], [0, 0, 0]])
+
+    def escada(x, y, fim):
+        for j in range(y, fim):
+            grids["escadas"][j][x] = 2628 if j == fim - 1 else 2598
+
+    def escombro(x, y):
+        selo("decoracao", x, y, [[2657, 2659]])
+
+    # Pedra azul profunda no fundo; alvenaria clara indica superfícies físicas.
+    for y in range(ALTURA):
+        for x in range(LARGURA):
+            grids["fundo"][y][x] = rng.choice((429, 429, 430))
+    ret("colisao", 0, 0, LARGURA, 2, 1683)
+    ret("colisao", 0, 2, 2, ALTURA - 2, 1683)
+    ret("colisao", 127, 2, 1, ALTURA - 2, 1683)
+    ret("colisao", 0, 27, LARGURA, 5, 1683)
+    ret("colisao", 2, 26, 125, 1, 1684)
+    # Celas sobre o corredor. Vãos de 3 tiles para escadas e corpo do jogador.
+    ret("colisao", 2, 12, 83, 1, 1684)
+    for x in (20, 53):
+        ret("colisao", x, 12, 3, 1, 0)
+        escada(x + 1, 9, 26)
+    # Cela 1 aberta; cela 2 estruturalmente selada; cela 3 em ruínas.
+    ret("colisao", 24, 2, 2, 10, 1683)
+    ret("colisao", 47, 2, 2, 10, 1683)
+    ret("colisao", 71, 2, 2, 6, 1683)
+    ret("colisao", 84, 2, 2, 10, 1683)
+    ret("colisao", 86, 2, 41, 10, 1683)
+    # Passagem opcional 72..83, altura livre de 4 tiles; sem falsa parede ativa.
+    ret("colisao", 73, 2, 11, 6, 1683)
+    # Corredor: contrafortes acima da cabeça, patamar e obstáculo de salto.
+    for x in (13, 35, 66, 92, 110):
+        ret("colisao", x, 13, 2, 4, 1683)
+    ret("colisao", 34, 25, 3, 1, 1684)
+    ret("colisao", 37, 24, 5, 2, 1684)
+    ret("colisao", 42, 25, 3, 1, 1684)
+    ret("colisao", 91, 24, 2, 2, 1684)
+    # Galeria de manutenção opcional e travessas one-way, sem buraco mortal.
+    ret("plataformas", 65, 21, 8, 1, 2595)
+    ret("plataformas", 77, 19, 8, 1, 2595)
+    escada(67, 18, 26)
+    escada(80, 16, 26)
+
+    # Cela inicial: cama de pedra com pés, corrente, vaso e poucos destroços.
+    selo("decoracao", 5, 10, [[1678, 0, 0], [1859, 1860, 1859]])
+    corrente(4, 3, 4)
+    corrente(16, 3, 3)
+    ret("decoracao", 14, 11, 1, 1, 2649)
+    escombro(9, 11)
+    # Grade de ferro ao fundo da cela fechada, ossada estática e marcas de dias.
+    for x in range(32, 40, 2):
+        selo("decoracao", x, 4, [[766, 767], [804, 805], [804, 805],
+                                [804, 805], [804, 805], [842, 843]])
+    selo("decoracao", 29, 11, [[2658, 2659, 2658]])
+    selo("decoracao", 43, 7, [[1920], [1958]])
+    ret("decoracao", 43, 11, 1, 1, 2648)
+    corrente(28, 3, 4)
+    selo("decoracao", 44, 3, [[2663, 2664, 2665], [0, 2679, 2680]])
+    # Ruína: pontas quebradas, corrente e rachadura com tint violeta do Tiled.
+    corrente(58, 3, 5)
+    selo("decoracao", 65, 10, [[0, 1597, 0], [1600, 1601, 1602]])
+    escombro(60, 11)
+    selo("decoracao_fundo", 69, 6, [[1920, 1921], [1958, 1959], [1996, 1997]])
+    escombro(80, 11)
+    # Pedras caídas nas celas, sem mascarar o piso.
+    for x in (51, 63, 82):
+        escombro(x, 11)
+
+    # Cada trecho recebe um motivo: nichos, depósito, galeria suspensa, saída.
+    for x, y in ((5, 19), (27, 18), (48, 19), (72, 14), (98, 18), (112, 19)):
+        nicho(x, y)
+    for x, y in ((8, 14), (30, 14), (50, 14), (59, 14), (74, 13), (87, 14), (104, 13), (118, 14)):
+        corrente(x, y, 3 if x % 2 else 4)
+    for x, y in ((10, 25), (31, 25), (46, 25), (70, 20), (83, 18), (102, 25), (113, 25)):
+        ret("decoracao", x, y, 1, 1, 2648)
+        ret("decoracao", x + 2, y, 1, 1, 2649)
+    for x in (3, 17, 55, 61, 87, 95, 107, 121):
+        escombro(x, 25)
+    # Bandeiras gastas e vãos com grades de antigas portas ao fundo.
+    for x in (39, 96, 115):
+        selo("decoracao", x, 15, [[2679], [2680]])
+    for x in (15, 57, 104):
+        pass  # arcos anteriores removidos: tiles com fundo embutido.
+    # Ferro aberto na sa?da: folhas recolhidas lateralmente, sem moldura opaca.
+    ret("decoracao", 121, 23, 1, 3, 1600)
+    ret("decoracao", 124, 23, 1, 3, 1602)
+
+    # Blocos largos nas superfícies sólidas; escombros reservados à decoração.
+    for linha in grids["colisao"]:
+        for i, gid in enumerate(linha):
+            if gid:
+                linha[i] = 1859 if gid == 1684 else 1821 + (i % 2)
+
+    root = ET.Element("map", version="1.10", tiledversion="1.12.2", orientation="orthogonal",
+                      renderorder="right-down", width=str(LARGURA), height=str(ALTURA),
+                      tilewidth="32", tileheight="32", infinite="0", backgroundcolor="#0b0d18")
+    props = ET.SubElement(root, "properties")
+    for k, v in {"titulo": "Bloco das Celas Esquecidas", "fase": "I.2",
+                 "status": "revisao", "destino_futuro": "antigo_arsenal_guardas"}.items():
+        ET.SubElement(props, "property", name=k, value=v)
+    template = ET.parse(RAIZ / "assets/maps/_template.tmx").getroot()
+    usados = {g & 0x1FFFFFFF for grid in grids.values() for row in grid for g in row if g}
+    refs = list(template.findall("tileset"))
+    for i, ts in enumerate(refs):
+        inicio = int(ts.get("firstgid"))
+        fim = int(refs[i + 1].get("firstgid")) if i + 1 < len(refs) else 99999
+        if any(inicio <= gid < fim for gid in usados):
+            ET.SubElement(root, "tileset", ts.attrib)
+    for n, nome in enumerate(nomes, 1):
+        layer = ET.SubElement(root, "layer", id=str(n), name=nome, width=str(LARGURA), height=str(ALTURA))
+        if nome == "colisao":
+            layer.set("tintcolor", "#ff9ba3b8")
+        if nome == "fundo":
+            layer.set("tintcolor", "#ffb0b8ff")
+        data = ET.SubElement(layer, "data", encoding="csv")
+        data.text = "\n" + ",\n".join(",".join(map(str, row)) for row in grids[nome]) + "\n"
+    objetos = ET.SubElement(root, "objectgroup", id="7", name="objetos")
+    referencias = ET.SubElement(root, "objectgroup", id="8", name="referencias", visible="0")
+    oid = 0
+
+    def obj(grupo, rotulo, tipo, x, y, w=0, h=0, **props):
+        nonlocal oid
+        oid += 1
+        el = ET.SubElement(grupo, "object", id=str(oid), name=rotulo, type=tipo,
+                           x=str(x * 32), y=str(y * 32), width=str(w * 32), height=str(h * 32))
+        if not w and not h:
+            ET.SubElement(el, "point")
+        if props:
+            ps = ET.SubElement(el, "properties")
+            for k, v in props.items():
+                ET.SubElement(ps, "property", name=k, value=str(v))
+
+    obj(objetos, "default", "spawn", 11, 10, nome="default")
+    obj(objetos, "direita", "spawn", 122, 24, nome="direita")
+    for x, y in ((11, 6), (34, 6), (63, 6), (17, 20), (32, 20), (52, 20),
+                 (70, 16), (86, 21), (99, 20), (119, 20)):
+        obj(objetos, f"tocha_{x}_{y}", "tocha", x, y, variante="fraca")
+    for nome, x, y, w, h, descricao in (
+        ("cela_spawn", 2, 2, 22, 10, "Cama de pedra; deslocamento livre; escada à direita."),
+        ("cela_fechada", 26, 2, 21, 10, "Ossada em tiles 2658/2659, sem entidade/inimigo."),
+        ("cela_destruida", 49, 2, 24, 10, "Acesso opcional por escada, rachadura a leste."),
+        ("passagem_profana", 73, 8, 11, 4, "Estrutura acessível; descoberta e recompensa pendentes."),
+        ("patamar", 34, 24, 11, 2, "Desníveis de 32 px para exploração e salto."),
+        ("galeria", 65, 16, 20, 6, "Plataformas one-way; escadas para retorno."),
+        ("salto", 91, 24, 2, 2, "Obstáculo de 64 px; pulo comum, sem dash."),
+        ("saida_arsenal", 121, 22, 5, 4, "Ferro aberto; conexão ao Arsenal pendente de aprovação."),
+    ):
+        obj(referencias, nome, "marcador", x, y, w, h, descricao=descricao,
+            estado="planejamento" if nome in {"passagem_profana", "saida_arsenal"} else "ambiental")
+    root.set("nextlayerid", "9")
+    root.set("nextobjectid", str(oid + 1))
+    ET.indent(root, space="  ")
+    ET.ElementTree(root).write(DESTINO, encoding="utf-8", xml_declaration=True)
+    print(DESTINO)
+
+
+if __name__ == "__main__":
+    gerar()

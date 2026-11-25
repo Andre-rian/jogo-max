@@ -58,14 +58,25 @@ class Consumivel(Item):
         self.cargas = self.cargas_max if self.cargas_max else None
         self.duracao = dados.get("duracao", 0)
         self.valor = dados.get("valor", 1.0)
+        self.cura_percentual = dados.get("cura_percentual", None)
 
     def usar(self, player, inventario_dict):
+        id_ = str(self.id)
+        if inventario_dict["itens"].get(id_, 0) <= 0:
+            return False
+        if self.efeito == "cura":
+            if player.hp >= player.hp_max:
+                return False
+            from entities.objetos.pocao import Cura_percentual
+            percentual = self.cura_percentual if self.cura_percentual is not None else Cura_percentual
+            player.hp = min(player.hp_max, player.hp + int(player.hp_max * percentual))
         if self.efeito == "stamina":
             player.buff_stamina_duracao = self.duracao
             player.buff_stamina_valor = self.valor
+        if self.efeito == "ecos":
+            player.ecos += int(self.valor)
 
         #diminui a quantidade no inventario
-        id_ = self.id
         if id_ in inventario_dict["itens"]:
             inventario_dict["itens"][id_] -= 1
             if inventario_dict["itens"][id_] <= 0:
@@ -84,6 +95,12 @@ class Material(Item):
         self.quantidade = dados.get("quantidade", 1)
 
 
+class Reliquia(Item):
+
+    def __init__(self, id_, dados):
+        super().__init__(id_, dados)
+
+
 
 # Registro - mapea os ids dos objetos
 _fabricas = {
@@ -91,6 +108,7 @@ _fabricas = {
     "consumivel" : Consumivel,
     "chave" : Chave,
     "material" : Material,
+    "reliquia" : Reliquia,
 }
 
 Registro_Itens = {}
@@ -115,4 +133,4 @@ def get_item(id):
 
 #atalhos pra quebra galho
 EspadaLonga = Registro_Itens.get(1)
-MachadadoDeGuerra = Registro_Itens.get(3) 
+MachadadoDeGuerra = Registro_Itens.get(3)

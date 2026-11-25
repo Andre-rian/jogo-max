@@ -1,0 +1,59 @@
+{
+  "pytest_passed": 297,
+  "py_compile": "passed",
+  "tmx_validator": "passed",
+  "tiled_rasterizer_exit_code": 0,
+  "git_diff_check": "passed",
+  "protected_xml_elements": 7,
+  "protected_files_hash_and_mtime": 69,
+  "log_and_saves_unchanged": true,
+  "layer_counts": {
+    "decoracao": {
+      "antes": 80,
+      "depois": 81,
+      "celulas_diferentes": 36
+    },
+    "decoracao_fundo": {
+      "antes": 70,
+      "depois": 56,
+      "celulas_diferentes": 61
+    }
+  },
+  "gid_ranges": [
+    [
+      197,
+      595
+    ],
+    [
+      596,
+      2457
+    ],
+    [
+      2458,
+      2727
+    ],
+    [
+      3000,
+      6086
+    ],
+    [
+      7000,
+      7023
+    ],
+    [
+      7100,
+      7155
+    ]
+  ],
+  "native_captures": {
+    "size": [
+      1280,
+      720
+    ],
+    "zoom": 1.35,
+    "gameplay_positions": 5,
+    "editorial_camera_positions": 4
+  },
+  "route_frames": 3290,
+  "route_waypoints": 8
+}

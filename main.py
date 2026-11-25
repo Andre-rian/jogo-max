@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 
@@ -42,14 +42,19 @@ from core.audio import audio
 from core.menu import MenuInicial
 from core.game_scene import Gamescene
 from save_manager import Savemaneger
+from core import preferencias as prefs
+from ui.estilo import definir_escala_texto
 
 
 
 class Jogo:
-    def __init__(self, modo_teste_combate=False):
+    def __init__(self, modo_teste_combate=False, teste_celas=False):
         pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
+        self.preferencias = prefs.carregar()
         audio.inicializar()
+        audio.aplicar_preferencias_audio(prefs.volumes_normalizados(self.preferencias))
+        definir_escala_texto(prefs.escala_texto(self.preferencias))
         self.Criar_janela()
         self.clock = pygame.time.Clock()
         self.save_manager = Savemaneger()
@@ -58,12 +63,17 @@ class Jogo:
         self.slot_atual = None
         self.scene = None
         self.modo_teste_combate = modo_teste_combate
+        self.teste_celas = teste_celas
 
-        self.menu = MenuInicial(self.tela, self.save_manager)
+        self.menu = MenuInicial(self.tela, self.save_manager, preferencias=self.preferencias)
         self.menu.callback_iniciar = self._iniciar_jogo
-        audio.play_music("menu")
+        self.menu.callback_sair = self._sair
+        try:
+            audio.play_music("menu", origem="main", fade_ms=2500, fade_out_ms=0, motivo="menu_inicial")
+        except TypeError:
+            audio.play_music("menu")
 
-        if self.modo_teste_combate:
+        if self.modo_teste_combate or self.teste_celas:
             self._iniciar_jogo(None, None)
         
 
@@ -75,6 +85,7 @@ class Jogo:
         if self.estado == "jogo" and self.scene:
             menu_aberto = (
                 self.scene.pausado or self.scene.inventario.aberto or self.scene.menu_fogueira.aberto
+                or self.scene.fim_beta is not None
             )
             pygame.mouse.set_visible(menu_aberto)
         else:
@@ -82,7 +93,12 @@ class Jogo:
 
     def _iniciar_jogo(self, slot, dados_save):
         self.slot_atual = slot
-        self.scene = Gamescene(self.tela, modo_teste_combate=self.modo_teste_combate)
+        if self.teste_celas:
+            self.slot_atual = None
+            dados_save = None
+            self.scene = Gamescene(self.tela, sala_teste="bloco_celas_esquecidas")
+        else:
+            self.scene = Gamescene(self.tela, modo_teste_combate=self.modo_teste_combate)
         self.scene._menu_callback = self._voltar_menu
 
         if self.slot_atual is not None:
@@ -100,11 +116,18 @@ class Jogo:
 
 
     def _voltar_menu(self):
+        self.teste_celas = False
+        self.modo_teste_combate = False
         audio.stop_all_sfx()
-        audio.play_music("menu")
+        try:
+            audio.play_music("menu", origem="main", fade_ms=2000, fade_out_ms=800, motivo="voltar_menu")
+        except TypeError:
+            audio.play_music("menu")
         self.estado = "menu"
         self.scene = None
         self.slot_atual = None
+        self.menu.tela_menu = "principal"
+        self.menu.estado = "selecionar"
         self.menu.slot_selecionado = 1
 
 
@@ -126,11 +149,15 @@ class Jogo:
         if self.scene and self.slot_atual is not None:
             try:
                 self.scene.salvar(self.save_manager, self.slot_atual)
-                log.info("Save de emergência gravado antes do término anormal")
+                log.info("Save de emergǦncia gravado antes do tǸrmino anormal")
             except Exception as e:
-                log.warning(f"Não foi possível salvar antes do término (slot {self.slot_atual}): {e}")
+                log.warning(f"Nǜo foi poss��vel salvar antes do tǸrmino (slot {self.slot_atual}): {e}")
 
     def _sair(self):
+        try:
+            prefs.salvar(getattr(self.menu, "preferencias", self.preferencias))
+        except Exception:
+            pass
         self.save_manager.fechar()
         audio.stop_all_sfx()
         audio.stop_music()
@@ -144,6 +171,9 @@ class Jogo:
             except Exception:
                 log.exception("Falha ao ler eventos do pygame")
                 self._sair()
+            atualizar_audio = getattr(audio, "atualizar", None)
+            if atualizar_audio is not None:
+                atualizar_audio()
 
             for evento in eventos:
                 if evento.type == pygame.QUIT:
@@ -174,14 +204,17 @@ class Jogo:
                 self.clock.tick(FPS)
 
             except Exception:
-                log.exception("Exceção não tratada no loop principal")
+                log.exception("Exce��ǜo nǜo tratada no loop principal")
                 self._salvar_emergencia()
                 self._sair()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Profane Echo")
-    parser.add_argument("--teste-combate", action="store_true",
+    modos = parser.add_mutually_exclusive_group()
+    modos.add_argument("--teste-combate", action="store_true",
                         help="inicia direto na arena de teste de combate")
+    modos.add_argument("--teste-celas", action="store_true",
+                       help="abre o Bloco das Celas em sessão temporária, sem saves")
     args = parser.parse_args()
-    Jogo(modo_teste_combate=args.teste_combate).rodar()
+    Jogo(modo_teste_combate=args.teste_combate, teste_celas=args.teste_celas).rodar()

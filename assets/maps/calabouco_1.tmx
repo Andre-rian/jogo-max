@@ -172,20 +172,12 @@
     
   
     <object id="8" type="inimigo" x="347" y="228">
-      
-   
       <properties>
-        
-    
-        <property name="type" value="skeleton"/>
-        
-   
+        <property name="patrulha_dir" type="int" value="100"/>
+        <property name="patrulha_esq" type="int" value="100"/>
+        <property name="tipo" value="skeleton"/>
       </properties>
-      
-   
       <point/>
-      
-  
     </object>
     
   

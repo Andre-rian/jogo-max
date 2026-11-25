@@ -30,7 +30,7 @@ class Skeleton(InimigoBase):
 
 
         self.vel.x = self.Vel_patrulha
-        self.escos_drop = 20
+        self.ecos_drop = 20
 
         Skel = "assets/sprites/enemies/monsters/skeleton/"
         self.animaçoes = {

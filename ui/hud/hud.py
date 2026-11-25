@@ -1,6 +1,6 @@
 import pygame
 from settings import DEBUG
-from ui.estilo import Fonte_titulo, Fonte_texto
+from ui.estilo import Fonte_titulo, Fonte_texto, versao_escala_texto
 from ui.hud.status import BarrasStatus
 from ui.hud.ecos import IndicadorEcos
 from ui.hud.pocao import SlotPocao
@@ -14,6 +14,10 @@ class Hud:
 
     def __init__(self):
         pygame.font.init()
+        self._versao_escala = None
+        self._configurar_fontes()
+
+    def _configurar_fontes(self):
         self.fonte_pequena  = Fonte_texto(14)
         self.fonte_media    = Fonte_titulo(18, negrito=True)
         self.fonte_mensagem = Fonte_titulo(28, negrito=True)
@@ -26,31 +30,45 @@ class Hud:
         self.pocao_slot = SlotPocao(self.fonte_pequena)
         self.boss_bar = BarraBoss(self.fonte_media)
         self.debug = DebugPainel(self.fonte_pequena)
+        self._versao_escala = versao_escala_texto()
+
+    def _garantir_escala(self):
+        if self._versao_escala != versao_escala_texto():
+            self._configurar_fontes()
 
     def mostra_mensagem(self, texto, duracao=180):
+        self._garantir_escala()
         self.mensagens.mostrar(texto, duracao)
 
     def limpar_mensagem(self):
         self.mensagens.limpar()
 
     def mostrar_prompt(self, texto):
+        self._garantir_escala()
         self.mensagens.mostrar_prompt(texto)
 
     def limpar_prompt(self):
         self.mensagens.limpar_prompt()
 
+    def limpar_prompt_interacao(self):
+        self.mensagens.limpar_prompt()
+
     def flash_pocao(self):
+        self._garantir_escala()
         self.pocao_slot.flash()
 
     def mostrar_item_coletado(self, item, quantidade=1):
+        self._garantir_escala()
         self.notificacao_item.mostrar(item, quantidade)
 
     def atualizar(self):
+        self._garantir_escala()
         self.mensagens.atualizar()
         self.pocao_slot.atualizar()
         self.boss_bar.atualizar()
 
     def desenhar(self, tela, player, boss_atual=None):
+        self._garantir_escala()
         self.status.desenhar(tela, player)
         self.pocao_slot.desenhar(tela, player)
         self.mensagens.desenhar(tela)
@@ -58,5 +76,5 @@ class Hud:
         self.ecos.desenhar(tela, player)
         if DEBUG:
             self.debug.desenhar(tela, player)
-        if boss_atual:
-            self.boss_bar.desenhar(tela, boss_atual)
+        # A ausǦncia limpa o estado antes de reapresentar o mesmo chefe.
+        self.boss_bar.desenhar(tela, boss_atual)

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="80" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="4">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="80" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="5">
   
  
   <tileset firstgid="1" source="../tileset/tilesets/parede_variantes.tsx"/>
@@ -127,7 +127,8 @@
     </object>
     
  
-  </objectgroup>
+  <object id="4" name="Ecofoco experimental" type="fogueira" x="256" y="640"><point/></object>
+ </objectgroup>
   
 
 </map>

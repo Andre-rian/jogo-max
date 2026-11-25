@@ -1,0 +1,82 @@
+{
+  "zoom": 1.35,
+  "resolucao": [
+    1280,
+    720
+  ],
+  "enquadramentos_editoriais": {
+    "cela_1_confinamento": [
+      0,
+      0
+    ],
+    "cela_2_prisioneiro": [
+      760,
+      0
+    ],
+    "cela_3_eco": [
+      1536,
+      0
+    ],
+    "saida": [
+      3148,
+      490
+    ]
+  },
+  "capturas_jogaveis": {
+    "jogo_01_spawn": {
+      "player": [
+        352,
+        320
+      ],
+      "camera": [
+        0.0,
+        85.25788221541745
+      ],
+      "zoom": 1.35
+    },
+    "jogo_02_vista_cela_fechada": {
+      "player": [
+        582,
+        320
+      ],
+      "camera": [
+        126.88921557720576,
+        85.33333327434592
+      ],
+      "zoom": 1.35
+    },
+    "jogo_03_eco": {
+      "player": [
+        2007,
+        320
+      ],
+      "camera": [
+        1551.8886009570217,
+        85.33330100651092
+      ],
+      "zoom": 1.35
+    },
+    "jogo_04_fissura": {
+      "player": [
+        2261,
+        320
+      ],
+      "camera": [
+        1805.8886072411021,
+        85.33333333332163
+      ],
+      "zoom": 1.35
+    },
+    "jogo_05_saida": {
+      "player": [
+        3911,
+        768
+      ],
+      "camera": [
+        3147.851851851852,
+        490.66666666666674
+      ],
+      "zoom": 1.35
+    }
+  }
+}

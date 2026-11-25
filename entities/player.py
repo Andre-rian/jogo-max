@@ -1,1135 +1,2295 @@
 import pygame
+
 import math
+
 import random
+
 import logging
-from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave
+
+from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave, Reliquia
+
 from entities.entity import Entity
+
 from core.animated_sprite import AnimatedSprite
+
 from core.combat import (
+
     DanoSpec,
+
     DefinicaoAtaque,
+
     HitboxSpec,
+
     InstanciaAtaque,
+
     JanelaGolpe,
+
     KnockbackSpec,
+
     ModoMovimento,
+
     PoliticaHit,
+
     construir_hitboxes,
+
 )
+
 from entities.objetos.pocao import Pocao
+
 from core.audio import audio
+
 from settings import Dourado, Tile_size
+
+
 
 logger = logging.getLogger(__name__)
 
+
+
 class Player(Entity):
 
+
+
     #possiveis estados de maquina
+
     Parado = "parado"
+
     Correndo = "correndo"
+
     Pulando = "pulando"
+
     Caindo = "caindo"
+
     Dash = "Dash"
+
     Atacando = "atacando"
+
     Ferido = "ferido"
+
     Bebendo = "bebendo"
+
     Pegando = "pegando"
+
     Escalando = "escalando"
+
     Morto = "morto"
 
+
+
     #status base
+
     HP_BASE = 50
+
     STAMINA_BASE = 30
+
     VIGOR_INICIAL = 10
+
     RESISTENCIA_INICIAL = 10
+
     FORCA_INICIAL = 10
+
     DESTREZA_INICIAL = 9
+
     HP_INICIAL = 10
+
     HP_POR_VIGOR = 15
+
     STAMINA_POR_RES = 10
 
+
+
     #fisica
+
     Speed         = 4
+
     Pulo          = -14
+
     Dash_speed    = 14
+
     Dash_duration = 12
+
     Dash_cooldown = 45
+
     Double_tap    = 18
 
+
+
     # combate
+
     Ataque_range    = 70
+
     Ataque_cooldown = 30
+
     Knockback       = 8
 
+
+
     #combo
+
     Hold_combo_frames = 15 #quanto tempo tem que segura o clique pra virar combo
+
     Stamina_combo = 20
+
     Multiplicador_combo = 1.6
 
 
+
+
+
     # stamina
+
     Stamina_pulo    = 20
+
     Stamina_dash    = 30
+
     Stamina_ataque  = 10
+
     Stamina_recarga = 0.4
+
     Stamina_delay   = 30
 
+
+
     #audio
+
     Frames_contato_passo = (1, 6)
+
     Queda_minima_pouso = 4
 
+
+
     def __init__(self, x, y):
+
         hp_inicial = self.HP_BASE + (self.VIGOR_INICIAL * self.HP_POR_VIGOR)
+
         super().__init__(x, y, largura=Tile_size * 1.2, altura=Tile_size * 2, hp_max=hp_inicial)
 
-        
-        
-        
+
+
+
+
+
+
+
+
         #stamina
+
         self.stamina_max = self.STAMINA_BASE + (self.RESISTENCIA_INICIAL * self.STAMINA_POR_RES)
-        self.stamina = self.stamina_max        
-        
+
+        self.stamina = self.stamina_max
+
+
+
         #graus de escalonamento
+
         self._graus = {"S": 1.0, "A": 0.8, "B": 0.6, "C": 0.4, "D": 0.2}
-        
-        
-        #estado atual da maquina de estado 
-        
+
+
+
+
+
+        #estado atual da maquina de estado
+
+
+
         self.estado = self.Parado
 
 
+
+
+
         #stamina
+
         self.buff_stamina_duracao = 0
+
         self.buff_stamina_valor = 1.0
 
 
 
+
+
+
+
         #Dash
+
         self.em_dahs = False
+
         self.timer_dash = 0
+
         self.cooldown_dash = 0
+
         self.direçao_dash = 0
+
+
 
         #detectar duplo toque - guarda o frame do ultimo toque de cada tecla
 
+
+
         self._ultimo_toque = {"esquerda": -999, "direita": -999}
+
+
 
         self._frame_atual = 0 #contador de frames atuais
 
-        #guarda o estado das teclas no frame anterior 
+
+
+        #guarda o estado das teclas no frame anterior
+
         #(detectar o momento exato do toque)`
+
         self._teclas_anterior = None
 
+
+
         #ataque
+
         self.atacando = False
+
         self.timer_ataque = 0
+
         self.cooldown_ataque = 0
+
         self.ataque_ativo = None
+
         self.definicoes_ataque = {}
+
         self._alvos_atingidos = set()  #compatibilidade: o ledger do CombatSystem é a fonte real
 
+
+
         #reação a dano
+
         self._em_hit = False
+
         self.timer_hit = 0
 
+
+
         #controle de combo
+
         self._segurando_ataque = False
+
         self._timer_hold = 0
+
         self._tier_ataque = "normal"        #normal ou pesado, combo usado no calculo de dano
 
+
+
         #bebendo
+
         self._bebendo = False
+
         self.timer_bebida = 0
 
+
+
         #pegando item do chao
+
         self._pegando = False
+
         self.timer_pegando = 0
 
+
+
         #interaçao (evita pressionar E em multiplos objetos ao mesmo tempo)
-        self.cooldown_interaçao = 0
+
+        self.cooldown_interacao = 0
+
+
 
         #plataformas one-way e escadas
+
         self._timer_atravessar = 0   #frames atravessando a plataforma (S+Espaço)
+
         self._escalando = False       #se está subindo/descendo em uma escada
+
         self._bloqueio_escalada = 0   #frames sem poder pegar escada logo apos pular
+
         self._escada_lock = None      #cell da escada em que está agarrado
+
         self._escada_top = None       #limite superior do corredor da escada
+
         self._escada_bottom = 0       #limite inferior do corredor da escada
+
         self._escalando_prev = False  #estava escalando no frame anterior (p/ sair limpo ao soltar)
+
         self._debug_plat_prev = False #diagnostico: avisa 1x quando fica em cima da plataforma
+
         self._aguardando_drop = 0      #frames de tolerancia p/ apertar baixo apos o espaço
+
         self._drop_linha_top = None    #durante o drop, topo da row ignorada nos solidos
+
         self._drop_linha_baixo = 0
 
+
+
         #invetario(bem basico)
+
         self.inventario = {
+
                 "mao_direita" : None,   # arma equipada
+
                 "mao_esquerda": None,   # escudo — futuro
+
                 "armadura"    : None,   # armadura — futuro
-                "equipamentos": [],     #parte do inventario que fica os equipaveis 
+
+                "equipamentos": [],     #parte do inventario que fica os equipaveis
+
                 "itens"       : {},     # consumíveis no inventário               -dicionario da lista de ids
-                "chaves"      : [],      # itens de progressão                    -lista de ids  
+
+                "chaves"      : [],      # itens de progressão                    -lista de ids
+
                 "materiais"   : {}      # materias de fabricação/ upgrades        -dict da lista de ids
-                        }   
-        
+
+                        }
+
+
+
+
 
         #sistema do inventario/ simbolo nos itens novos
+
         self.itens_novos = set() #id dos itens que o player nao interagiu no inventario
 
-        #ecos profanos 
+
+
+        #ecos profanos
+
         self.ecos = 0
+
         self.ecos_perdidos = 0  #guarda os ecos perdidos quando o player morrre
 
+
+
         #atributos
+
         self.nivel = 1
+
         self.vigor = self.VIGOR_INICIAL
+
         self.resistencia = self.RESISTENCIA_INICIAL
+
         self.forca = self.FORCA_INICIAL
+
         self.destreza = self.DESTREZA_INICIAL
 
 
 
+
+
+
+
         #poçoes
+
         self.pocao = Pocao()
 
+
+
         #checkpoin(inicial)
+
         self.checkpoint_pos = pygame.Vector2(x, y)
-        self.checkpoint_sala = 'calabouço_1' 
+
+        self.checkpoint_sala = 'calabouço_1'
+
+
 
         #audio de movimento
+
         self._audio_suprimir_pouso = False
+
         self.material_piso = "pedra"
 
 
+
+
+
         # animações
+
         KNIGHT = "assets/sprites/player/knight/"
+
         self.animacoes = {
+
             self.Parado:   AnimatedSprite(KNIGHT + "_Idle.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
+
             self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=1.7, loop=True),
+
+            self.Escalando: AnimatedSprite(KNIGHT + "_LadderClimb.png", 120, 80, velocidade=7, escala=1.7, loop=True),
+
             self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
+
             self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
+
             self.Atacando: AnimatedSprite(KNIGHT + "_Attack.png",120, 80, velocidade=5,  escala=1.7, loop=False),
+
             self.Dash:     AnimatedSprite(KNIGHT + "_Dash.png",  120, 80, velocidade=4,  escala=1.7, loop=False),
+
             self.Ferido:   AnimatedSprite(KNIGHT + "_Hit.png",   120, 80, velocidade=8,  escala=1.7, loop=False),
+
             self.Morto:    AnimatedSprite(KNIGHT + "_Death.png", 120, 80, velocidade=8,  escala=1.7, loop=False),
+
                 }
-        
+
+
+
         self.animacoes_ataque = {
 
+
+
                         "espada": {
+
                     "normal": {
+
                         "parado":    AnimatedSprite(KNIGHT + "_AttackNoMovement.png",     120, 80, velocidade=5, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "_Attack.png",               120, 80, velocidade=5, escala=1.7),
+
                     },
+
                     "pesado": {
+
                         "parado":    AnimatedSprite(KNIGHT + "_Attack2NoMovement.png",    120, 80, velocidade=5, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "_Attack2.png",              120, 80, velocidade=5, escala=1.7),
+
                     },
+
                     "combo": {
+
                         "parado":    AnimatedSprite(KNIGHT + "_AttackComboNoMovement.png",120, 80, velocidade=4, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "_AttackCombo2hit.png",      120, 80, velocidade=4, escala=1.7),
+
                     },
+
                 },
+
                 "machado": {
+
                     "normal": {
+
                         "parado":    AnimatedSprite(KNIGHT + "Attack_Axe.png",          76, 80, velocidade=12, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "Attack_Axe.png",          76, 80, velocidade=12, escala=1.7),
+
                     },
+
                     "pesado": {
+
                         "parado":    AnimatedSprite(KNIGHT + "Attack2_Axe.png",      106, 80, velocidade=12, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "Attack2_Axe.png",      106, 80, velocidade=12, escala=1.7),
+
                     },
+
                     "combo": {
+
                         "parado":    AnimatedSprite(KNIGHT + "Attack_Combo_Axe.png", 56, 80, velocidade=12, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "Attack_Combo_Axe.png", 56, 80, velocidade=12, escala=1.7),
+
                     },
+
                 },
+
                 None: {  # sem arma - soco
+
                     "normal": {
+
                         "parado":    AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=1.7),
+
                         "movimento": AnimatedSprite(KNIGHT + "_Attack_Punho.png", 120, 80, velocidade=15, escala=1.7),
+
                     },
+
                 },
+
             }
+
         #animaçoes pocao
+
         self.anim_pocao_parado = AnimatedSprite(KNIGHT + "knight_poçao.png", 30, 78, velocidade=14, escala=1.7)
+
         self.anim_pocao_movimento = AnimatedSprite(KNIGHT + "knight_poçao_movimento.png",  32, 80, velocidade=14, escala=1.7)
 
+
+
         #animaçao pegando item
+
         self.anim_pegando_item = AnimatedSprite(KNIGHT + "Pegando_item.png", 46, 80, velocidade=8, escala=1.7)
 
+
+
         self._estado_anterior = self.Parado
+
         self.anim_atual = self.animacoes[self.Parado]
+
         self.anim_hurtbox = self.animacoes[self.Parado]
+
+
 
         self._configurar_ataques()
 
+
+
     def _configurar_ataques(self):
+
         janelas_por_tier = {
+
             ("espada", "normal"): [("corte", 1, 2)],
+
             ("espada", "pesado"): [("corte_pesado", 2, 3)],
+
             ("espada", "combo"): [("corte_1", 1, 2), ("corte_2", 6, 7)],
+
             ("machado", "normal"): [("corte", 1, 2)],
+
             ("machado", "pesado"): [("corte_pesado", 1, 2)],
+
             ("machado", "combo"): [("corte_1", 1, 2), ("corte_2", 4, 5)],
+
             (None, "normal"): [("soco", 1, 2)],
+
         }
 
+
+
         for tipo_arma, tiers in self.animacoes_ataque.items():
+
             self.definicoes_ataque[tipo_arma] = {}
+
             for tier, variantes in tiers.items():
+
                 self.definicoes_ataque[tipo_arma][tier] = {}
+
                 especificacoes = janelas_por_tier.get((tipo_arma, tier), [("golpe", 1, 2)])
 
+
+
                 for variante, animacao in variantes.items():
+
                     janelas = tuple(
+
                         JanelaGolpe(
+
                             nome=nome,
+
                             frame_inicio=inicio,
+
                             frame_fim=fim,
+
                             hitbox=HitboxSpec(usar_mascara_animacao=True),
+
                             politica=PoliticaHit.UMA_VEZ,
+
                             canal=nome,
+
                             bloqueia_por_parede=True,
+
                         )
+
                         for nome, inicio, fim in especificacoes
-                    )
-                    dano = DanoSpec(
-                        dano_base=0,
-                        knockback=KnockbackSpec(forca_x=4, forca_y=-2, frames=12),
-                        hitstop=4 if tier == "combo" else 3,
-                        stagger=True,
-                        duracao_hit=12,
-                        frames_invenc=0,
-                    )
-                    self.definicoes_ataque[tipo_arma][tier][variante] = DefinicaoAtaque(
-                        nome=f"{tipo_arma or 'soco'}_{tier}_{variante}",
-                        animacao=animacao,
-                        janelas=janelas,
-                        movimento=ModoMovimento.REDUZIDO,
-                        dano=dano,
+
                     )
 
+                    dano = DanoSpec(
+
+                        dano_base=0,
+
+                        knockback=KnockbackSpec(forca_x=4, forca_y=-2, frames=12),
+
+                        hitstop=4 if tier == "combo" else 3,
+
+                        stagger=True,
+
+                        duracao_hit=12,
+
+                        frames_invenc=0,
+
+                    )
+
+                    self.definicoes_ataque[tipo_arma][tier][variante] = DefinicaoAtaque(
+
+                        nome=f"{tipo_arma or 'soco'}_{tier}_{variante}",
+
+                        animacao=animacao,
+
+                        janelas=janelas,
+
+                        movimento=ModoMovimento.REDUZIDO,
+
+                        dano=dano,
+
+                    )
+
+
+
     def equipar(self, item):
-        
+
+
+
         if isinstance(item, Arma):
+
             self.inventario["mao_direita"] = item.id
+
             logger.debug(f"Equipado: {item.nome} ID: {item.id}")
 
 
 
-    @property
-    def arma_equipada(self):
-        id_ = self.inventario["mao_direita"]
-        return get_item(id_) if id_ else None
+
+
+
 
     @property
-    def arma_id(self):
-        arma = self.arma_equipada
-        if arma is None:
-            return "soco"
-        return {
-            "espada": "espada_longa",
-            "machado": "machado_guerra",
-        }.get(arma.icone, "soco")
-    
+
+    def arma_equipada(self):
+
+        id_ = self.inventario["mao_direita"]
+
+        return get_item(id_) if id_ else None
+
+
+
     @property
+
+    def arma_id(self):
+
+        arma = self.arma_equipada
+
+        if arma is None:
+
+            return "soco"
+
+        return {
+
+            "espada": "espada_longa",
+
+            "machado": "machado_guerra",
+
+        }.get(arma.icone, "soco")
+
+
+
+    @property
+
     def tem_arma_equipada(self):
-        
+
+
+
         return self.inventario["mao_direita"] is not None
 
 
+
+
+
     def adicionar_ao_inventario(self, item):
+
         if isinstance(item, Arma):
 
-            self.inventario["equipamentos"].append(item.id)
+
+
+            if item.id != self.inventario["mao_direita"] and item.id not in self.inventario["equipamentos"]:
+                self.inventario["equipamentos"].append(item.id)
+
             self.itens_novos.add(item.id)
-        
-        
+
+
+
+
+
         elif isinstance(item, Consumivel):
 
+
+
             id_ = str(item.id)
+
+
 
             if id_ in self.inventario["itens"]:
-                self.inventario["itens"][id_] += 1
-                
-            else:    
-                self.inventario["itens"][id_] = 1
-            
-            self.itens_novos.add(item.id)
-        
-        
-        elif isinstance(item, Chave):
-            self.inventario["chaves"].append(item.id)
-            self.itens_novos.add(item.id)
-        
-        
-        elif isinstance(item, Material):
-            id_ = str(item.id)
 
-            logger.debug(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
-            
-            if id_ in self.inventario["materiais"]:
-                
-                self.inventario["materiais"][id_] += 1
+                self.inventario["itens"][id_] += 1
+
+
 
             else:
-                self.inventario["materiais"][id_] = 1
-                
+
+                self.inventario["itens"][id_] = 1
+
+
+
             self.itens_novos.add(item.id)
+
+
+
+
+
+        elif isinstance(item, Chave):
+
+            self.inventario["chaves"].append(item.id)
+
+            self.itens_novos.add(item.id)
+
+
+
+
+
+        elif isinstance(item, Reliquia):
+
+            if item.id not in self.inventario["chaves"]:
+                self.inventario["chaves"].append(item.id)
+
+            self.itens_novos.add(item.id)
+
+
+
+
+        elif isinstance(item, Material):
+
+            id_ = str(item.id)
+
+
+
+            logger.debug(f"adicionando material id={item.id}, materiais atual={self.inventario['materiais']}")
+
+
+
+            if id_ in self.inventario["materiais"]:
+
+
+
+                self.inventario["materiais"][id_] += 1
+
+
+
+            else:
+
+                self.inventario["materiais"][id_] = 1
+
+
+
+            self.itens_novos.add(item.id)
+
+
+
+
 
 
 
 #UPDATE
+
     def atualizar(self, rects_solidos, camera, rects_plataforma=None, rects_escada=None):
+
         if not self.vivo:
-            self.estado = self.Morto                                
+
+            self.estado = self.Morto
+
             if self._estado_anterior != self.Morto:   #animação de morte
+
                 self.anim_atual = self.animacoes[self.Morto]
+
                 self.anim_atual.resetar()
+
                 self._estado_anterior = self.estado
-            
-            
+
+
+
+
+
             if not self.anim_atual.terminou:
+
                     self.anim_atual.atualizar()
-            return 
-        
+
+            return
 
 
-       
+
+
+
+
+
+
+
+
 
         self._frame_atual += 1
+
         estava_no_chao = self.no_chao
+
         x_antes_movimento = self.rect.x
 
+
+
         teclas = pygame.key.get_pressed()
-        
+
+
+
         self._verificar_dash(teclas)
+
         self._mover_horizontal(teclas)
+
         self._pular(teclas, rects_plataforma, rects_solidos)
+
         self._atacar(teclas)
+
         self._usar_pocao(teclas)
+
         self._atualizar_stamina(teclas)
+
         self._escalar(teclas, rects_escada)
 
+
+
         self.aplicar_gravidade()
+
         velocidade_queda = self.vel.y
+
         self.mover_com_colisão(rects_solidos, rects_plataforma)
+
         deslocamento = abs(self.rect.x - x_antes_movimento)
+
         self._atualizar_audio_movimento(estava_no_chao, velocidade_queda)
+
         #diagnostico: avisa quando o player fica de pe numa plataforma (uma vez so por pouso)
+
         if self._sobre_plataforma and not self._debug_plat_prev:
+
             logger.info(f"[DROPLOG] DE PE em plataforma (bottom={self.rect.bottom})")
+
         self._debug_plat_prev = self._sobre_plataforma
+
         self.atualizar_invencibilidade()
+
         self._atualizar_estado()
+
         self._atualizar_times()
 
 
 
+
+
+
+
         #troca a animaçao se o estado mudou
+
         if self.estado != self._estado_anterior:
 
+
+
             if self.estado not in (self.Atacando, self.Bebendo, self.Pegando):
+
                 self.anim_atual = self.animacoes.get(self.estado, self.animacoes[self.Parado])
+
                 self.anim_atual.resetar()
+
             self._estado_anterior = self.estado
 
+
+
         #avançar o frame da animaçao atual
+
         frame_antes = self.anim_atual.frame_index
+
         self.anim_atual.atualizar()
+
         self._atualizar_audio_passos(frame_antes, deslocamento)
 
 
+
+
+
         #salvar teclas para o proximo frame
+
         self._teclas_anterior = teclas
+
+
 
     #dash - duplo toque a ou d
 
+
+
     def _verificar_dash(self, teclas):
+
         #detectar o duplo toque dentro da janela de frames
+
         #calcular o tempo de um clique ao outro e detectar se pode haver o dash ou nao, por isso a biblioteca math
 
+
+
         if self.em_dahs or self.atacando or self._em_hit:
+
             return #se ja ta em dash/ataque/ferido, nao acontece nada
-        
+
+
+
         if self._teclas_anterior is None:
+
             return #PRIMEIRO frame, nao tem um antes
-        
+
+
+
         # detectar o momento do toque
+
         toque_esq = teclas[pygame.K_a] and not self._teclas_anterior[pygame.K_a]
+
         toque_dir = teclas[pygame.K_d] and not self._teclas_anterior[pygame.K_d]
 
+
+
         if toque_esq:
+
             intervalo = self._frame_atual - self._ultimo_toque["esquerda"]
+
             #intervalo > 1 evitar detectar o mesmo toque duas vezes
-            
+
+
+
             if 1 < intervalo <= self.Double_tap and self.cooldown_dash == 0:
+
                 self._iniciar_dash(-1)
-                
+
+
+
             self._ultimo_toque["esquerda"] = self._frame_atual
 
+
+
         if toque_dir:
+
             intervalo = self._frame_atual - self._ultimo_toque["direita"]
+
             #intervalo > 1 evitar detectar o mesmo toque duas vezes
-            
+
+
+
             if 1 < intervalo <= self.Double_tap and self.cooldown_dash == 0:
+
                 self._iniciar_dash(1)
-                
+
+
+
             self._ultimo_toque["direita"] = self._frame_atual
-    
+
+
+
     def _iniciar_dash(self, direçao):
+
         if not self._tem_stamina(self.Stamina_dash):
+
             return #sem stamina = sem dash
+
         self.em_dahs = True
+
         self.direçao_dash = direçao
+
         self.timer_dash = self.Dash_duration
+
         self.cooldown_dash = self.Dash_cooldown
+
         self.vel.y = 0 #cancela a gravidade no dash
+
         self.olhando_dir = direçao > 0
+
         self._gastar_stamina(self.Stamina_dash)
+
         audio.play_sfx("player_dash")
-    
+
+
+
     #MOVIMENTO HORIZONTAL
 
+
+
     def _mover_horizontal(self, teclas):
+
         if self.recebendo_knockback:
+
             return  #se ta no knockback nao consegue se mexer
 
+
+
         if self._em_hit:
+
             self.vel.x *= 0.8
+
             return
+
+
 
         if self.atacando:
+
             modo = ModoMovimento.REDUZIDO
+
             if self.ataque_ativo is not None:
+
                 modo = self.ataque_ativo.definicao.movimento
+
             if modo == ModoMovimento.TRAVADO:
+
                 self.vel.x = 0
+
             else:
+
                 self.vel.x *= 0.8
+
             return  #direção travada durante o golpe
 
+
+
         if self._pegando:
+
             self.vel.x = 0 #ttrava a movimentaçao durante a animaçao
+
             return
-        
+
+
+
         if self.em_dahs:
+
             #durante o dash a velocidade é fixa
+
             self.vel.x = self.Dash_speed * self.direçao_dash
+
             return
-        
+
+
+
         if teclas[pygame.K_d]:
+
             self.vel.x = self.Speed
+
             self.olhando_dir = True
-        
+
+
+
         elif teclas[pygame.K_a]:
+
             self.vel.x = -self.Speed
+
             self.olhando_dir = False
+
         else:
+
             #friçao - desacerela gradualmente ao soltar a tecla
+
             self.vel.x *= 0.8
+
             if abs(self.vel.x) < 0.5:
+
                 self.vel.x = 0
 
+
+
     #PULO
+
     def _pular(self, teclas, rects_plataforma=None, rects_solidos=None):
+
         if self.em_dahs or self.atacando or self._em_hit or self._pegando or self._bebendo:
+
             #so pular se tiver no chao e sem ação em andamento
+
             return
+
+
 
         if teclas[pygame.K_SPACE]:
+
             #S+Espaço (ou Seta-pbaixo+Espaço) em cima de uma plataforma = desce atraves dela
+
             segurando_baixo = teclas[pygame.K_s] or teclas[pygame.K_DOWN]
+
             if (segurando_baixo and self._sobre_plataforma and rects_plataforma):
+
                 if not self._poder_descer(rects_solidos):
+
                     #só desce se TODA a largura do player está sobre a plataforma: com parte
+
                     #do player sobre um bloco solido (ex: metade na plataforma, metade no bloco),
+
                     #o espaço abaixo não cabe ele e o drop não acontece
+
                     logger.info("[DROPLOG] drop bloqueado: parte do player esta sobre um bloco solido")
+
                     return
+
                 self._aguardando_drop = 0
+
                 self._drop_linha_top = self.rect.bottom
+
                 self._drop_linha_baixo = self.rect.bottom + Tile_size
+
                 logger.info(f"[DROPLOG] DROP disparou (baixo segurado + espaço, sobre_plataforma={self._sobre_plataforma}, vel.y={self.vel.y:.1f}, bottom={self.rect.bottom})")
+
                 self._timer_atravessar = 8
+
                 self.no_chao = False
+
                 self.vel.y = 2
+
                 return
+
+
 
             #espaço veio ANTES do baixo, mas estamos em cima da plataforma:
+
             #aguarda alguns frames pro baixo chegar (funciona tambem espaço+s)
+
             if self._sobre_plataforma and rects_plataforma:
+
                 edge_espaco = (self._teclas_anterior is None or not self._teclas_anterior[pygame.K_SPACE])
+
                 if edge_espaco:
+
                     logger.info(f"[DROPLOG] espaço apertado em cima de plataforma - aguardando baixo (S/seta) bottom={self.rect.bottom}")
+
                 if self._aguardando_drop > 0:
+
                     self._aguardando_drop -= 1
+
                 elif edge_espaco:
+
                     self._aguardando_drop = 6
+
                 if self._aguardando_drop > 0:
+
                     return
 
+
+
             #pula do chao normalmente, ou direto da escada
+
             if not self.no_chao and not self._escalando:
+
                 return
+
             if not self._tem_stamina(self.Stamina_pulo):
+
                 return #sem stamina nao pula
+
             self.vel.y = self.Pulo
+
             self.no_chao = False
+
             self._escalando = False
+
             self._bloqueio_escalada = 12  #nao pega escada subindo (pulo limpo)
+
             self._gastar_stamina(self.Stamina_pulo)
+
             tocar_pulo = getattr(audio, "play_jump", None)
+
             if tocar_pulo is not None:
+
                 tocar_pulo()
 
+
+
     #ESCADA - subir/descer segurando W e S
+
     def _escalar(self, teclas, rects_escada=None):
+
         if self.em_dahs or self.recebendo_knockback or self.atacando or self._em_hit or not rects_escada:
+
             self._escalando = False
+
             return
+
+
 
         sobre_escada = self.rect.collidelist(rects_escada)
+
         segurando = teclas[pygame.K_w] or teclas[pygame.K_s]
 
+
+
         #agarrar a escada ao encostar segurando W/S (bloqueio so nos frames logo apos pular)
+
         if sobre_escada != -1 and segurando and self._bloqueio_escalada <= 0 and not self._atravessando():
+
             if not self._escalando:
+
                 self._escada_lock = rects_escada[sobre_escada]
+
                 self._calcular_corredor_escada(rects_escada)
+
                 logger.info(f"[DROPLOG] AGARROU escada (rect={self.rect})")
+
             self._escalando = True
+
             self.vel.x = 0  #ao escalar nao anda para os lados
+
         else:
+
             self._escalando = False
+
             return
+
+
 
         if teclas[pygame.K_w]:
+
             self.vel.y = -self.Speed
+
         elif teclas[pygame.K_s]:
+
             self.vel.y = self.Speed
+
         self.no_chao = False
 
+
+
     def _calcular_corredor_escada(self, rects_escada):
+
         #corredor vertical da escada: conjunto das cells na mesma coluna
+
         esc = self._escada_lock
+
         tops, baixos = [], []
+
         for r in rects_escada:
+
             if r.left < esc.right and r.right > esc.left:
+
                 tops.append(r.top)
+
                 baixos.append(r.bottom)
+
         self._escada_top = min(tops)
+
         self._escada_bottom = max(baixos)
 
+
+
     def aplicar_gravidade(self):
+
         #escalando nao cai: o movimento vertical é controlado pelo W/S
+
         if self._escalando:
+
             return
+
         super().aplicar_gravidade()
 
+
+
     def _atravessando(self):
+
         return self._timer_atravessar > 0
 
+
+
     def _poder_descer(self, rects_solidos):
+
         #o drop só é permitido se o retângulo inteiro do player está sobre a plataforma:
+
         #nenhum solido da row do pe pode encostar na faixa horizontal do player
+
         #(senão ele desceria "metade na plataforma, metade dentro de um bloco")
+
         if not rects_solidos:
+
             return True
+
         pe = self.rect.bottom
+
         for s in rects_solidos:
+
             if s.top == pe and self.rect.left < s.right and s.left < self.rect.right:
+
                 return False
+
         return True
 
+
+
     #ATAQUEEEE -- clique esquerdo do mouse
+
     def _atacar(self, teclas):
+
         if self._pegando or self._bebendo or self.atacando or self._em_hit:
+
             return
-        
+
+
+
         pressionado = teclas[pygame.K_k]
 
+
+
         if pressionado and not self._segurando_ataque:
+
             if self.cooldown_ataque > 0 or not self._tem_stamina(self.Stamina_ataque):
+
                 return
+
             self._segurando_ataque = True
+
             self._timer_hold = 0
+
+
 
         elif pressionado and self._segurando_ataque:
+
             self._timer_hold += 1
+
             #deixa reajusta a direçao do golpe enquanto carrega
+
             # direção do golpe fica travada em olhando_dir (sem mirar) — cima/baixo fica pra quando tiver sprite
 
-            
+
+
+
+
+
 
         elif not pressionado and self._segurando_ataque:
+
             virou_combo = self._timer_hold >= self.Hold_combo_frames
+
             self._disparar_ataque(combo=virou_combo)
+
             self._segurando_ataque = False
+
             self._timer_hold = 0
+
+
+
+
+
 
 
 
 
     def _disparar_ataque(self, combo):
+
         tipo_arma = self.arma_equipada.icone if self.arma_equipada else None
+
         set_arma = self.animacoes_ataque.get(tipo_arma, self.animacoes_ataque[None])
 
+
+
         if combo and "combo" in set_arma:
+
             tier = "combo"
-        
+
+
+
         else:
+
             opcoes = [t for t in ("normal", "pesado") if t in set_arma]
+
             tier = random.choice(opcoes) if opcoes else "normal"
 
+
+
         variante = "parado" if abs(self.vel.x) < 0.5 else "movimento"
+
         definicao = self.definicoes_ataque[tipo_arma][tier][variante]
 
+
+
         self._tier_ataque = tier
+
         self.atacando = True
+
         self._alvos_atingidos = set()   #compatibilidade
+
         self.ataque_ativo = InstanciaAtaque(
+
             definicao,
+
             self,
+
             dano_base=self.calcular_dano(tier),
+
         )
+
         self.anim_atual = definicao.animacao
+
         self.anim_atual.manual = True
+
         self.anim_atual.definir_frame(0)
 
+
+
         self.timer_ataque = definicao.duracao_ticks + 2
+
         self.cooldown_ataque = definicao.duracao_ticks + 10 #pequeno intervalo entre golpes
 
+
+
         custo = self.Stamina_combo if tier == "combo" else self.Stamina_ataque
+
         self._gastar_stamina(custo)
+
         if hasattr(audio, "play_swing"):
+
             audio.play_swing(self.arma_id)
+
         else:
+
             audio.play_sfx("player_attack")
 
+
+
     def encerrar_ataque(self):
+
         self.ataque_ativo = None
+
         self.atacando = False
+
         self.timer_ataque = 0
+
         self._alvos_atingidos.clear()
 
 
 
 
 
+
+
+
+
+
+
     def get_rect_ataque(self):
+
         #retorna o rect da hitbox ativa do golpe (usado no debug)
+
         if not self.atacando or self.ataque_ativo is None:
+
             return None
+
         hitboxes = construir_hitboxes(self.ataque_ativo)
+
         return hitboxes[0].rect if hitboxes else None
-    
+
+
+
     def calcular_dano(self, tier=None):
 
+
+
         arma = self.arma_equipada
+
         dano = 5 if not arma else arma.dano #soquinho se nao tiver uma arma
-        
+
+
+
         if arma:
+
             #penalidade se nao bate os requisitos da arma
+
             if not arma.pode_equipar(self):
+
                 dano = int(dano * 0.4)
+
             else:
 
-                #bonus do escalonamento
+
+
+                # O dano-base cobre os atributos exigidos para empunhar a arma.
+                # Só o investimento acima dos requisitos acrescenta escalonamento.
+
                 for atributo, grau in arma.escalonamento.items():
+
                     multiplicador = self._graus[grau]
 
+
+
                     if atributo == "forca":
-                        dano += int(self.forca * multiplicador)
+
+                        excedente = max(0, self.forca - arma.requisitos["forca"])
+                        dano += int(excedente * multiplicador)
+
+
 
                     elif atributo == "destreza":
-                        dano += int(self.destreza * multiplicador)
-        
+
+                        excedente = max(0, self.destreza - arma.requisitos["destreza"])
+                        dano += int(excedente * multiplicador)
+
+
+
         tier = self._tier_ataque if tier is None else tier
+
         if tier == "combo":
+
             dano = int(dano * self.Multiplicador_combo)
+
+
 
         return dano
 
 
 
 
+
+
+
+
+
     #recarrega stamina
+
     def _atualizar_stamina(self, teclas):
+
         #mundaça na stamina como prometido, agora ela so nao recupera se o player esta fazendo uma "ação pesada"
-        
+
+
+
         em_acao_pesada = (self.em_dahs or
+
                 self.atacando or
-                self._pegando or 
+
+                self._pegando or
+
                 teclas[pygame.K_SPACE])
-        
+
+
+
         if em_acao_pesada or not self.no_chao:
+
             #reseta o delay enquanto esta em açao
+
             self.stamina_delay = self.Stamina_delay
+
         else:
+
             #recupera normalmente a stamina
+
             if self.stamina_delay > 0:
+
                 self.stamina_delay -= 1
+
             else:
+
                 #recarrega gradualmente
+
                 velocidade = self.Stamina_recarga * self.buff_stamina_valor if self.buff_stamina_duracao > 0 else self.Stamina_recarga
+
                 self.stamina = min(
+
                     self.stamina_max,
+
                     self.stamina + velocidade
+
                 )
 
 
+
+
+
         #decrementa o buff da stamina
+
         if self.buff_stamina_duracao > 0:
+
             self.buff_stamina_duracao -= 1
+
+
 
     #verificar se tem stamina
 
+
+
     def _tem_stamina(self, custo):
+
         return self.stamina >= custo
-    
+
+
+
     def _gastar_stamina(self, custo):
+
         #garante que a stamina vai ser gastar, e nao vai ficar abaixo de 0
+
         self.stamina = max(0, self.stamina - custo)
+
+
+
 
 
     #TIMES - CONTA os downs de dash e ataques
 
+
+
     def _atualizar_times(self):
+
         if self.em_dahs:
+
             self.timer_dash -= 1
+
             if self.timer_dash <= 0:
+
                 self.em_dahs = False
+
                 self.vel.x = 0
 
+
+
         #cooldowm entre dashes
+
         if self.cooldown_dash > 0:
-            self.cooldown_dash -= 1 
+
+            self.cooldown_dash -= 1
+
+
 
         #reação a dano
+
         if self._em_hit:
+
             self.timer_hit -= 1
+
             if self.timer_hit <= 0:
+
                 self._em_hit = False
+
+
 
         #ataque ativo (fallback; o CombatSystem normalmente encerra no frame exato)
 
+
+
         if self.atacando:
+
             self.timer_ataque -= 1
+
             if self.timer_ataque <= 0:
+
                 self.encerrar_ataque()
+
+
 
         #cooldown entres ataques
 
+
+
         if self.cooldown_ataque > 0:
+
             self.cooldown_ataque -= 1
 
+
+
         #pegando item
+
         if self._pegando:
+
             self.timer_pegando -= 1
+
             if self.timer_pegando <= 0:
+
                 self._pegando = False
-        
+
+
+
         #bebendo poçoes
+
         if self._bebendo:
+
             self.timer_bebida -= 1
+
             if self.timer_bebida <= 0:
+
                 self._bebendo = False
+
                 audio.play_sfx("potion_drink")
 
 
-        #cooldown de interações 
-        if self.cooldown_interaçao > 0:
-            self.cooldown_interaçao -= 1
+
+
+
+        #cooldown de interações
+
+        if self.cooldown_interacao > 0:
+
+            self.cooldown_interacao -= 1
+
+
 
         #atravessando plataforma (S+Espaço)
+
         if self._timer_atravessar > 0:
+
             self._timer_atravessar -= 1
 
+
+
         #bloqueio de pegar escada apos pulo
+
         if self._bloqueio_escalada > 0:
+
             self._bloqueio_escalada -= 1
 
+
+
     def _usar_pocao(self, teclas):
+
         self.pocao.atualizar()
-        
+
+
+
         if self._pegando or self._bebendo or self.atacando or self.em_dahs or self._em_hit:
+
             return
-    
-        
-        
-        
+
+
+
+
+
+
+
+
+
         if teclas[pygame.K_f]:
+
             sucesso = self.pocao.usar(self)
+
             if sucesso:
+
                 self._iniciar_bebida()
 
 
 
 
+
+
+
+
+
     #funçao do player exucutar a animação de beber poção
+
     def _iniciar_bebida(self):
+
         variante = "parado" if abs(self.vel.x) < 0.5 else "movimento"
+
         anim = self.anim_pocao_parado if variante == "parado" else self.anim_pocao_movimento
+
         self._bebendo = True
+
         self.anim_atual = anim
-        self.anim_atual.resetar()            
+
+        self.anim_atual.resetar()
+
         n_frames = len(anim.frames)
+
         self.timer_bebida = n_frames * anim.velocidade
+
         audio.play_sfx("potion_open")
 
-    
+
+
+
+
     #funçao chamada pelo o drop para iniciar a animação de pegar os itens
+
     def iniciar_pegar_item(self):
+
         if self.atacando or self._bebendo or self.em_dahs or self._pegando:
+
             return
 
 
+
+
+
         #NOVO: cancela qualquer ataque sendo carregado — sem isso, ele "sobra"
+
         #e dispara sozinho assim que a animação de pegar item terminar
 
+
+
         self._segurando_ataque = False
+
         self._timer_hold = 0
 
+
+
         self._pegando = True
+
         self.vel.x = 0
+
         self.anim_atual = self.anim_pegando_item
+
         self.anim_atual.resetar()
+
         n_frames = len(self.anim_atual.frames)
+
         self.timer_pegando = n_frames * self.anim_atual.velocidade
 
 
 
 
-    #MAQUINA DE ESTADOS 
+
+
+
+
+
+    #MAQUINA DE ESTADOS
+
+
 
     def _atualizar_estado(self):
+
         #define o estado atual com base no player
 
+
+
         if self._em_hit:
+
             self.estado = self.Ferido
+
         elif self._escalando:
+
             self.estado = self.Escalando
+
         elif self.em_dahs:
+
             self.estado = self.Dash
+
         elif self._pegando:
+
             self.estado = self.Pegando
+
         elif self._bebendo:
+
             self.estado = self.Bebendo
 
+
+
         elif self.atacando:
+
             self.estado = self.Atacando
+
         elif not self.no_chao and self.vel.y > 0:
+
             self.estado = self.Caindo
+
         elif not self.no_chao and self.vel.y < 0:
+
             self.estado = self.Pulando
+
         elif abs(self.vel.x) > 0.5:
+
             self.estado = self.Correndo
+
         else:
+
             self.estado = self.Parado
 
-    
+
+
+
+
     #CHECKPOINT (PROVISORIO)
 
+
+
     def defenir_checkpoint(self, nome_sala,x=None, y=None):
+
         #salva a posição atual como checkpoint
 
-        self.checkpoint_pos.x = x if x is not None else self.rect.x 
-        self.checkpoint_pos.y = y if y is not None else self.rect.y 
+
+
+        self.checkpoint_pos.x = x if x is not None else self.rect.x
+
+        self.checkpoint_pos.y = y if y is not None else self.rect.y
+
         self.checkpoint_sala = nome_sala
+
         logger.info(f"checkpoint definido: sala={nome_sala}, x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
 
-    def respawnar(self): 
+
+
+    def respawnar(self):
+
         #voltar para o ultimo checkpoint com o hp cheio
 
+
+
         self.rect.x = int(self.checkpoint_pos.x)
+
         self.rect.y = int(self.checkpoint_pos.y)
+
         self.hp = self.hp_max
+
         self.vivo = True
+
+        self.stamina = self.stamina_max
+        self.recebendo_knockback = False
+        self.timer_knockback = 0
+        self.invencivel = False
+        self.timer_invenc = 0
+
         self.vel = pygame.Vector2(0,0)
+
         self.estado = self.Parado
+
         self._escalando = False
+
         self._escada_lock = None
+
         self._escada_top = None
+
         self._escada_bottom = 0
+
         self._escalando_prev = False
+
         self._timer_atravessar = 0
+
         self._bloqueio_escalada = 0
+
         self._aguardando_drop = 0
+
         self._debug_plat_prev = False
+
         self._drop_linha_top = None
+
         self._drop_linha_baixo = 0
+
         logger.info(f"respawnando em: x={self.checkpoint_pos.x}, y={self.checkpoint_pos.y}")
+
         self.atacando = False
+
         self.ataque_ativo = None
+
         self._em_hit = False
+
         self.timer_hit = 0
+
         self._segurando_ataque = False
+
         self._timer_hold = 0
+
         self._audio_suprimir_pouso = True
 
+
+
     def _atualizar_audio_movimento(self, estava_no_chao, velocidade_queda):
+
         pousou = self.no_chao and not estava_no_chao
+
         if pousou:
+
             if self._audio_suprimir_pouso:
+
                 self._audio_suprimir_pouso = False
+
             elif velocidade_queda >= self.Queda_minima_pouso and not self._atravessando():
+
                 if hasattr(audio, "play_land"):
+
                     audio.play_land(self.material_piso)
+
                 else:
+
                     audio.play_sfx("player_land")
 
+
+
         if self._audio_suprimir_pouso and not pousou:
+
             self._audio_suprimir_pouso = False
 
+
+
     def _atualizar_audio_passos(self, frame_antes, deslocamento):
+
         if self.estado != self.Correndo:
+
             return
+
         if not self.vivo or not self.no_chao or deslocamento <= 0:
+
             return
+
         if self._audio_suprimir_pouso:
+
             return
+
         if self.anim_atual.frame_index == frame_antes:
+
             return
+
         if self.anim_atual.frame_index not in self.Frames_contato_passo:
+
             return
+
         if hasattr(audio, "play_step"):
+
             audio.play_step(self.material_piso)
+
         else:
+
             audio.play_sfx("player_step")
 
+
+
     def receber_evento(self, evento):
+
         aplicado = self.receber_dano(evento.dano, frames_invenc=evento.frames_invenc)
+
         if not aplicado:
+
             return False
+
         if not self.vivo:
+
             return True
 
+
+
         kb = evento.knockback or KnockbackSpec()
+
         self.vel.x = evento.direcao * (kb.forca_x or 0)
+
         if kb.forca_y:
+
             self.vel.y = min(self.vel.y, kb.forca_y)
 
+
+
         self._em_hit = True
+
         self.timer_hit = max(1, evento.duracao_hit)
+
         self.atacando = False
+
         self.ataque_ativo = None
+
         self.em_dahs = False
+
         self.timer_dash = 0
+
         self._segurando_ataque = False
+
         self._timer_hold = 0
 
+
+
         self.estado = self.Ferido
+
         self.anim_atual = self.animacoes[self.Ferido]
+
         self.anim_atual.resetar()
+
         return True
 
 
+
+
+
     #colisao
+
     def mover_com_colisão(self, rects_solidos, rects_plataforma=None):
+
         foi_escalando = self._escalando_prev
+
         self._escalando_prev = self._escalando
 
+
+
         if self._escalando:
+
             #subindo/descendo a escada: preso na coluna dela, sem colidir com as paredes
+
             esc = self._escada_lock
+
             if esc is not None:
+
                 self.rect.centerx = esc.centerx
+
             self.rect.y += int(self.vel.y)
+
             if self._escada_top is not None:
+
                 if self.rect.top < self._escada_top:
+
                     self.rect.top = self._escada_top
+
                     self.vel.y = 0
+
                 if self.rect.bottom > self._escada_bottom:
+
                     self.rect.bottom = self._escada_bottom
+
                     self.vel.y = 0
+
             self.no_chao = False
+
             self._sobre_plataforma = False
+
             return
 
+
+
         if foi_escalando:
+
             #soltou a escada: sai limpo dos blocos (sem "jogada" nem ficar preso)
+
             self._empurrar_fora_dos_solidos(rects_solidos)
+
             self._escada_lock = None
+
             self._escada_top = None
+
             self._escada_bottom = 0
 
+
+
         # chama a colisão normal da Entity
+
         super().mover_com_colisão(rects_solidos, rects_plataforma)
-    
+
+
+
         # se estava em dash e bateu na parede (vel.x zerou), cancela o dash
+
         if self.em_dahs and self.vel.x == 0:
+
             self.em_dahs = False
+
             self.timer_dash = 0
 
+
+
     def _empurrar_fora_dos_solidos(self, rects_solidos):
+
         #empurra o rect na horizontal para fora de qualquer solido, pelo menor deslocamento
+
         for _ in range(4):
+
             i = self.rect.collidelist(rects_solidos)
+
             if i == -1:
+
                 return
+
             tile = rects_solidos[i]
+
             p_esquerd = self.rect.right - tile.left   #anda p/ a esquerda ate encostar
+
             p_direit = tile.right - self.rect.left     #anda p/ a direita ate encostar
+
             if p_esquerd < p_direit:
+
                 self.rect.x -= p_esquerd
+
             else:
+
                 self.rect.x += p_direit
+
             self.vel.x = 0
-    
+
+
+
+
 
     #DESENHO (placerholder geometrico ou coisa do tipo)
 
+
+
     def _offset_para_anim(self, animacao):
+
         sprite_w = animacao.largura
+
         sprite_h = animacao.altura
+
         if self.olhando_dir:
+
             offset_x = self.rect.centerx - sprite_w // 2 + 10
+
         else:
+
             offset_x = self.rect.centerx - sprite_w // 2 - 10
+
         offset_y = self.rect.bottom - sprite_h
+
         return offset_x, offset_y
 
+
+
     def _offset_mask(self):
+
         return self._offset_para_anim(self.anim_atual)
 
+
+
     def atualizar_mask(self):
+
         if not self.vivo:
+
             return
+
         self.anim_hurtbox = self.animacoes[self.Parado]
+
         self._mask_pos = self._offset_para_anim(self.anim_hurtbox)
+
         self.mask = self.anim_hurtbox.mascara_frame(
+
             self.anim_hurtbox.frame_index,
+
             not self.olhando_dir,
+
         )
 
+
+
     def desenhar(self, tela, camera):
+
         sr = camera.aplicar(self.rect)
 
+
+
         if not self.vivo and self.estado != self.Morto:
+
             return
 
-        #piscar durante invecibilidade 
+
+
+        #piscar durante invecibilidade
+
         if self.invencivel and self._frame_atual % 6 < 3:
+
             return
-        
+
+
+
         #centraliza a sprite visualmente sobre o rect de colisão
+
         sprite_w = self.anim_atual.largura
+
         sprite_h = self.anim_atual.altura
-        if  self.olhando_dir:
+
+        if self.estado == self.Escalando:
+
+            offset_x = sr.centerx - sprite_w // 2
+
+        elif self.olhando_dir:
+
             offset_x = sr.centerx - sprite_w // 2 + 10
+
         else:
+
             offset_x = sr.centerx - sprite_w // 2 - 10
-        
-        
+
+
+
+
+
         offset_y = sr.bottom - sprite_h
 
+
+
         espelhado = not self.olhando_dir
+
         self.anim_atual.desenhar(tela, offset_x, offset_y, espelhado)
 
+
+
         #rastro azul do dash
+
         if self.em_dahs:
+
             rastro = pygame.Surface((sr.width, sr.height), pygame.SRCALPHA)
+
             rastro.fill((100, 180, 255, 80))
+
             tela.blit(rastro, sr)

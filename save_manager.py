@@ -42,6 +42,9 @@ class Savemaneger:
                                   data_hora                 TEXT
                                                                         )
                               """)
+            colunas = {r[1] for r in self._conexao.execute("PRAGMA table_info(saves)")}
+            if "estado_jogador" not in colunas:
+                self._conexao.execute("ALTER TABLE saves ADD COLUMN estado_jogador TEXT")
             self._conexao.commit()
         except sqlite3.Error as e:
             logger.error(f"[SAVE] falha ao criar tabela: {e}")
@@ -85,12 +88,26 @@ class Savemaneger:
                 drop_eco_data = json.dumps(None)
 
             inventario = json.dumps(game_scene.player.inventario)
+            p = game_scene.player
+            estado = json.dumps({
+                "checkpoint": [p.checkpoint_sala, p.checkpoint_pos.x, p.checkpoint_pos.y],
+                "atributos": {k: getattr(p, k) for k in
+                              ("vigor", "resistencia", "forca", "destreza", "nivel")},
+                "hp": p.hp, "stamina": p.stamina, "pocoes": p.pocao.cargas,
+                "pocoes_max": p.pocao.cargas_max,
+                "inimigos_mortos": game_scene.inimigos_morto_por_sala,
+                "drops": {
+                    sala: [{"id_item": d.id_item, "x": d.rect.centerx, "y": d.rect.centery,
+                            "chave_fixa": d.chave_fixa, "frasco": d.frasco} for d in drops if d.ativo]
+                    for sala, drops in game_scene.drops_por_sala.items()
+                },
+            })
 
             self._conexao.execute("""
             INSERT OR REPLACE INTO saves
                                   (slot, checkpoint_sala, checkpoint_x, checkpoint_y,
-                                  fogueiras_ativas, bosses_derrotados,  inventario, drops_fixos_coletados, baus_abertos, ecos, drop_eco, data_hora)
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                  fogueiras_ativas, bosses_derrotados,  inventario, drops_fixos_coletados, baus_abertos, ecos, drop_eco, data_hora, estado_jogador)
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                                   (
                                       slot,
                                       game_scene.sala_atual,
@@ -103,7 +120,8 @@ class Savemaneger:
                                       baus_abertos,
                                       ecos,
                                       drop_eco_data,
-                                      data_hora
+                                      data_hora,
+                                      estado
                                   ))
             self._conexao.commit()
             return True
@@ -142,7 +160,8 @@ class Savemaneger:
                 "baus_abertos"          : set(map(tuple, self._decode_json(row[8], []))),
                 "ecos"                  : row[9],
                 "drop_eco"              : self._decode_json(row[10], None),
-                "data_hora"             : row[11]
+                "data_hora"             : row[11],
+                "estado_jogador"        : self._decode_json(row[12], {}) if row[12] else {},
             }
         except (TypeError, ValueError) as e:
             logger.exception(f"[SAVE] save do slot {slot} ilegível: {e}")

@@ -8,6 +8,7 @@ from pathlib import Path
 import pygame
 
 logger = logging.getLogger(__name__)
+logger_audio_diag = logging.getLogger("audio.diagnostico")
 
 RAIZ_PROJETO = Path(__file__).resolve().parents[1]
 PASTA_SONS = RAIZ_PROJETO / "assets" / "sons"
@@ -164,6 +165,7 @@ class AudioManager:
         self._ativos = []
         self._ultimos = {}
         self._ultimos_arquivo = {}
+        self._indices_cascata = {}
         self._indice = {}
         self._musica_contexto = None
         self._musica_caminho = None
@@ -180,6 +182,32 @@ class AudioManager:
         )
         self.volumes_categoria = dict(VOLUMES_CATEGORIA_INICIAIS)
         self.volumes_categoria.update(self._config.get("categorias", {}))
+        self.user_volumes = {
+            "geral": 1.0,
+            "musica": 1.0,
+            "efeitos": 1.0,
+            "interface": 1.0,
+            "ambiencia": 1.0,
+        }
+        self.diagnostico_ativo = False
+        self._diag_ultimos = {}
+        self._diag_intervalo_ms = 300
+        self._musica_estado = "parada"  # parada | tocando | fade_in | fade_out
+        self._musica_volume_alvo = 1.0
+        self._musica_fade_ms = 0
+        self._musica_fade_inicio_ms = 0
+        self._musica_fade_de = 0.0
+        self._musica_fade_para = 0.0
+        self._musica_contexto_pendente = None
+        self._musica_caminho_pendente = None
+        self._musica_fade_in_pendente_ms = 0
+        self._musica_motivo_transicao = ""
+        self._musica_contexto_solicitado = None
+        self._musica_sala_atual = None
+        self._ambiencia_ativa_nome = None
+        self._ambiencia_ativa_caminho = None
+        self.menu_music_fade_ms = 2500
+        self.ultimo_sfx_debug = {}
 
     def _ler_config(self):
         caminho = self.pasta_sons / "_config" / "audio.json"
@@ -301,15 +329,80 @@ class AudioManager:
             return variacao, chave
         return chave, chave
 
+    def _fator_usuario_categoria(self, categoria):
+        geral = self.user_volumes.get("geral", 1.0)
+        if categoria == "music":
+            return geral * self.user_volumes.get("musica", 1.0)
+        if categoria == "ui":
+            return geral * self.user_volumes.get("interface", 1.0)
+        if categoria == "ambience":
+            return geral * self.user_volumes.get("ambiencia", 1.0)
+        return geral * self.user_volumes.get("efeitos", 1.0)
+
     def _volume_final(self, categoria, volume_base, ajuste):
         categoria_volume = self.volumes_categoria.get(categoria, 1.0)
-        return _limitar_volume(
+        base = (
             self.master_volume
             * (self.music_volume if categoria == "music" else self.sfx_volume)
             * categoria_volume
             * volume_base
             * ajuste
         )
+        return _limitar_volume(base * self._fator_usuario_categoria(categoria))
+
+    def _log_diagnostico(self, evento, origem, arquivo, categoria, volume, canal, resultado, motivo="", grupo=None):
+        if not self.diagnostico_ativo:
+            return
+        try:
+            agora = int(self._agora_ms())
+        except Exception:
+            agora = 0
+        chave = (
+            str(evento),
+            str(origem or ""),
+            str(arquivo or ""),
+            str(categoria or ""),
+            bool(resultado),
+            str(motivo or ""),
+            canal if canal is not None else -1,
+        )
+        ultimo = self._diag_ultimos.get(chave)
+        # evita inundar log com tentativas repetidas rapidamente rejeitadas
+        if not resultado and ultimo is not None and agora - ultimo < self._diag_intervalo_ms:
+            return
+        self._diag_ultimos[chave] = agora
+        if len(self._diag_ultimos) > 512:
+            corte = agora - self._diag_intervalo_ms * 4
+            self._diag_ultimos = {
+                k: v for k, v in self._diag_ultimos.items() if v >= corte
+            }
+        logger_audio_diag.info(
+            "[AUDIO-DIAG] evento=%s origem=%s arquivo=%s categoria=%s grupo=%s volume=%.3f canal=%s resultado=%s motivo=%s",
+            evento,
+            origem or "-",
+            arquivo or "-",
+            categoria or "-",
+            grupo or "-",
+            float(volume or 0.0),
+            canal if canal is not None else "-",
+            "reproduzido" if resultado else "rejeitado",
+            motivo or "-",
+        )
+
+    def aplicar_preferencias_audio(self, preferencias_audio=None):
+        if not isinstance(preferencias_audio, dict):
+            return
+        for chave in self.user_volumes:
+            if chave in preferencias_audio:
+                self.user_volumes[chave] = _limitar_volume(
+                    float(preferencias_audio[chave]) / 100.0
+                    if float(preferencias_audio[chave]) > 1.0
+                    else float(preferencias_audio[chave])
+                )
+        self._atualizar_volumes_ativos()
+
+    def obter_volumes_usuario_percentual(self):
+        return {chave: int(round(valor * 100)) for chave, valor in self.user_volumes.items()}
 
     def _aplicar_volume(self, reproducao):
         pygame.mixer.Channel(reproducao.indice_canal).set_volume(
@@ -326,8 +419,67 @@ class AudioManager:
         self._prune_ativos()
         for reproducao in self._ativos:
             self._aplicar_volume(reproducao)
-        if self._musica_caminho is not None:
-            pygame.mixer.music.set_volume(self._volume_final("music", 1.0, 1.0))
+        self._aplicar_volume_musica_atual()
+
+    def _volume_musica_alvo(self):
+        return self._volume_final("music", self._musica_volume_alvo, 1.0)
+
+    def _aplicar_volume_musica_atual(self):
+        if pygame.mixer.get_init() is None or self._musica_caminho is None:
+            return
+        if self._musica_estado in ("fade_in", "fade_out") and self._musica_fade_ms > 0:
+            agora = int(self._agora_ms())
+            progresso = max(0.0, min(1.0, (agora - self._musica_fade_inicio_ms) / float(self._musica_fade_ms)))
+            fator = self._musica_fade_de + (self._musica_fade_para - self._musica_fade_de) * progresso
+            pygame.mixer.music.set_volume(_limitar_volume(self._volume_musica_alvo() * fator))
+            if progresso >= 1.0:
+                self._concluir_fade_musica()
+            return
+        pygame.mixer.music.set_volume(self._volume_musica_alvo())
+
+    def _iniciar_fade_musica(self, estado, de, para, duracao_ms):
+        self._musica_estado = estado
+        self._musica_fade_de = _limitar_volume(de)
+        self._musica_fade_para = _limitar_volume(para)
+        self._musica_fade_ms = max(0, int(duracao_ms))
+        self._musica_fade_inicio_ms = int(self._agora_ms())
+        if self._musica_fade_ms <= 0:
+            self._concluir_fade_musica()
+        else:
+            self._aplicar_volume_musica_atual()
+
+    def _concluir_fade_musica(self):
+        if pygame.mixer.get_init() is None:
+            self._musica_estado = "parada"
+            return
+        if self._musica_estado == "fade_out":
+            pygame.mixer.music.stop()
+            try:
+                pygame.mixer.music.unload()
+            except Exception:
+                pass
+            contexto_pendente = self._musica_contexto_pendente
+            caminho_pendente = self._musica_caminho_pendente
+            fade_in_pendente = self._musica_fade_in_pendente_ms
+            motivo = self._musica_motivo_transicao or "fade_out_concluido"
+            self._musica_contexto = None
+            self._musica_caminho = None
+            self._musica_contexto_pendente = None
+            self._musica_caminho_pendente = None
+            self._musica_fade_in_pendente_ms = 0
+            self._musica_estado = "parada"
+            if contexto_pendente and caminho_pendente:
+                self._iniciar_musica_carregada(contexto_pendente, caminho_pendente, fade_ms=fade_in_pendente, motivo=motivo)
+            return
+        if self._musica_estado == "fade_in":
+            self._musica_estado = "tocando"
+            pygame.mixer.music.set_volume(self._volume_musica_alvo())
+
+    def atualizar(self, dt_ms=None):
+        if not self.disponivel or pygame.mixer.get_init() is None:
+            return
+        if self._musica_estado in ("fade_in", "fade_out"):
+            self._aplicar_volume_musica_atual()
 
     def set_music_volume(self, valor):
         self.music_volume = _limitar_volume(valor)
@@ -362,37 +514,61 @@ class AudioManager:
     def ataque_player(self):
         return self._ataque_ativo
 
-    def play_sfx(self, chave, ajuste=1.0):
+    def play_sfx(self, chave, ajuste=1.0, origem=None):
         if not self.disponivel or pygame.mixer.get_init() is None:
+            self._log_diagnostico(chave, origem, None, None, 0.0, None, False, "mixer_indisponivel")
             return False
 
         chave_som, grupo = self._resolver_chave(chave)
         spec = ESPECIFICACOES.get(chave_som)
         if spec is None:
             self._avisar_uma_vez(chave, f"[AUDIO] evento desconhecido: {chave}")
+            self._log_diagnostico(chave, origem, None, None, 0.0, None, False, "evento_desconhecido", grupo)
             return False
 
         som = self._sons.get(chave_som)
         chave_reproducao = chave_som
-        if spec.categoria in ("ui", "interaction"):
-            caminho_base = self.pasta_sons / spec.arquivo
+        caminho_base = self.pasta_sons / spec.arquivo
+        if som is not None:
+            self._sons.setdefault(str(caminho_base), som)
+
+        if spec.categoria == "ui":
+            # UI: arquivo canônico por evento para evitar variantes desbalanceadas
+            # (duração/pico/RMS) que causavam loudness/overlaps inconsistentes em hover/navegação.
+            # Fallback determinístico só se o canônico estiver indisponível.
+            if som is None:
+                pasta = Path(spec.arquivo).parent.as_posix()
+                prefixo = caminho_base.stem.rsplit("_", 1)[0]
+                arquivos = sorted(
+                    [p for p in self._indice.get(pasta, [])
+                     if p.stem.rsplit("_", 1)[0] == prefixo
+                     and p.stem.rsplit("_", 1)[-1].isdigit()],
+                    key=lambda p: p.name,
+                )
+                for caminho in arquivos:
+                    som_cand = self._carregar_som(caminho)
+                    if som_cand is not None:
+                        som = som_cand
+                        chave_reproducao = str(caminho)
+                        break
+        elif spec.categoria == "interaction":
             pasta = Path(spec.arquivo).parent.as_posix()
             prefixo = caminho_base.stem.rsplit("_", 1)[0]
-            # Abrir e fechar compartilham pasta, mas não compartilham variantes.
+            # Abrir e fechar compartilham pasta, mas nǜo compartilham variantes.
             arquivos = [
                 p for p in self._indice.get(pasta, [])
                 if p.stem.rsplit("_", 1)[0] == prefixo
                 and p.stem.rsplit("_", 1)[-1].isdigit()
             ]
-            if som is not None:
-                self._sons.setdefault(str(caminho_base), som)
             encontrado = self._som_valido(chave_som, arquivos)
             if encontrado is not None:
                 caminho, som = encontrado
                 if caminho != caminho_base:
                     chave_reproducao = str(caminho)
+
         if som is None:
-            self._avisar_uma_vez(chave_som, f"[AUDIO] som indisponível: {chave_som}")
+            self._avisar_uma_vez(chave_som, f"[AUDIO] som indispon��vel: {chave_som}")
+            self._log_diagnostico(chave, origem, getattr(spec, "arquivo", None), spec.categoria, 0.0, None, False, "som_indisponivel", grupo)
             return False
 
         perfil = self._config.get("eventos", {}).get(grupo, {})
@@ -407,6 +583,8 @@ class AudioManager:
             ajuste,
             critico=chave_som in ("player_hurt", "player_death"),
             interrompe=chave_som == "player_death",
+            evento=chave,
+            origem=origem,
         )
 
     def _tocar_som(
@@ -421,17 +599,25 @@ class AudioManager:
         ajuste=1.0,
         critico=False,
         interrompe=False,
+        evento=None,
+        origem=None,
     ):
+        evento_nome = evento or grupo or chave
         if not self.disponivel or pygame.mixer.get_init() is None:
+            self._log_diagnostico(evento_nome, origem, chave, categoria, 0.0, None, False, "mixer_indisponivel", grupo)
             return False
+
+        volume_final = self._volume_final(categoria, volume_base, ajuste)
 
         agora = int(self._agora_ms())
         ultimo = self._ultimos.get(grupo)
         if ultimo is not None and agora - ultimo < cooldown_ms:
+            self._log_diagnostico(evento_nome, origem, chave, categoria, volume_final, None, False, "cooldown", grupo)
             return False
 
         if self._contar_grupo(grupo) >= max_instancias:
             if grupo not in ("swing", "player_attack"):
+                self._log_diagnostico(evento_nome, origem, chave, categoria, volume_final, None, False, "max_instancias", grupo)
                 return False
             # Um novo golpe substitui a cauda do swing anterior, sem ficar mudo.
             for repro in list(self._ativos):
@@ -443,6 +629,7 @@ class AudioManager:
             categoria, critico=critico, interrompe=interrompe
         )
         if indice_canal is None:
+            self._log_diagnostico(evento_nome, origem, chave, categoria, volume_final, None, False, "sem_canal", grupo)
             return False
 
         self._remover_canal(indice_canal)
@@ -458,6 +645,8 @@ class AudioManager:
         pygame.mixer.Channel(indice_canal).play(som)
         self._ativos.append(reproducao)
         self._ultimos[grupo] = agora
+        self.ultimo_sfx_debug[evento_nome] = {"chave": chave, "grupo": grupo, "categoria": categoria}
+        self._log_diagnostico(evento_nome, origem, chave, categoria, volume_final, indice_canal, True, "", grupo)
         return True
 
     def _escolher_canal(self, categoria, critico=False, interrompe=False):
@@ -482,12 +671,42 @@ class AudioManager:
                 return indice
         return None
 
-    def _escolher_arquivo(self, pasta, arquivos):
+    # Subconjuntos curados para passos: evita variantes com timbre/material inconsistente.
+    _PASSOS_CURADOS = {
+        "sfx/player/movimento/passos/pedra": {
+            "movimento_passos_pedra_step_01.wav",
+            "movimento_passos_pedra_step_02.wav",
+            "movimento_passos_pedra_step_03.wav",
+            "movimento_passos_pedra_step_04.wav",
+            "movimento_passos_pedra_step_05.wav",
+            "movimento_passos_pedra_step_06.wav",
+        },
+    }
+
+    def _arquivos_para_grupo(self, pasta, arquivos, grupo=None):
+        if grupo == "step":
+            curados = self._PASSOS_CURADOS.get(pasta)
+            if curados:
+                filtrados = [a for a in arquivos if a.name in curados]
+                if filtrados:
+                    return filtrados
+        return arquivos
+
+    def _escolher_arquivo(self, pasta, arquivos, grupo=None):
+        arquivos = self._arquivos_para_grupo(pasta, arquivos, grupo=grupo)
+        # Passos usam sequ?ncia determin?stica para evitar altern?ncia inconsistente.
+        if grupo == "step":
+            indice = self._indices_cascata.get(pasta, 0) % len(arquivos)
+            self._indices_cascata[pasta] = indice + 1
+            escolhido = arquivos[indice]
+            self._ultimos_arquivo[pasta] = escolhido
+            return escolhido
         ultimo = self._ultimos_arquivo.get(pasta)
         opcoes = [arquivo for arquivo in arquivos if arquivo != ultimo] or arquivos
         escolhido = random.choice(opcoes)
         self._ultimos_arquivo[pasta] = escolhido
         return escolhido
+
 
     def _tocar_cascata(
         self, pastas, grupo, evento, categoria=None, ajuste=1.0,
@@ -506,7 +725,7 @@ class AudioManager:
                 ]
                 if not arquivos:
                     continue
-            encontrado = self._som_valido(pasta, arquivos)
+            encontrado = self._som_valido(pasta, arquivos, grupo=grupo)
             if encontrado is None:
                 continue
             caminho, som = encontrado
@@ -523,18 +742,22 @@ class AudioManager:
             )
         return self.play_sfx(fallback_sfx) if fallback_sfx else False
 
-    def _som_valido(self, pasta, arquivos=None):
+    def _som_valido(self, pasta, arquivos=None, grupo=None):
         restantes = list(self._indice.get(pasta, []) if arquivos is None else arquivos)
-        while restantes:
-            caminho = self._escolher_arquivo(pasta, restantes)
+        tentativas = len(restantes)
+        while restantes and tentativas > 0:
+            caminho = self._escolher_arquivo(pasta, restantes, grupo=grupo)
             som = self._carregar_som(caminho)
             if som is not None:
                 return caminho, som
-            restantes.remove(caminho)
+            if caminho in restantes:
+                restantes.remove(caminho)
+            tentativas -= 1
         return None
 
-    def _tocar_loop(self, pasta, grupo, evento, canal):
+    def _tocar_loop(self, pasta, grupo, evento, canal, categoria="ambience", origem=None):
         if not self.disponivel or pygame.mixer.get_init() is None:
+            self._log_diagnostico(evento, origem, pasta, categoria, 0.0, canal, False, "mixer_indisponivel", grupo)
             return False
         atual = next((r for r in self._ativos if r.indice_canal == canal), None)
         if (pasta and atual and Path(atual.chave).parent == self.pasta_sons / pasta
@@ -546,43 +769,154 @@ class AudioManager:
             return False
         encontrado = self._som_valido(pasta)
         if encontrado is None:
+            self._log_diagnostico(evento, origem, pasta, categoria, 0.0, canal, False, "sem_arquivo", grupo)
             return False
         caminho, som = encontrado
-        repro = _Reproducao(canal, str(caminho), grupo, "ambience",
-                           self._config_evento(evento).get("volume", 1.0), 1.0)
+        volume_base = self._config_evento(evento).get("volume", 1.0)
+        repro = _Reproducao(canal, str(caminho), grupo, categoria, volume_base, 1.0)
         self._aplicar_volume(repro)
         pygame.mixer.Channel(canal).play(som, loops=-1, fade_ms=200)
         self._ativos.append(repro)
+        self._log_diagnostico(evento, origem, str(caminho), categoria, self._volume_final(categoria, volume_base, 1.0), canal, True, "loop", grupo)
         return True
 
-    def play_music(self, contexto):
-        if not self.disponivel or pygame.mixer.get_init() is None:
-            return False
-        if contexto == self._musica_contexto and pygame.mixer.music.get_busy():
-            return True
-        self.stop_music()
-        if not contexto:
-            return False
+    def _resolver_caminho_musica(self, contexto):
         pasta = f"musica/{contexto}"
         for caminho in self._indice.get(pasta, []):
-            try:
-                pygame.mixer.music.load(str(caminho))
-                pygame.mixer.music.set_volume(self._volume_final("music", 1.0, 1.0))
-                pygame.mixer.music.play(loops=-1, fade_ms=500)
-            except (pygame.error, OSError) as erro:
-                self._avisar_uma_vez(str(caminho), f"[AUDIO] música indisponível: {caminho}: {erro}")
-                continue
-            self._musica_contexto = contexto
-            self._musica_caminho = caminho
-            return True
-        return False
+            if caminho.exists():
+                return caminho
+        return None
 
-    def stop_music(self):
-        if pygame.mixer.get_init() is not None:
-            pygame.mixer.music.stop()
+    def _volume_alvo_contexto(self, contexto):
+        # H.1: descanso mais discreto que combate/boss; menu e exploração preservam base.
+        return {
+            "menu": 1.0,
+            "exploracao": 1.0,
+            "boss": 1.0,
+            "descanso": 0.72,
+        }.get(contexto, 1.0)
+
+    def _iniciar_musica_carregada(self, contexto, caminho, fade_ms=0, motivo=""):
+        if pygame.mixer.get_init() is None:
+            return False
+        self._musica_volume_alvo = self._volume_alvo_contexto(contexto)
+        try:
+            pygame.mixer.music.load(str(caminho))
+            if fade_ms > 0:
+                pygame.mixer.music.set_volume(_limitar_volume(self._volume_musica_alvo() * 0.0))
+                pygame.mixer.music.play(loops=-1)
+                self._musica_contexto = contexto
+                self._musica_caminho = caminho
+                self._iniciar_fade_musica("fade_in", 0.0, 1.0, fade_ms)
+            else:
+                pygame.mixer.music.set_volume(self._volume_musica_alvo())
+                pygame.mixer.music.play(loops=-1)
+                self._musica_contexto = contexto
+                self._musica_caminho = caminho
+                self._musica_estado = "tocando"
+        except (pygame.error, OSError) as erro:
+            self._avisar_uma_vez(str(caminho), f"[AUDIO] música indisponível: {caminho}: {erro}")
+            self._log_diagnostico(f"music:{contexto}", "audio", str(caminho), "music", 0.0, "music", False, "erro_load", "music")
+            return False
+        self._musica_motivo_transicao = motivo or self._musica_motivo_transicao
+        self._log_diagnostico_musica(f"music:{contexto}", "audio", str(caminho), True, motivo)
+        return True
+
+    def play_music(self, contexto, origem=None, fade_ms=500, fade_out_ms=0, motivo=""):
+        if not self.disponivel or pygame.mixer.get_init() is None:
+            self._musica_contexto_solicitado = contexto
+            self._musica_motivo_transicao = motivo or self._musica_motivo_transicao
+            self._log_diagnostico(f"music:{contexto}", origem, None, "music", 0.0, "music", False, "mixer_indisponivel", "music")
+            return False
+        self._musica_contexto_solicitado = contexto
+        if motivo:
+            self._musica_motivo_transicao = motivo
+        if contexto == self._musica_contexto and pygame.mixer.music.get_busy():
+            self._musica_volume_alvo = self._volume_alvo_contexto(contexto)
+            self._aplicar_volume_musica_atual()
+            return True
+        if not contexto:
+            self.stop_music(fade_ms=fade_out_ms, motivo=motivo or "contexto_nulo")
+            return False
+        caminho = self._resolver_caminho_musica(contexto)
+        if caminho is None:
+            self._log_diagnostico(f"music:{contexto}", origem, f"musica/{contexto}", "music", 0.0, "music", False, "sem_arquivo", "music")
+            self.stop_music(fade_ms=fade_out_ms, motivo=motivo or "sem_arquivo")
+            return False
+
+        if self._musica_caminho is not None and pygame.mixer.music.get_busy() and fade_out_ms > 0:
+            # H.1: fade-out real antes de trocar; concluído em atualizar().
+            self._musica_contexto_pendente = contexto
+            self._musica_caminho_pendente = caminho
+            self._musica_fade_in_pendente_ms = max(0, int(fade_ms))
+            self._musica_motivo_transicao = motivo or f"transicao_para_{contexto}"
+            self._iniciar_fade_musica("fade_out", 1.0, 0.0, fade_out_ms)
+            return True
+
+        self.stop_music(fade_ms=0)
+        return self._iniciar_musica_carregada(contexto, caminho, fade_ms=fade_ms, motivo=motivo or f"iniciar_{contexto}")
+
+    def stop_music(self, fade_ms=0, motivo=""):
+        if motivo:
+            self._musica_motivo_transicao = motivo
+        if pygame.mixer.get_init() is None:
+            self._musica_contexto = None
+            self._musica_caminho = None
+            self._musica_estado = "parada"
+            return
+        if fade_ms > 0 and self._musica_caminho is not None and pygame.mixer.music.get_busy():
+            self._musica_contexto_pendente = None
+            self._musica_caminho_pendente = None
+            self._iniciar_fade_musica("fade_out", 1.0, 0.0, fade_ms)
+            return
+        pygame.mixer.music.stop()
+        try:
             pygame.mixer.music.unload()
+        except Exception:
+            pass
         self._musica_contexto = None
         self._musica_caminho = None
+        self._musica_contexto_pendente = None
+        self._musica_caminho_pendente = None
+        self._musica_estado = "parada"
+
+    def _log_diagnostico_musica(self, evento, origem, arquivo, resultado, motivo=""):
+        volume = self._volume_musica_alvo() if self._musica_caminho else 0.0
+        extra_motivo = motivo or self._musica_motivo_transicao or "-"
+        if self.diagnostico_ativo:
+            self._log_diagnostico(
+                evento, origem, arquivo, "music", volume, "music", resultado, extra_motivo, "music"
+            )
+            logger_audio_diag.info(
+                "[AUDIO-DIAG] sala=%s musica_estado=%s musica_solicitada=%s musica_arquivo=%s musica_volume=%.3f ambiencia=%s ambiencia_arquivo=%s transicao=%s fade=%s",
+                self._musica_sala_atual or "-",
+                self._musica_estado,
+                self._musica_contexto_solicitado or "-",
+                arquivo or "-",
+                float(volume),
+                self._ambiencia_ativa_nome or "-",
+                self._ambiencia_ativa_caminho or "-",
+                extra_motivo,
+                self._musica_estado,
+            )
+
+    def set_contexto_sala(self, sala, ambiencia_nome=None):
+        self._musica_sala_atual = sala
+        if ambiencia_nome is not None:
+            self._ambiencia_ativa_nome = ambiencia_nome
+
+    def obter_estado_musical(self):
+        return {
+            "sala_atual": self._musica_sala_atual,
+            "musica_estado": self._musica_estado,
+            "musica_solicitada": self._musica_contexto_solicitado,
+            "musica_contexto": self._musica_contexto,
+            "musica_arquivo": str(self._musica_caminho) if self._musica_caminho else None,
+            "musica_volume_final": self._volume_musica_alvo() if self._musica_caminho else 0.0,
+            "ambiencia_ativa": self._ambiencia_ativa_nome,
+            "ambiencia_arquivo": self._ambiencia_ativa_caminho,
+            "motivo_transicao": self._musica_motivo_transicao,
+        }
 
     def _pastas_hit(self, inimigo, arma, material):
         return [
@@ -647,13 +981,14 @@ class AudioManager:
         )
 
     def play_swing(self, arma, ajuste=1.0):
-        pastas = [
-            f"sfx/player/armas/{arma}",
-            "sfx/player/armas/_default",
-            "sfx/combate/generico",
-        ]
+        # Swing = whoosh da arma no ar; nunca usar hits met?licos.
+        # espada_longa swing_01/02 cont?m impacto met?lico aud?vel - usar _default whoosh.
+        pastas_por_arma = {
+            "espada_longa": ["sfx/player/armas/_default"],
+        }
+        pastas = pastas_por_arma.get(arma, [f"sfx/player/armas/{arma}", "sfx/player/armas/_default"])
         return self._tocar_cascata(
-            pastas, "swing", "swing", "player", ajuste, prefixo_generico="hit"
+            pastas, "swing", "swing", "player", ajuste
         )
 
     def play_step(self, material):
@@ -681,10 +1016,14 @@ class AudioManager:
         )
 
     def play_tochas(self, ativo=True):
-        return self._tocar_loop("sfx/mundo/tochas" if ativo else None, "tochas", "tochas", 3)
+        return self._tocar_loop("sfx/mundo/tochas" if ativo else None, "tochas", "tochas", 3, categoria="ambience", origem="tochas")
 
     def play_ambiente(self, nome):
-        return self._tocar_loop(f"ambiencia/{nome}" if nome else None, "ambiente", "ambiente", 2)
+        resultado = self._tocar_loop(f"ambiencia/{nome}" if nome else None, "ambiente", "ambiente", 2, categoria="ambience", origem=f"ambiente:{nome}")
+        self._ambiencia_ativa_nome = nome if nome else None
+        atual = next((r for r in self._ativos if r.indice_canal == 2), None)
+        self._ambiencia_ativa_caminho = atual.chave if atual else None
+        return resultado
 
     def play_enemy_step(self, inimigo):
         pastas = [

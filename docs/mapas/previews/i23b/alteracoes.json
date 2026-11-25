@@ -1,0 +1,1170 @@
+[
+  {
+    "camada": "decoracao",
+    "col": 5,
+    "row": 11,
+    "antes": 7000,
+    "depois": 7100,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao",
+    "col": 6,
+    "row": 11,
+    "antes": 7001,
+    "depois": 7101,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao",
+    "col": 7,
+    "row": 11,
+    "antes": 7002,
+    "depois": 7102,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 2,
+    "antes": 7005,
+    "depois": 7105,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 4,
+    "row": 2,
+    "antes": 7006,
+    "depois": 7106,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 3,
+    "antes": 7013,
+    "depois": 7113,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 4,
+    "row": 3,
+    "antes": 7014,
+    "depois": 7114,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 18,
+    "row": 6,
+    "antes": 7007,
+    "depois": 7107,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 30,
+    "row": 6,
+    "antes": 7007,
+    "depois": 7107,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 18,
+    "row": 7,
+    "antes": 7015,
+    "depois": 7115,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 30,
+    "row": 7,
+    "antes": 7015,
+    "depois": 7115,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 7,
+    "antes": 7003,
+    "depois": 7103,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 7,
+    "antes": 7004,
+    "depois": 7104,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 8,
+    "antes": 7011,
+    "depois": 7111,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 8,
+    "antes": 7012,
+    "depois": 7112,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 45,
+    "row": 9,
+    "antes": 7005,
+    "depois": 7105,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 46,
+    "row": 9,
+    "antes": 7006,
+    "depois": 7106,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 9,
+    "antes": 7019,
+    "depois": 7119,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 9,
+    "antes": 7020,
+    "depois": 7120,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 45,
+    "row": 10,
+    "antes": 7013,
+    "depois": 7113,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 46,
+    "row": 10,
+    "antes": 7014,
+    "depois": 7114,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 27,
+    "row": 13,
+    "antes": 7005,
+    "depois": 7105,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 28,
+    "row": 13,
+    "antes": 7006,
+    "depois": 7106,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 94,
+    "row": 13,
+    "antes": 7005,
+    "depois": 7105,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 95,
+    "row": 13,
+    "antes": 7006,
+    "depois": 7106,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 115,
+    "row": 13,
+    "antes": 7005,
+    "depois": 7105,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 116,
+    "row": 13,
+    "antes": 7006,
+    "depois": 7106,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 27,
+    "row": 14,
+    "antes": 7013,
+    "depois": 7113,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 28,
+    "row": 14,
+    "antes": 7014,
+    "depois": 7114,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 94,
+    "row": 14,
+    "antes": 7013,
+    "depois": 7113,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 95,
+    "row": 14,
+    "antes": 7014,
+    "depois": 7114,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 115,
+    "row": 14,
+    "antes": 7013,
+    "depois": 7113,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 116,
+    "row": 14,
+    "antes": 7014,
+    "depois": 7114,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 60,
+    "row": 18,
+    "antes": 7007,
+    "depois": 7107,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 105,
+    "row": 18,
+    "antes": 7007,
+    "depois": 7107,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 60,
+    "row": 19,
+    "antes": 7015,
+    "depois": 7115,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 105,
+    "row": 19,
+    "antes": 7015,
+    "depois": 7115,
+    "motivo": "contraste_v2"
+  },
+  {
+    "camada": "decoracao",
+    "col": 9,
+    "row": 11,
+    "antes": 2657,
+    "depois": 0,
+    "motivo": "limpar_cela_1"
+  },
+  {
+    "camada": "decoracao",
+    "col": 10,
+    "row": 11,
+    "antes": 2659,
+    "depois": 0,
+    "motivo": "limpar_cela_1"
+  },
+  {
+    "camada": "decoracao",
+    "col": 16,
+    "row": 3,
+    "antes": 2640,
+    "depois": 0,
+    "motivo": "reduzir_simetria_correntes"
+  },
+  {
+    "camada": "decoracao",
+    "col": 16,
+    "row": 4,
+    "antes": 2655,
+    "depois": 0,
+    "motivo": "reduzir_simetria_correntes"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 2,
+    "antes": 7105,
+    "depois": 0,
+    "motivo": "reposicionar_umidade_cela_1"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 4,
+    "row": 2,
+    "antes": 7106,
+    "depois": 0,
+    "motivo": "reposicionar_umidade_cela_1"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 3,
+    "antes": 7113,
+    "depois": 0,
+    "motivo": "reposicionar_umidade_cela_1"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 4,
+    "row": 3,
+    "antes": 7114,
+    "depois": 0,
+    "motivo": "reposicionar_umidade_cela_1"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 9,
+    "antes": 0,
+    "depois": 7105,
+    "motivo": "umidade"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 4,
+    "row": 9,
+    "antes": 0,
+    "depois": 7106,
+    "motivo": "umidade"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 10,
+    "antes": 0,
+    "depois": 7113,
+    "motivo": "umidade"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 4,
+    "row": 10,
+    "antes": 0,
+    "depois": 7114,
+    "motivo": "umidade"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 6,
+    "row": 9,
+    "antes": 0,
+    "depois": 7124,
+    "motivo": "marcas_dias"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 7,
+    "row": 9,
+    "antes": 0,
+    "depois": 7125,
+    "motivo": "marcas_dias"
+  },
+  {
+    "camada": "decoracao",
+    "col": 29,
+    "row": 11,
+    "antes": 2658,
+    "depois": 0,
+    "motivo": "substituir_objetos_por_prisioneiro"
+  },
+  {
+    "camada": "decoracao",
+    "col": 30,
+    "row": 11,
+    "antes": 2659,
+    "depois": 0,
+    "motivo": "substituir_objetos_por_prisioneiro"
+  },
+  {
+    "camada": "decoracao",
+    "col": 31,
+    "row": 11,
+    "antes": 2658,
+    "depois": 0,
+    "motivo": "substituir_objetos_por_prisioneiro"
+  },
+  {
+    "camada": "decoracao",
+    "col": 43,
+    "row": 11,
+    "antes": 2648,
+    "depois": 0,
+    "motivo": "substituir_objetos_por_prisioneiro"
+  },
+  {
+    "camada": "decoracao",
+    "col": 42,
+    "row": 7,
+    "antes": 2642,
+    "depois": 0,
+    "motivo": "concentrar_historia_cela_2"
+  },
+  {
+    "camada": "decoracao",
+    "col": 43,
+    "row": 7,
+    "antes": 2643,
+    "depois": 0,
+    "motivo": "concentrar_historia_cela_2"
+  },
+  {
+    "camada": "decoracao",
+    "col": 44,
+    "row": 7,
+    "antes": 2644,
+    "depois": 0,
+    "motivo": "concentrar_historia_cela_2"
+  },
+  {
+    "camada": "decoracao",
+    "col": 29,
+    "row": 10,
+    "antes": 0,
+    "depois": 7126,
+    "motivo": "esqueleto_sentado"
+  },
+  {
+    "camada": "decoracao",
+    "col": 30,
+    "row": 10,
+    "antes": 0,
+    "depois": 7127,
+    "motivo": "esqueleto_sentado"
+  },
+  {
+    "camada": "decoracao",
+    "col": 29,
+    "row": 11,
+    "antes": 0,
+    "depois": 7134,
+    "motivo": "esqueleto_sentado"
+  },
+  {
+    "camada": "decoracao",
+    "col": 30,
+    "row": 11,
+    "antes": 0,
+    "depois": 7135,
+    "motivo": "esqueleto_sentado"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 29,
+    "row": 8,
+    "antes": 0,
+    "depois": 7124,
+    "motivo": "marcas_dias"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 30,
+    "row": 8,
+    "antes": 0,
+    "depois": 7125,
+    "motivo": "marcas_dias"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 31,
+    "row": 9,
+    "antes": 0,
+    "depois": 7124,
+    "motivo": "marcas_dias"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 32,
+    "row": 9,
+    "antes": 0,
+    "depois": 7125,
+    "motivo": "marcas_dias"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 7,
+    "antes": 7103,
+    "depois": 0,
+    "motivo": "ancorar_fissura_no_piso"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 7,
+    "antes": 7104,
+    "depois": 0,
+    "motivo": "ancorar_fissura_no_piso"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 8,
+    "antes": 7111,
+    "depois": 0,
+    "motivo": "ancorar_fissura_no_piso"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 8,
+    "antes": 7112,
+    "depois": 0,
+    "motivo": "ancorar_fissura_no_piso"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 9,
+    "antes": 7119,
+    "depois": 0,
+    "motivo": "ancorar_fissura_no_piso"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 9,
+    "antes": 7120,
+    "depois": 0,
+    "motivo": "ancorar_fissura_no_piso"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 9,
+    "antes": 0,
+    "depois": 7103,
+    "motivo": "fissura_profana"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 9,
+    "antes": 0,
+    "depois": 7104,
+    "motivo": "fissura_profana"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 10,
+    "antes": 0,
+    "depois": 7111,
+    "motivo": "fissura_profana"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 10,
+    "antes": 0,
+    "depois": 7112,
+    "motivo": "fissura_profana"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 11,
+    "antes": 0,
+    "depois": 7119,
+    "motivo": "fissura_profana"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 11,
+    "antes": 0,
+    "depois": 7120,
+    "motivo": "fissura_profana"
+  },
+  {
+    "camada": "decoracao",
+    "col": 60,
+    "row": 11,
+    "antes": 2657,
+    "depois": 0,
+    "motivo": "concentrar_entulho"
+  },
+  {
+    "camada": "decoracao",
+    "col": 61,
+    "row": 11,
+    "antes": 2659,
+    "depois": 0,
+    "motivo": "concentrar_entulho"
+  },
+  {
+    "camada": "decoracao",
+    "col": 63,
+    "row": 11,
+    "antes": 2657,
+    "depois": 0,
+    "motivo": "concentrar_entulho"
+  },
+  {
+    "camada": "decoracao",
+    "col": 64,
+    "row": 11,
+    "antes": 2659,
+    "depois": 0,
+    "motivo": "concentrar_entulho"
+  },
+  {
+    "camada": "decoracao",
+    "col": 65,
+    "row": 11,
+    "antes": 2657,
+    "depois": 0,
+    "motivo": "concentrar_entulho"
+  },
+  {
+    "camada": "decoracao",
+    "col": 67,
+    "row": 11,
+    "antes": 2659,
+    "depois": 0,
+    "motivo": "concentrar_entulho"
+  },
+  {
+    "camada": "decoracao",
+    "col": 68,
+    "row": 11,
+    "antes": 0,
+    "depois": 2657,
+    "motivo": "entulho_base_fissura"
+  },
+  {
+    "camada": "decoracao",
+    "col": 69,
+    "row": 11,
+    "antes": 0,
+    "depois": 2659,
+    "motivo": "entulho_base_fissura"
+  },
+  {
+    "camada": "decoracao",
+    "col": 70,
+    "row": 11,
+    "antes": 0,
+    "depois": 2657,
+    "motivo": "entulho_base_fissura"
+  },
+  {
+    "camada": "decoracao",
+    "col": 71,
+    "row": 11,
+    "antes": 0,
+    "depois": 2659,
+    "motivo": "entulho_base_fissura"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 119,
+    "row": 23,
+    "antes": 3268,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 120,
+    "row": 23,
+    "antes": 3269,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 23,
+    "antes": 3270,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 119,
+    "row": 24,
+    "antes": 3317,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 120,
+    "row": 24,
+    "antes": 3318,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 24,
+    "antes": 3319,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 119,
+    "row": 25,
+    "antes": 3366,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 120,
+    "row": 25,
+    "antes": 3367,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 25,
+    "antes": 3368,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 119,
+    "row": 26,
+    "antes": 3415,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 120,
+    "row": 26,
+    "antes": 3416,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 26,
+    "antes": 3417,
+    "depois": 0,
+    "motivo": "substituir_grade_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 23,
+    "antes": 434,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 23,
+    "antes": 435,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 24,
+    "antes": 455,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 24,
+    "antes": 456,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 25,
+    "antes": 476,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 25,
+    "antes": 477,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 26,
+    "antes": 497,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 26,
+    "antes": 498,
+    "depois": 0,
+    "motivo": "substituir_arco_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 22,
+    "antes": 0,
+    "depois": 7128,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 22,
+    "antes": 0,
+    "depois": 7129,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 22,
+    "antes": 0,
+    "depois": 7130,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 23,
+    "antes": 0,
+    "depois": 7136,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 23,
+    "antes": 0,
+    "depois": 7137,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 23,
+    "antes": 0,
+    "depois": 7138,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 24,
+    "antes": 0,
+    "depois": 7144,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 24,
+    "antes": 0,
+    "depois": 7145,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 24,
+    "antes": 0,
+    "depois": 7146,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 121,
+    "row": 25,
+    "antes": 0,
+    "depois": 7152,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 122,
+    "row": 25,
+    "antes": 0,
+    "depois": 7153,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 123,
+    "row": 25,
+    "antes": 0,
+    "depois": 7154,
+    "motivo": "porta_saida"
+  },
+  {
+    "camada": "decoracao",
+    "col": 69,
+    "row": 11,
+    "antes": 2659,
+    "depois": 0,
+    "motivo": "abrir_leitura_base_fissura"
+  },
+  {
+    "camada": "decoracao",
+    "col": 70,
+    "row": 11,
+    "antes": 2657,
+    "depois": 0,
+    "motivo": "abrir_leitura_base_fissura"
+  },
+  {
+    "camada": "decoracao",
+    "col": 6,
+    "row": 9,
+    "antes": 0,
+    "depois": 7124,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 6,
+    "row": 9,
+    "antes": 7124,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 7,
+    "row": 9,
+    "antes": 0,
+    "depois": 7125,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 7,
+    "row": 9,
+    "antes": 7125,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 29,
+    "row": 8,
+    "antes": 0,
+    "depois": 7124,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 29,
+    "row": 8,
+    "antes": 7124,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 30,
+    "row": 8,
+    "antes": 0,
+    "depois": 7125,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 30,
+    "row": 8,
+    "antes": 7125,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 31,
+    "row": 9,
+    "antes": 0,
+    "depois": 7124,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 31,
+    "row": 9,
+    "antes": 7124,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 32,
+    "row": 9,
+    "antes": 0,
+    "depois": 7125,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 32,
+    "row": 9,
+    "antes": 7125,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 69,
+    "row": 9,
+    "antes": 0,
+    "depois": 7103,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 9,
+    "antes": 7103,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 70,
+    "row": 9,
+    "antes": 0,
+    "depois": 7104,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 9,
+    "antes": 7104,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 69,
+    "row": 10,
+    "antes": 0,
+    "depois": 7111,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 10,
+    "antes": 7111,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 70,
+    "row": 10,
+    "antes": 0,
+    "depois": 7112,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 10,
+    "antes": 7112,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 69,
+    "row": 11,
+    "antes": 0,
+    "depois": 7119,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 11,
+    "antes": 7119,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  },
+  {
+    "camada": "decoracao",
+    "col": 70,
+    "row": 11,
+    "antes": 0,
+    "depois": 7120,
+    "motivo": "preservar_contraste_sem_tint"
+  },
+  {
+    "camada": "decoracao_fundo",
+    "col": 70,
+    "row": 11,
+    "antes": 7120,
+    "depois": 0,
+    "motivo": "mover_para_decoracao"
+  }
+]

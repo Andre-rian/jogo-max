@@ -10,3 +10,25 @@
 19:32:10 [DEBUG] entities.objetos.porta: porta (15,8) aberta
 19:32:11 [DEBUG] entities.objetos.porta: porta (15,8) fechada
 19:32:15 [DEBUG] entities.objetos.porta: porta (15,8) aberta
+12:47:30 [DEBUG] main: Logging inicializado
+12:47:30 [INFO] core.audio: [AUDIO] 111 pastas indexadas
+12:47:30 [INFO] core.audio: [AUDIO] 37 efeitos carregados
+12:49:07 [DEBUG] main: Logging inicializado
+12:49:07 [INFO] core.audio: [AUDIO] 111 pastas indexadas
+12:49:07 [INFO] core.audio: [AUDIO] 37 efeitos carregados
+12:49:08 [INFO] core.game_scene: [MAPA] carregando 'calabouço_1' via TMX: assets/maps/calabouco_1.tmx
+12:49:08 [WARNING] world.tile_map: [MAPA] camada 'plataformas' não encontrado em 'assets/maps/calabouco_1.tmx'. Camadas disponiveis: ['fundo', 'escadas', 'colisao', 'decoracao']
+12:49:08 [INFO] core.game_scene: [MAPA] 'calabouço_1': baús via Objetc Layer do tiled
+12:49:08 [WARNING] core.game_scene: [MAPA] tipo de inimigo 'None' desconhecido no objeto id=8, ignorando
+12:49:09 [INFO] entities.player: checkpoint definido: sala=calabouço_1, x=96.0, y=256.0
+17:46:56 [DEBUG] main: Logging inicializado
+17:46:57 [INFO] core.audio: [AUDIO] 111 pastas indexadas
+17:46:57 [INFO] core.audio: [AUDIO] 37 efeitos carregados
+17:47:01 [INFO] core.game_scene: [MAPA] carregando 'calabouço_1' via TMX: assets/maps/calabouco_1.tmx
+17:47:01 [WARNING] world.tile_map: [MAPA] camada 'plataformas' não encontrado em 'assets/maps/calabouco_1.tmx'. Camadas disponiveis: ['fundo', 'escadas', 'colisao', 'decoracao']
+17:47:01 [INFO] core.game_scene: [MAPA] 'calabouço_1': baús via Objetc Layer do tiled
+17:47:01 [WARNING] core.game_scene: [MAPA] tipo de inimigo 'None' desconhecido no objeto id=8, ignorando
+17:47:01 [INFO] entities.player: checkpoint definido: sala=calabouço_1, x=96.0, y=256.0
+17:47:10 [DEBUG] inventario: [FRAME] 1 evento(s) ESC neste frame
+17:47:10 [DEBUG] inventario: [esc] menu_contexto=FECHADO
+17:47:10 [DEBUG] inventario: [esc] -> fechando o inventario inteiro

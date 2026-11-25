@@ -1,0 +1,777 @@
+{
+  "data": "2026-11-24",
+  "pytest": {
+    "comando": "python -m pytest -ra",
+    "aprovados": 400
+  },
+  "python_compilados": [
+    "core/game_scene.py",
+    "world/niveis.py",
+    "world/tile_map.py",
+    "world/validacao_tiled.py",
+    "save_manager.py",
+    "entities/objetos/pocao.py",
+    "entities/objetos/drop.py",
+    "scripts/capturar_polimento_beta.py",
+    "scripts/polir_mapas_beta.py",
+    "scripts/validar_beta_final.py",
+    "tests/test_beta_final.py",
+    "tests/test_beta_polimento.py",
+    "tests/test_fase_i2_celas.py",
+    "tests/test_fase_i22_curadoria.py"
+  ],
+  "mapas_validados": 7,
+  "avisos_tmx": [
+    "[AVISO] calabouco_1.tmx: Camada opcional oficial 'plataformas' ausente",
+    "[AVISO] calabouco_2.tmx: Camada opcional oficial 'escadas' ausente",
+    "[AVISO] calabouco_2.tmx: Camada opcional oficial 'plataformas' ausente",
+    "[AVISO] calabouco_2.tmx: Camada opcional oficial 'decoracao' ausente"
+  ],
+  "git_diff_check": {
+    "codigo": 0,
+    "avisos": "warning: in the working copy of 'assets/maps/calabouco_1.tmx', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'core/game_scene.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'main.py', LF will be replaced by CRLF the next time Git touches it"
+  },
+  "protegidos": {
+    "saves.db": {
+      "antes": "fcc775c103d24930f634cba0b198202a299cf6c06b71b770fec55002fd7c44d5",
+      "depois": "fcc775c103d24930f634cba0b198202a299cf6c06b71b770fec55002fd7c44d5"
+    },
+    "jogo.log": {
+      "antes": "b32f561f06de10979a9436c74df3a7110cdf864bf7fe6ff00a0480b64241aa6c",
+      "depois": "b32f561f06de10979a9436c74df3a7110cdf864bf7fe6ff00a0480b64241aa6c"
+    },
+    "configuracoes_usuario.json": {
+      "antes": "bd4f054a4d05655ea00795eb5a5d569f4ea1fc12c1f1e31790500fc1a345251e",
+      "depois": "bd4f054a4d05655ea00795eb5a5d569f4ea1fc12c1f1e31790500fc1a345251e"
+    },
+    "core\\audio.py": {
+      "antes": "31d6ef06bc228ab6b80ab45ae7fa8f115de615ff158d4c044598d440c7106694",
+      "depois": "31d6ef06bc228ab6b80ab45ae7fa8f115de615ff158d4c044598d440c7106694"
+    },
+    "itens.json": {
+      "antes": "7bdd7e2f5eb8b984489d3401496e7dc999b94207e15497945c289ed57d648c9f",
+      "depois": "7bdd7e2f5eb8b984489d3401496e7dc999b94207e15497945c289ed57d648c9f"
+    },
+    "entities\\objetos\\item.py": {
+      "antes": "c19378fb5a48b336ac49931eb557230b66e771f2c660b7fd91f1a4cd96b0956d",
+      "depois": "c19378fb5a48b336ac49931eb557230b66e771f2c660b7fd91f1a4cd96b0956d"
+    },
+    "docs\\RELATORIO_BETA_NOVOS_ITENS.md": {
+      "antes": "1966f2867be3cf08bd2ecf6eee69e2f136e62cf92c3c084e4860af75ea958913",
+      "depois": "1966f2867be3cf08bd2ecf6eee69e2f136e62cf92c3c084e4860af75ea958913"
+    },
+    "assets\\sprites\\itens\\consumiveis\\atadura_gasta.png": {
+      "antes": "c64155f897ae84f09b0605c83bddda5a1fa451faccdbf578cf6123057a93f9aa",
+      "depois": "c64155f897ae84f09b0605c83bddda5a1fa451faccdbf578cf6123057a93f9aa"
+    },
+    "assets\\sprites\\itens\\consumiveis\\cinzas_eco.png": {
+      "antes": "c7f5a2277ea415d7c49e6f5de27a556fd43b25a633a20a620f5225aab898fe8e",
+      "depois": "c7f5a2277ea415d7c49e6f5de27a556fd43b25a633a20a620f5225aab898fe8e"
+    },
+    "assets\\sprites\\itens\\consumiveis\\pocao_vida.png": {
+      "antes": "7045e0fb50af3b5ea59bac6eece8d38a25db230ca50cd38c1d366b5c2cc23807",
+      "depois": "7045e0fb50af3b5ea59bac6eece8d38a25db230ca50cd38c1d366b5c2cc23807"
+    },
+    "assets\\sprites\\itens\\consumiveis\\raiz_amarga.png": {
+      "antes": "a29950a3806edbc40e90cfc4f418caa60ddda40c60c262941e5d91846524f2f2",
+      "depois": "a29950a3806edbc40e90cfc4f418caa60ddda40c60c262941e5d91846524f2f2"
+    },
+    "assets\\sprites\\itens\\ecos\\eco_profano.png": {
+      "antes": "bff35ca0f8d7d5c94703fd9fda7d41c5363d7a7bdcdf6c908b91c41c1caf0283",
+      "depois": "bff35ca0f8d7d5c94703fd9fda7d41c5363d7a7bdcdf6c908b91c41c1caf0283"
+    },
+    "assets\\sprites\\itens\\equipamentos\\espada_longa.png": {
+      "antes": "2db17499134d8ee3032b205dc3addbf7ecfe8bc20d4e944f5ec1a999f27510cd",
+      "depois": "2db17499134d8ee3032b205dc3addbf7ecfe8bc20d4e944f5ec1a999f27510cd"
+    },
+    "assets\\sprites\\itens\\equipamentos\\machado_guerra.png": {
+      "antes": "12193fb7df59e9b801918a074248287b68e57d6ecbc2c705e9774786bed7fa0f",
+      "depois": "12193fb7df59e9b801918a074248287b68e57d6ecbc2c705e9774786bed7fa0f"
+    },
+    "assets\\sprites\\itens\\materiais\\lasca_umbrita.png": {
+      "antes": "21ec0091a3ef1bd3950ef4c0c6619350d86b874ee0121ed2ee4de6d8809e1fa5",
+      "depois": "21ec0091a3ef1bd3950ef4c0c6619350d86b874ee0121ed2ee4de6d8809e1fa5"
+    },
+    "assets\\sprites\\itens\\materiais\\umbrita.png": {
+      "antes": "dfab3686d37e2a1c89792ce4a9a72ecf97b6935be06f237356c2a85624f4eeb4",
+      "depois": "dfab3686d37e2a1c89792ce4a9a72ecf97b6935be06f237356c2a85624f4eeb4"
+    },
+    "assets\\sprites\\itens\\reliquias\\anel_vigilia.png": {
+      "antes": "0afd86253afc9f3401b19138e11269139fce3ebb6e35d5489166005df5b02995",
+      "depois": "0afd86253afc9f3401b19138e11269139fce3ebb6e35d5489166005df5b02995"
+    },
+    "assets\\sprites\\itens\\reliquias\\insignia_carcereiro.png": {
+      "antes": "9cc9cf4c0e3afbf6d3c0713756cd7b1ffcb098010fb9730dcdbc22b874e6f71a",
+      "depois": "9cc9cf4c0e3afbf6d3c0713756cd7b1ffcb098010fb9730dcdbc22b874e6f71a"
+    },
+    "assets\\sprites\\itens\\_default\\item_desconhecido.png": {
+      "antes": "3671cc29de9af6a27fb5f32b3078ec0db749f7272bb126588a027bc7ed16ab62",
+      "depois": "3671cc29de9af6a27fb5f32b3078ec0db749f7272bb126588a027bc7ed16ab62"
+    }
+  },
+  "tiles_alterados": {
+    "antigo_arsenal_guardas.tmx": {
+      "decoracao_fundo": [
+        {
+          "coluna": 1,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7128
+        },
+        {
+          "coluna": 2,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7129
+        },
+        {
+          "coluna": 3,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7130
+        },
+        {
+          "coluna": 67,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7128
+        },
+        {
+          "coluna": 68,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7129
+        },
+        {
+          "coluna": 69,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7130
+        },
+        {
+          "coluna": 1,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7136
+        },
+        {
+          "coluna": 2,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7137
+        },
+        {
+          "coluna": 3,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7138
+        },
+        {
+          "coluna": 12,
+          "linha": 17,
+          "antes": 2594,
+          "depois": 0
+        },
+        {
+          "coluna": 13,
+          "linha": 17,
+          "antes": 2595,
+          "depois": 0
+        },
+        {
+          "coluna": 14,
+          "linha": 17,
+          "antes": 2596,
+          "depois": 0
+        },
+        {
+          "coluna": 22,
+          "linha": 17,
+          "antes": 2594,
+          "depois": 0
+        },
+        {
+          "coluna": 23,
+          "linha": 17,
+          "antes": 2595,
+          "depois": 0
+        },
+        {
+          "coluna": 24,
+          "linha": 17,
+          "antes": 2596,
+          "depois": 0
+        },
+        {
+          "coluna": 57,
+          "linha": 17,
+          "antes": 2594,
+          "depois": 0
+        },
+        {
+          "coluna": 58,
+          "linha": 17,
+          "antes": 2595,
+          "depois": 0
+        },
+        {
+          "coluna": 59,
+          "linha": 17,
+          "antes": 2596,
+          "depois": 0
+        },
+        {
+          "coluna": 67,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7136
+        },
+        {
+          "coluna": 68,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7137
+        },
+        {
+          "coluna": 69,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7138
+        },
+        {
+          "coluna": 1,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7144
+        },
+        {
+          "coluna": 2,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7145
+        },
+        {
+          "coluna": 3,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7146
+        },
+        {
+          "coluna": 12,
+          "linha": 18,
+          "antes": 2609,
+          "depois": 0
+        },
+        {
+          "coluna": 13,
+          "linha": 18,
+          "antes": 1139,
+          "depois": 0
+        },
+        {
+          "coluna": 14,
+          "linha": 18,
+          "antes": 2611,
+          "depois": 0
+        },
+        {
+          "coluna": 22,
+          "linha": 18,
+          "antes": 2609,
+          "depois": 0
+        },
+        {
+          "coluna": 23,
+          "linha": 18,
+          "antes": 1139,
+          "depois": 0
+        },
+        {
+          "coluna": 24,
+          "linha": 18,
+          "antes": 2611,
+          "depois": 0
+        },
+        {
+          "coluna": 57,
+          "linha": 18,
+          "antes": 2609,
+          "depois": 0
+        },
+        {
+          "coluna": 58,
+          "linha": 18,
+          "antes": 1139,
+          "depois": 0
+        },
+        {
+          "coluna": 59,
+          "linha": 18,
+          "antes": 2611,
+          "depois": 0
+        },
+        {
+          "coluna": 67,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7144
+        },
+        {
+          "coluna": 68,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7145
+        },
+        {
+          "coluna": 69,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7146
+        },
+        {
+          "coluna": 1,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7152
+        },
+        {
+          "coluna": 2,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7153
+        },
+        {
+          "coluna": 3,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7154
+        },
+        {
+          "coluna": 13,
+          "linha": 19,
+          "antes": 1177,
+          "depois": 0
+        },
+        {
+          "coluna": 23,
+          "linha": 19,
+          "antes": 1177,
+          "depois": 0
+        },
+        {
+          "coluna": 58,
+          "linha": 19,
+          "antes": 1177,
+          "depois": 0
+        },
+        {
+          "coluna": 67,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7152
+        },
+        {
+          "coluna": 68,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7153
+        },
+        {
+          "coluna": 69,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7154
+        }
+      ],
+      "colisao": [
+        {
+          "coluna": 0,
+          "linha": 17,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 71,
+          "linha": 17,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 0,
+          "linha": 18,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 71,
+          "linha": 18,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 0,
+          "linha": 19,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 71,
+          "linha": 19,
+          "antes": 0,
+          "depois": 1821
+        }
+      ]
+    },
+    "arena_chefe.tmx": {
+      "decoracao_fundo": [
+        {
+          "coluna": 1,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7128
+        },
+        {
+          "coluna": 2,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7129
+        },
+        {
+          "coluna": 3,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7130
+        },
+        {
+          "coluna": 1,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7136
+        },
+        {
+          "coluna": 2,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7137
+        },
+        {
+          "coluna": 3,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7138
+        },
+        {
+          "coluna": 1,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7144
+        },
+        {
+          "coluna": 2,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7145
+        },
+        {
+          "coluna": 3,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7146
+        },
+        {
+          "coluna": 1,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7152
+        },
+        {
+          "coluna": 2,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7153
+        },
+        {
+          "coluna": 3,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7154
+        }
+      ],
+      "colisao": [
+        {
+          "coluna": 0,
+          "linha": 17,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 0,
+          "linha": 18,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 0,
+          "linha": 19,
+          "antes": 0,
+          "depois": 1821
+        }
+      ],
+      "decoracao": [
+        {
+          "coluna": 12,
+          "linha": 19,
+          "antes": 2648,
+          "depois": 0
+        },
+        {
+          "coluna": 13,
+          "linha": 19,
+          "antes": 2649,
+          "depois": 0
+        },
+        {
+          "coluna": 27,
+          "linha": 19,
+          "antes": 2648,
+          "depois": 0
+        },
+        {
+          "coluna": 28,
+          "linha": 19,
+          "antes": 2649,
+          "depois": 0
+        },
+        {
+          "coluna": 42,
+          "linha": 19,
+          "antes": 2648,
+          "depois": 0
+        },
+        {
+          "coluna": 43,
+          "linha": 19,
+          "antes": 2649,
+          "depois": 0
+        }
+      ]
+    },
+    "bloco_celas_esquecidas.tmx": {},
+    "calabouco_1.tmx": {},
+    "calabouco_2.tmx": {},
+    "corredores_profundos.tmx": {
+      "decoracao_fundo": [
+        {
+          "coluna": 1,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7128
+        },
+        {
+          "coluna": 2,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7129
+        },
+        {
+          "coluna": 3,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7130
+        },
+        {
+          "coluna": 107,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7128
+        },
+        {
+          "coluna": 108,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7129
+        },
+        {
+          "coluna": 109,
+          "linha": 16,
+          "antes": 0,
+          "depois": 7130
+        },
+        {
+          "coluna": 1,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7136
+        },
+        {
+          "coluna": 2,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7137
+        },
+        {
+          "coluna": 3,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7138
+        },
+        {
+          "coluna": 107,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7136
+        },
+        {
+          "coluna": 108,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7137
+        },
+        {
+          "coluna": 109,
+          "linha": 17,
+          "antes": 0,
+          "depois": 7138
+        },
+        {
+          "coluna": 1,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7144
+        },
+        {
+          "coluna": 2,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7145
+        },
+        {
+          "coluna": 3,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7146
+        },
+        {
+          "coluna": 107,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7144
+        },
+        {
+          "coluna": 108,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7145
+        },
+        {
+          "coluna": 109,
+          "linha": 18,
+          "antes": 0,
+          "depois": 7146
+        },
+        {
+          "coluna": 1,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7152
+        },
+        {
+          "coluna": 2,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7153
+        },
+        {
+          "coluna": 3,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7154
+        },
+        {
+          "coluna": 107,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7152
+        },
+        {
+          "coluna": 108,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7153
+        },
+        {
+          "coluna": 109,
+          "linha": 19,
+          "antes": 0,
+          "depois": 7154
+        }
+      ],
+      "colisao": [
+        {
+          "coluna": 0,
+          "linha": 17,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 111,
+          "linha": 17,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 0,
+          "linha": 18,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 111,
+          "linha": 18,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 0,
+          "linha": 19,
+          "antes": 0,
+          "depois": 1821
+        },
+        {
+          "coluna": 111,
+          "linha": 19,
+          "antes": 0,
+          "depois": 1821
+        }
+      ],
+      "decoracao": [
+        {
+          "coluna": 42,
+          "linha": 19,
+          "antes": 2648,
+          "depois": 0
+        },
+        {
+          "coluna": 43,
+          "linha": 19,
+          "antes": 2649,
+          "depois": 0
+        },
+        {
+          "coluna": 102,
+          "linha": 19,
+          "antes": 2648,
+          "depois": 0
+        },
+        {
+          "coluna": 103,
+          "linha": 19,
+          "antes": 2649,
+          "depois": 0
+        }
+      ]
+    },
+    "_template.tmx": {}
+  },
+  "player_py_preservado": true
+}

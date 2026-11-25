@@ -176,8 +176,13 @@ class Inventario:
             return itens
 
 
-        elif self.aba_atual == 2: #chaves
-            return [get_item(id_) for id_ in player.inventario["chaves"]]
+        elif self.aba_atual == 2: #chaves e relíquias (itens únicos, sem empilhamento)
+            itens = []
+            for id_ in player.inventario["chaves"]:
+                item = get_item(id_)
+                if item:
+                    itens.append(item)
+            return itens
 
         elif self.aba_atual == 3: #materias
             itens = []
@@ -355,7 +360,7 @@ class Inventario:
                                 else:
                                     opcoes = ["Equipar", "Descartar"]
                             elif isinstance(item, Consumivel) or hasattr(item, "cargas"):
-                                opcoes = ["Usar", "Descartar"]
+                                opcoes = ["Usar", "Descartar"] if hasattr(item, "id") else ["Usar"]
                             else:
                                 opcoes = ["Descartar"]
                             mx = min(r.right + 4, px + pw - 120)
@@ -427,7 +432,7 @@ class Inventario:
                             else:
                                 opcoes = ["Equipar", "Descartar"]
                         elif isinstance(item, Consumivel) or hasattr(item, "cargas"):
-                            opcoes = ["Usar", "Descartar"]
+                            opcoes = ["Usar", "Descartar"] if hasattr(item, "id") else ["Usar"]
                         else:
                             opcoes = ["Descartar"]
                         mx = min(rect_slot.right + 4, px + pw - 120)
@@ -444,7 +449,7 @@ class Inventario:
         if opcao == "Usar":
             return isinstance(item, Consumivel) or hasattr(item, "cargas")
         if opcao == "Descartar":
-            return self.callback_descartar is not None
+            return self.callback_descartar is not None and hasattr(item, "id")
         if opcao == "Desequipar":
             return isinstance(item, Arma)
         return False
@@ -497,6 +502,8 @@ class Inventario:
 
             if isinstance(item, Consumivel):
                 item.usar(player, player.inventario)
+            elif item is player.pocao:
+                item.usar(player)
             else:
                 if not som_ui:
                     audio.play_sfx("ui_error")
@@ -506,6 +513,8 @@ class Inventario:
                 audio.play_sfx("ui_error")
 
         elif opcao == "Descartar" and self.callback_descartar:
+            if not hasattr(item, "id"):
+                return
             #checar se esta equipado e desequipar primeiro
             if player.inventario["mao_direita"] == item.id:
                 player.inventario["mao_direita"] = None
@@ -524,11 +533,12 @@ class Inventario:
                     player.inventario[lista].remove(item.id)
                     break
 
-                if item.id in player.inventario["itens"]:
-                    player.inventario["itens"].pop(item.id)
-
-                if item.id in player.inventario["materiais"]:
-                    player.inventario["materiais"].pop(item.id)
+            for categoria in ("itens", "materiais"):
+                chave = str(item.id)
+                if chave in player.inventario[categoria]:
+                    player.inventario[categoria][chave] -= 1
+                    if player.inventario[categoria][chave] <= 0:
+                        player.inventario[categoria].pop(chave)
 
 
             self.callback_descartar(item.id)

@@ -14,6 +14,7 @@ from core.navegacao import hover_index
 from world.tile_map import TileMap
 from world.rooms import Salas
 from world.niveis import spwans, Inimigos_por_sala, Conexoes, Drops_inimigos, Drops_fixos, MATERIAL_PISO
+from world.niveis import SALAS_BETA, TITULOS_BETA, VIDA_INIMIGOS_BETA
 
 from core.camera import Camera
 from core.audio import audio, resolver_arma_id
@@ -29,6 +30,7 @@ from entities.player import Player
 from entities.objetos.bau import Bau
 from entities.objetos.porta import Porta
 from entities.objetos.drop_eco import DropEco
+from entities.objetos.pocao import Pocao
 
 from entities.objetos.fogueira import Fogueira
 from entities.objetos.tocha import Tocha, NOME_TILESET_TOCHA, FLAME_ROWS
@@ -46,6 +48,8 @@ from ui.overlays import desenhar_tela_morte, desenhar_tela_pausa
 from ui.estilo import Fonte_texto
 from ui.prompts_teclas import PromptTeclaMundo
 from core.interacoes import GerenciadorInteracoes
+from core.tutorial_contextual import TutorialContextual
+from ui.fim_beta import TelaFimBeta
 
 
 
@@ -57,17 +61,18 @@ def _nome_arquivo_normalizado(nome):
 
 
 AMBIENCIA_POR_SALA = {
-    "calabou�o_4": "sala_descanso",
-    "calabou�o_5": "arena_boss",
+    "arena_chefe": "arena_boss",
+    "calabouço_4": "sala_descanso",
+    "calabouço_5": "arena_boss",
 }
 
 # H.1: exploração prioriza ambiência nas salas comuns. Mapa preparado para reativar música por sala.
 MUSICA_POR_SALA = {
-    "calabou�o_1": None,
-    "calabou�o_2": None,
-    "calabou�o_3": None,
-    "calabou�o_4": "descanso",
-    "calabou�o_5": None,
+    "calabouço_1": None,
+    "calabouço_2": None,
+    "calabouço_3": None,
+    "calabouço_4": "descanso",
+    "calabouço_5": None,
 }
 
 
@@ -79,14 +84,18 @@ MUSICA_POR_SALA = {
 class Gamescene:
     #centraliza toda a logica do jogo, mapa, inimigo e etc, para alivar e organiza o arquivo main.py
     
-    def __init__(self, tela, modo_teste_combate=False):
+    def __init__(self, tela, modo_teste_combate=False, sala_teste=None):
         self.tela = tela 
         self.modo_teste_combate = modo_teste_combate
+        self.sala_teste = sala_teste
         self.hud = Hud()
 
 
         #cria o hud e reeutilizar ele em outras salas
         self.player = Player(0, 0)
+        # O cavaleiro da beta já atende ao requisito da primeira espada (DEX 10).
+        # Não altera a arma nem o perfil de combate dos inimigos.
+        self.player.destreza = max(self.player.destreza, 10)
 
 
         self._save_callback = None 
@@ -136,8 +145,13 @@ class Gamescene:
         #carrega a sala
         self._dir_entrada = None
         self._entrada_lado = None  #lado da sala onde o player entrou (esquerda/direita)
-        self._carregar_sala("calabouço_1")
-        self.player.defenir_checkpoint("calabouço_1")
+        self.fim_beta = None
+        self._conclusao_beta_timer = None
+        sala_inicial = sala_teste or SALAS_BETA[0]
+        if sala_inicial in SALAS_BETA and not modo_teste_combate:
+            self.player.pocao = Pocao(cargas_iniciais=0)
+        self._carregar_sala(sala_inicial)
+        self.player.defenir_checkpoint(sala_inicial)
 
 
         self.morrendo = False
@@ -190,6 +204,7 @@ class Gamescene:
         self.player.respawnar()
         self.player.hp = self.player.hp_max
         self.player.stamina = self.player.stamina_max
+        self.player.pocao = Pocao()
         self.player.ecos = 0
 
         from entities.objetos.item import get_item
@@ -247,6 +262,9 @@ class Gamescene:
 
         self._limpar_estado_interacao()
 
+        # Dicas pertencem a esta entrada de sala, nunca ao save.
+        self.tutorial_contextual = None
+
         parar_mundo = getattr(audio, "stop_world_sfx", None)
         if parar_mundo is not None:
             parar_mundo()
@@ -254,13 +272,15 @@ class Gamescene:
         #se existe um tmx para aquela sala usa ele, senao pular
         import os 
         caminho_tmx = f"assets/maps/{_nome_arquivo_normalizado(nome_sala)}.tmx"
+        grid_decoracao_fundo = None
         if os.path.exists(caminho_tmx):
             logger.info(f"[MAPA] carregando '{nome_sala}' via TMX: {caminho_tmx}")
             grid = TileMap.carregar_camada_tmx(caminho_tmx, "colisao")
-            grid_decoracao = TileMap.carregar_camada_tmx(caminho_tmx, "decoracao")
-            grid_fundo = TileMap.carregar_camada_tmx(caminho_tmx, "fundo")
-            grid_escadas = TileMap.carregar_camada_tmx(caminho_tmx, "escadas")
-            grid_plataformas = TileMap.carregar_camada_tmx(caminho_tmx, "plataformas")
+            grid_decoracao = TileMap.carregar_camada_tmx(caminho_tmx, "decoracao", obrigatoria=False)
+            grid_fundo = TileMap.carregar_camada_tmx(caminho_tmx, "fundo", obrigatoria=False)
+            grid_escadas = TileMap.carregar_camada_tmx(caminho_tmx, "escadas", obrigatoria=False)
+            grid_plataformas = TileMap.carregar_camada_tmx(caminho_tmx, "plataformas", obrigatoria=False)
+            grid_decoracao_fundo = TileMap.carregar_camada_tmx(caminho_tmx, "decoracao_fundo", obrigatoria=False)
             objetos_tmx = TileMap.carregar_objetos_tmx(caminho_tmx, "objetos")
 
 
@@ -282,7 +302,16 @@ class Gamescene:
 
     
         
-        self.mapa = TileMap(grid, grid_decoracao, grid_fundo, grid_escadas, grid_plataformas)
+        self.mapa = TileMap(grid, grid_decoracao, grid_fundo, grid_escadas, grid_plataformas,
+                            grid_decoracao_fundo)
+        self.passagens = []
+        for obj in objetos_tmx or []:
+            if obj["tipo"] == "transicao":
+                rect = pygame.Rect(obj["x"], obj["y"], obj["width"], obj["height"])
+                lado = obj["propriedades"].get("lado")
+                if rect.width > 0 and rect.height > 0 and lado in ("esquerda", "direita"):
+                    self.passagens.append((rect, lado))
+                    self.mapa.aberturas_passagens.append(rect)
 
 
         #tochas decorativas: uma tocha = um FOGO (linha 0 ou 2 da folha) + a HASTE
@@ -330,14 +359,21 @@ class Gamescene:
                     continue
 
                 col_idx, linha_idx = obj["col"],  obj["linha"]
-                if (col_idx, linha_idx) in self.baus_abertos:
-                    continue
-
                 try:
                     id_item = int(obj["propriedades"].get("id_item", 1))
                 except (TypeError, ValueError):
                     logger.warning(f"[MAPA] baú em ({col_idx},{linha_idx}) com id_item inválido, usando 1")    
                     id_item = 1
+
+                primeira_espada = nome_sala == "antigo_arsenal_guardas" and id_item == 1
+                if primeira_espada and self._possui_espada():
+                    continue
+                if self._objeto_registrado(self.baus_abertos, col_idx, linha_idx):
+                    # A espada perdida pode ser recuperada no arsenal, inclusive após load.
+                    if not primeira_espada or any(
+                        d.ativo and d.id_item == 1 for d in self.drops_por_sala.get(nome_sala, [])
+                    ):
+                        continue
 
 
                 bau = Bau(
@@ -354,7 +390,7 @@ class Gamescene:
             for linha_idx, linha in enumerate(Salas[nome_sala]):
                     for col_idx, tile in enumerate(linha):
                         if tile == 6:
-                            if (col_idx, linha_idx) in self.baus_abertos:
+                            if self._objeto_registrado(self.baus_abertos, col_idx, linha_idx):
                                 continue
                             
                             bau = Bau(
@@ -417,13 +453,13 @@ class Gamescene:
                     continue
                 _adicionar_fogueira(obj["col"], obj["linha"])
 
-        for linha_idx, linha in enumerate(Salas[nome_sala]):
+        for linha_idx, linha in enumerate(Salas.get(nome_sala, [])):
             for col_idx, tile in enumerate(linha):
                 if tile == 9:
                     _adicionar_fogueira(col_idx, linha_idx)
 
         for fogueira in self.fogueiras:
-            if (fogueira.col, fogueira.linha) in self.fogueiras_ativas:
+            if self._objeto_registrado(self.fogueiras_ativas, fogueira.col, fogueira.linha):
                 fogueira.ativa = True
         
 
@@ -438,6 +474,9 @@ class Gamescene:
 
         for dados in Drops_fixos.get(nome_sala, []):
             id_item, col_drop, lin_drop = dados 
+            frasco = id_item == 2 and nome_sala in SALAS_BETA
+            if frasco and self.player.pocao.cargas_max >= 3:
+                continue
 
             #chave unica para cada item fixo
             chave = (nome_sala, col_drop, lin_drop)
@@ -447,19 +486,23 @@ class Gamescene:
 
                 #evita duplica se a sala ja foi carregada antes
                 ja_existe = any(
-                    d.rect.centerx == col_drop * Tile_size and
-                    d.rect.centery == lin_drop * Tile_size
+                    d.chave_fixa == chave
                     for d in self.drops_por_sala[nome_sala]
                 )
 
                 if not ja_existe:
                     drop = Drop(col_drop * Tile_size, lin_drop * Tile_size, id_item)
+                    drop.frasco = frasco
                     drop.chave_fixa = chave #marca o drop como fixo 
                     drop.callback_coletado = self._registrar_drop_fixo_coletado
                     self.drops_por_sala[nome_sala].append(drop)
                 
                 self.drops = self.drops_por_sala.get(nome_sala, [])
 
+        # Inclui pickups restaurados de saves anteriores, que usavam o centro flutuante.
+        for drop in self.drops:
+            if drop.ativo:
+                drop.apoiar(self.mapa.rects_solidos + self.mapa.rects_plataforma)
 
        #limpa os projeteis ao trocar de sala
         self.projeteis = []
@@ -478,14 +521,15 @@ class Gamescene:
         self.largura_mapa = len(grid[0]) * Tile_size
         self.altura_mapa = len(grid) * Tile_size
         self.camera = Camera(self.largura_mapa, self.altura_mapa)
+        self.boss_batalha_ativa = False
 
     #posiçao do spwan
         spwans_tmx = {}
         if objetos_tmx is not None:
             for obj in objetos_tmx:
-                if obj["tipo"] != "spwan":
+                if obj["tipo"] not in {"spawn", "spwan"}:
                     continue
-                nome_spwan =  obj["propriedades"].get("nome") or "default"
+                nome_spwan = obj.get("nome") or obj["propriedades"].get("nome") or "default"
                 spwans_tmx[nome_spwan] = (obj["col"], obj["linha"])
 
 
@@ -496,10 +540,12 @@ class Gamescene:
                 col, linha = posiçao_spwan
             else:
                 col, linha = self._resolver_spwan(nome_sala, grid, spwans_tmx)
-                print(f"[SANITY] spawn bruto={spwans_tmx}, resolvido=({col},{linha})")
             self.player.rect.x = col * Tile_size
             self.player.rect.y = linha * Tile_size
             self.player.vel.xy = (0, 0)
+            self.player._escalando = False
+            self.player._escada_lock = None
+            self.player.encerrar_ataque()
 
         #resetar o time do cooldown ao trocar de sala
         self._cooldown_transiçao = 30
@@ -521,14 +567,16 @@ class Gamescene:
             mortos = self.inimigos_morto_por_sala.get(nome_sala, [])
 
             for obj in objetos_tmx:
-                if obj["tipo"] != "inimigo":
+                if obj.get("tipo") != "inimigo":
                     continue
 
-                tipo = obj["propriedades"].get("tipo")
+                props = obj.get("propriedades", {})
+                tipo = props.get("tipo", props.get("type"))
+                tipo = str(tipo).strip().lower() if tipo is not None else ""
                 classe = _tipos_inimigos.get(tipo)
                 if not classe:
                     logger.warning(
-                        f"[MAPA] tipo de inimigo '{tipo}' desconhecido no objeto id={obj['id']}, ignorando"
+                        f"[MAPA] tipo de inimigo '{tipo}' desconhecido no objeto id={obj.get('id')}, ignorando"
                     )
                     continue
 
@@ -541,6 +589,8 @@ class Gamescene:
                         continue
 
                     boss = EsqueletoBoss(x, y, callback_morte=self._abrir_parede_boss)
+                    if nome_sala in SALAS_BETA:
+                        boss.hp = boss.hp_max = VIDA_INIMIGOS_BETA[tipo]
                     boss._indice_spawn = indice
                     self.inimigos.append(boss)
                     self.boss_atual = boss
@@ -558,6 +608,8 @@ class Gamescene:
                     pat_esq, pat_dir = 0, 0
 
                 inimigo = classe(x, y, pat_esq, pat_dir)
+                if nome_sala in SALAS_BETA:
+                    inimigo.hp = inimigo.hp_max = VIDA_INIMIGOS_BETA[tipo]
                 inimigo._indice_spawn = indice
 
                 tabela = Drops_inimigos.get(tipo, [])
@@ -574,7 +626,7 @@ class Gamescene:
         #montar os rects da parede do boss
         self.parede_boss = []
         if self.sala_atual not in self.bosses_derrotados:
-            for linha_idx, linha in enumerate(Salas[nome_sala]):
+            for linha_idx, linha in enumerate(Salas.get(nome_sala, [])):
                 for col_idx, tile in enumerate(linha):
                     if tile == 8:
                         self.parede_boss.append(pygame.Rect(
@@ -584,6 +636,22 @@ class Gamescene:
                         ))
 
         self._atualizar_audio_sala()
+        if nome_sala in SALAS_BETA:
+            self.tutorial_contextual = TutorialContextual(self.mapa, self.player)
+            self.hud.mostra_mensagem(TITULOS_BETA[nome_sala])
+        # Evita uma panorâmica desde (0,0) a cada passagem/respawn.
+        for _ in range(90):
+            self.camera.atualizar(self.player.rect)
+
+    def _objeto_registrado(self, registros, col, linha):
+        if (self.sala_atual, col, linha) in registros:
+            return True
+        # Pares antigos continuam pertencendo somente à campanha antiga.
+        return self.sala_atual not in SALAS_BETA and (col, linha) in registros
+
+    def _possui_espada(self):
+        inv = self.player.inventario
+        return inv["mao_direita"] == 1 or 1 in inv["equipamentos"]
 
     def _contexto_musical_sala(self):
         menu = getattr(self, "menu_fogueira", None)
@@ -638,6 +706,7 @@ class Gamescene:
             for chance, id_item in drops:
                 if random.random() < chance:
                     drop = Drop(ix, iy, id_item)
+                    drop.apoiar(self.mapa.rects_solidos + self.mapa.rects_plataforma)
                     if sala not in self.drops_por_sala:
                         self.drops_por_sala[sala] = []
                     self.drops_por_sala[sala].append(drop)
@@ -654,18 +723,23 @@ class Gamescene:
 
 
     def _resolver_spwan(self, nome_sala, grid, spwans_tmx):
-        # define posição inicial; prioriza spawns TMX e valida com _spawn_seguro
+        # Define posição inicial; prioriza spawns TMX e valida com _spawn_seguro.
+        # Convenção oficial: spawn nomeado "default"/"esquerda"/"direita".
         lado = getattr(self, "_entrada_lado", None)
 
         if spwans_tmx:
-            if lado is not None and lado in spwans_tmx:
-                col, linha = spwans_tmx[lado]
-            elif "default" in spwans_tmx:
-                col, linha = spwans_tmx["default"]
+            spawns_norm = {str(k).strip().lower(): v for k, v in spwans_tmx.items()}
+            lado_norm = str(lado).strip().lower() if lado is not None else None
+            if lado_norm and lado_norm in spawns_norm:
+                col, linha = spawns_norm[lado_norm]
+            elif "default" in spawns_norm:
+                col, linha = spawns_norm["default"]
+            elif len(spawns_norm) == 1:
+                col, linha = next(iter(spawns_norm.values()))
             else:
                 logger.warning(
                     f"[SPAWN] '{nome_sala}': TMX tem spawns mas nenhum bate com "
-                    f"lado='{lado}' nem 'default', usando fallback de grade"
+                    f"lado='{lado}' (disponíveis: {list(spawns_norm.keys())}), usando fallback de grade"
                 )
                 col, linha = self._spwan_fallback_grid(nome_sala, grid, lado)
         else:
@@ -801,7 +875,24 @@ class Gamescene:
                     pass
 
     def atualizar(self, eventos): 
+        if getattr(self, "fim_beta", None) is not None:
+            if self.fim_beta.atualizar(eventos) and self._menu_callback:
+                self._menu_callback()
+            return
+        if getattr(self, "_conclusao_beta_timer", None) is not None:
+            self._conclusao_beta_timer -= 1
+            for inimigo in self.inimigos:
+                if not inimigo.vivo:
+                    inimigo.atualizar(self.mapa.rects_solidos, self.player)
+            if self._conclusao_beta_timer <= 0:
+                self.fim_beta = TelaFimBeta(self.tela)
+                if self._save_callback:
+                    self._save_callback()
+            return
         teclas = pygame.key.get_pressed()
+        tutorial = getattr(self, "tutorial_contextual", None)
+        if tutorial and (self._contexto_suprime_interacao() or not self.player.vivo):
+            tutorial.ocultar(self.player)
 
         #F3 liga/desliga o debug de plataforma/escada
         reiniciar_teste = False
@@ -810,8 +901,14 @@ class Gamescene:
                 self.debug_tiles = not self.debug_tiles
             if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F4:
                 self.debug_combate = not self.debug_combate
-            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F6:
+            if ev.type == pygame.KEYDOWN and ev.key == pygame.K_F6 and self.modo_teste_combate:
                 reiniciar_teste = True
+            if (ev.type == pygame.KEYDOWN and ev.key == pygame.K_i
+                    and not self.menu_fogueira.aberto and not self.morrendo):
+                if self.inventario.aberto:
+                    self.inventario.fechar()
+                else:
+                    self.inventario.abrir()
 
         if reiniciar_teste:
             self._iniciar_arena_teste()
@@ -834,6 +931,7 @@ class Gamescene:
         if self.inventario.aberto:
             self._limpar_estado_interacao()
             self.inventario.atualizar(eventos, self.player)
+            return
 
         #hitstop: congela o mundo por alguns frames após um acerto confirmado
         if not self.pausado and self.combate.consumir_hitstop():
@@ -867,7 +965,10 @@ class Gamescene:
                               rects_escada=self.mapa.rects_escada)
 
         #atualizar a transiçao de cena
+        sala_antes = self.sala_atual
         self._checar_transiçao()
+        if self.sala_atual != sala_antes:
+            return  # Os sólidos deste frame pertencem à sala anterior.
 
         #interacoes: selecao deterministica + prompt no mundo (G.1)
         teclas = pygame.key.get_pressed()
@@ -1001,6 +1102,18 @@ class Gamescene:
 
         #hud
         self.hud.atualizar()
+
+        tutorial = getattr(self, "tutorial_contextual", None)
+        if tutorial:
+            if self.sala_atual == "antigo_arsenal_guardas" and self.player.tem_arma_equipada:
+                if self.player.atacando:
+                    tutorial.concluir("ataque")
+                elif "ataque" not in tutorial.concluidas:
+                    tutorial.solicitar("ataque", ("k",))
+            tutorial.atualizar(
+                self.player, teclas, suprimido=self._contexto_suprime_interacao(),
+                interacao=getattr(self, "_alvo_interacao_atual", None) is not None,
+            )
 
 
     def _atualizar_zoom_camera(self):
@@ -1179,11 +1292,15 @@ class Gamescene:
 
         #curar o player e recarregar as poções
         self.player.hp = self.player.hp_max
+        self.player.stamina = getattr(self.player, "stamina_max", 0)
         self.player.pocao.recarregar()
 
 
         #respwna os inimigos da sala atual
-        self._spwanar_inimigos(self.sala_atual)
+        if self.sala_atual in SALAS_BETA:
+            self._carregar_sala(self.sala_atual, respawnando=True)
+        else:
+            self._spwanar_inimigos(self.sala_atual)
 
     def _fechar_menu_fogueira(self):
         self.menu_fogueira.aberto = False
@@ -1199,7 +1316,11 @@ class Gamescene:
 
 
     def _registrar_bau_aberto(self, col, linha):
-        self.baus_abertos.add((col, linha))    
+        self.baus_abertos.add((self.sala_atual, col, linha))
+        if self.sala_atual == "antigo_arsenal_guardas" and self._possui_espada():
+            if not self.player.tem_arma_equipada:
+                from entities.objetos.item import get_item
+                self.inventario._tentar_equipar(get_item(1), self.player)
 
 
 
@@ -1278,6 +1399,28 @@ class Gamescene:
 
         #proteçao anti bug de teleporte da transiçao de fase
         conexoes_sala = Conexoes.get(self.sala_atual, {})
+        if self.sala_teste or self.modo_teste_combate:
+            return
+        if self.sala_atual in SALAS_BETA:
+            self._cooldown_transiçao = max(0, self._cooldown_transiçao - 1)
+            self.player.rect.clamp_ip(pygame.Rect(0, 0, self.largura_mapa, self.altura_mapa))
+            if self.boss_batalha_ativa:
+                return
+            for rect, lado in self.passagens:
+                movendo_para_passagem = self.player.vel.x > 0 if lado == "direita" else self.player.vel.x < 0
+                if not movendo_para_passagem or not rect.collidepoint(self.player.rect.center):
+                    continue
+                if self._cooldown_transiçao and lado == self._entrada_lado:
+                    continue
+                proxima = conexoes_sala.get(lado)
+                if proxima:
+                    self._entrada_lado = "esquerda" if lado == "direita" else "direita"
+                    self._carregar_sala(proxima)
+                    self._dir_entrada = lado
+                    self._cooldown_transiçao = 12
+                    return
+            return  # Paredes/bordas comuns da beta nunca são gatilhos.
+        limite_direita = self.largura_mapa
 
         # cooldown só bloqueia a direção de onde o player veio
         if hasattr(self, "_cooldown_transiçao") and self._cooldown_transiçao > 0:
@@ -1288,7 +1431,7 @@ class Gamescene:
                 return  # bloqueia só direita
 
         # direita
-        if self.player.rect.right >= self.largura_mapa:
+        if self.player.rect.right >= limite_direita:
             proxima = conexoes_sala.get("direita")
             if proxima:
                 self._entrada_lado = "esquerda"  # entrando na proxima sala pela esquerda
@@ -1296,6 +1439,7 @@ class Gamescene:
                 self._dir_entrada = "direita"
                 self._cooldown_transiçao = 60
                 return
+            self.player.rect.right = min(self.player.rect.right, self.largura_mapa)
 
         # esquerda
         elif self.player.rect.left <= 0:
@@ -1306,6 +1450,7 @@ class Gamescene:
                 self._dir_entrada = "esquerda"
                 self._cooldown_transiçao = 60
                 return
+            self.player.rect.left = max(0, self.player.rect.left)
 
     #sistema de dano nos espinhos para parkou
     def _checar_espinhos(self):
@@ -1336,6 +1481,8 @@ class Gamescene:
         aggro = bool(getattr(boss, "_rugido_emitido", False)) or getattr(boss, "estado", None) in ("Perseguir", "Atacando")
         if self.player.vivo and (detectado or aggro):
             self.boss_batalha_ativa = True
+            if self.sala_atual == "arena_chefe":
+                self.parede_boss = [r.copy() for r, lado in self.passagens if lado == "esquerda"]
             self._tocar_entrada_boss(boss)
             self._atualizar_audio_sala(motivo_extra="batalha_chefe_iniciada")
 
@@ -1349,6 +1496,14 @@ class Gamescene:
         if tocar_mecanismo is not None:
             tocar_mecanismo()
         self.hud.mostra_mensagem("O caminho esta livre")
+
+        if self.sala_atual == "arena_chefe":
+            self._conclusao_beta_timer = 120
+            self.projeteis.clear()
+            self.player.encerrar_ataque()
+            self.player.vel.xy = (0, 0)
+            self._limpar_estado_interacao()
+            return
 
 
         from entities.objetos.drop import Drop
@@ -1366,6 +1521,7 @@ class Gamescene:
         from entities.objetos.drop import Drop
         
         drop = Drop(self.player.rect.centerx, self.player.rect.bottom, id_item)
+        drop.apoiar(self.mapa.rects_solidos + self.mapa.rects_plataforma)
 
         if self.sala_atual not in self.drops_por_sala:
             self.drops_por_sala[self.sala_atual] = []
@@ -1373,7 +1529,6 @@ class Gamescene:
         self.drops_por_sala[self.sala_atual].append(drop)
         self.drops = self.drops_por_sala[self.sala_atual]
         
-        self.drops.append(drop)
 
     def _fechar_pausa(self, tocar_som=True):
         if not self.pausado:
@@ -1383,6 +1538,8 @@ class Gamescene:
             audio.play_sfx("ui_pause_close")
 
     def alternar_pausa(self):
+        if getattr(self, "fim_beta", None) is not None or getattr(self, "_conclusao_beta_timer", None) is not None:
+            return
         if self.pausado:
             self._fechar_pausa()
         else:
@@ -1391,6 +1548,21 @@ class Gamescene:
             audio.play_sfx("ui_pause_open")
     
     def carregar_save(self, dados):
+        estado = dados.get("estado_jogador", {})
+        # Formatos anteriores não registravam capacidade: conservam seus três frascos.
+        self.player.pocao.cargas_max = max(0, min(3, estado.get("pocoes_max", 3)))
+        self.player.pocao.cargas = self.player.pocao.cargas_max
+        self.inimigos_morto_por_sala = estado.get("inimigos_mortos", {})
+        from entities.objetos.drop import Drop
+        for sala, drops in estado.get("drops", {}).items():
+            self.drops_por_sala[sala] = []
+            for registro in drops:
+                drop = Drop(registro["x"], registro["y"], registro["id_item"])
+                drop.frasco = registro.get("frasco", False)
+                if registro.get("chave_fixa"):
+                    drop.chave_fixa = tuple(registro["chave_fixa"])
+                    drop.callback_coletado = self._registrar_drop_fixo_coletado
+                self.drops_por_sala[sala].append(drop)
         self.fogueiras_ativas = dados["fogueiras_ativas"]
         self.bosses_derrotados = dados["bosses_derrotados"]
         self.drops_fixos_coletados= dados.get("drops_fixos_coletados", set())
@@ -1421,10 +1593,34 @@ class Gamescene:
         #carrega a sala do checkpoint
         self._carregar_sala(dados["checkpoint_sala"], respawnando=True)
         self.player.respawnar()   
+        estado = dados.get("estado_jogador", {})
+        if not estado and self.sala_atual not in SALAS_BETA:
+            self.player.destreza = Player.DESTREZA_INICIAL
+        for atributo, valor in estado.get("atributos", {}).items():
+            if atributo in ("vigor", "resistencia", "forca", "destreza", "nivel"):
+                setattr(self.player, atributo, valor)
+        if estado:
+            p = self.player
+            p.hp_max = p.HP_BASE + p.vigor * p.HP_POR_VIGOR
+            p.stamina_max = p.STAMINA_BASE + p.resistencia * p.STAMINA_POR_RES
+            p.hp = max(1, min(p.hp_max, estado.get("hp", p.hp_max)))
+            p.stamina = max(0, min(p.stamina_max, estado.get("stamina", p.stamina_max)))
+            p.pocao.cargas = max(0, min(p.pocao.cargas_max, estado.get("pocoes", p.pocao.cargas_max)))
+            checkpoint = estado.get("checkpoint")
+            if checkpoint:
+                p.defenir_checkpoint(checkpoint[0], x=checkpoint[1], y=checkpoint[2])
+        # Saves antigos mantêm sua campanha e o ponto salvo como checkpoint.
+        for _ in range(90):
+            self.camera.atualizar(self.player.rect)
+        if "arena_chefe" in self.bosses_derrotados and self.sala_atual in SALAS_BETA:
+            self.fim_beta = TelaFimBeta(self.tela)
     
     
     
     def salvar(self, save_manager, slot):
+        if getattr(self, "sala_teste", None):
+            self.hud.mostra_mensagem("Teste de mapa: progresso temporário")
+            return False
         #verificar se tem inimigo por perto, so pode salvar se nao estiver em combate
         for inimigo in self.inimigos:
             if inimigo.vivo:
@@ -1435,7 +1631,9 @@ class Gamescene:
                     return False
                 
 
-        save_manager.salvar(slot, self)
+        if save_manager.salvar(slot, self) is False:
+            self.hud.mostra_mensagem("Não foi possível salvar")
+            return False
         audio.play_sfx("ui_save")
         self.hud.mostra_mensagem("Jogo salvo")
         return True
@@ -1443,6 +1641,9 @@ class Gamescene:
     #DESENHAR   
     
     def desenhar(self):
+        if self.fim_beta is not None:
+            self.fim_beta.desenhar()
+            return
         self._frame_pausa += 1
 
         #a cena do mundo é desenhada numa superficie do tamanho da area visivel
@@ -1453,6 +1654,10 @@ class Gamescene:
         vista.fill((0, 0, 0))
 
         self.mapa.desenhar(vista, self.camera)
+
+        if self.sala_atual == "arena_chefe" and self.boss_batalha_ativa:
+            for parede in self.parede_boss:
+                pygame.draw.rect(vista, (67, 57, 105), self.camera.aplicar(parede))
 
         for tocha in self.tochas:
             tocha.desenhar(vista, self.camera)
@@ -1528,6 +1733,8 @@ class Gamescene:
         for fogueira in self.fogueiras:
             fogueira.desenhar(vista, self.camera)
 
+        # Interacao tem prioridade exclusiva sobre dicas de exploracao.
+        desenhou_interacao = False
         # prompt de interacao no mundo (sprite de tecla sobre a cabeca do player)
         if (not self._contexto_suprime_interacao() and
                 getattr(self, "_alvo_interacao_atual", None) is not None and
@@ -1541,6 +1748,12 @@ class Gamescene:
                 ax = self.player.rect.centerx
                 ay = self.player.rect.top - 4
                 self.prompt_interacao_mundo.desenhar(vista, self.camera, ax, ay, visivel=True)
+                desenhou_interacao = True
+
+        tutorial = getattr(self, "tutorial_contextual", None)
+        if (tutorial and not desenhou_interacao and not self._contexto_suprime_interacao()
+                and self.player.vivo):
+            tutorial.desenhar(vista, self.camera, self.player)
 
         if DEBUG:
             pygame.draw.rect(vista, (0, 255, 0), sr_player, 2)

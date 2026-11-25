@@ -1,0 +1,9 @@
+{
+  "ocorrencias_anteriores": 212,
+  "decisoes": {
+    "SUBSTITUIR": 129,
+    "REMOVER": 42,
+    "MANTER": 41
+  },
+  "celulas_alteradas": 216
+}

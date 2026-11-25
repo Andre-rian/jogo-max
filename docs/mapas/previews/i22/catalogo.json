@@ -1,0 +1,634 @@
+[
+  {
+    "numero": 1,
+    "parecer": "APROVADO",
+    "elemento": "Barril",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      190
+    ],
+    "gids": [
+      2648
+    ],
+    "matriz": [
+      [
+        2648
+      ]
+    ],
+    "motivo": "Recipiente completo; apoiar no piso ou plataforma."
+  },
+  {
+    "numero": 2,
+    "parecer": "APROVADO",
+    "elemento": "Vaso",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      191
+    ],
+    "gids": [
+      2649
+    ],
+    "matriz": [
+      [
+        2649
+      ]
+    ],
+    "motivo": "Perfil legível; nenhum brilho de coleta ou interação."
+  },
+  {
+    "numero": 3,
+    "parecer": "APROVADO",
+    "elemento": "Argola e corrente curta",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      181
+    ],
+    "gids": [
+      2639
+    ],
+    "matriz": [
+      [
+        2639
+      ]
+    ],
+    "motivo": "Uma fixação na parede; não empilhar argolas."
+  },
+  {
+    "numero": 4,
+    "parecer": "APROVADO",
+    "elemento": "Corrente com continuação",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      182,
+      197
+    ],
+    "gids": [
+      2640,
+      2655
+    ],
+    "matriz": [
+      [
+        2640
+      ],
+      [
+        2655
+      ]
+    ],
+    "motivo": "Um só ponto de fixação; término completo."
+  },
+  {
+    "numero": 5,
+    "parecer": "APROVADO",
+    "elemento": "Grilhões na parede",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      184,
+      185,
+      186
+    ],
+    "gids": [
+      2642,
+      2643,
+      2644
+    ],
+    "matriz": [
+      [
+        2642,
+        2643,
+        2644
+      ]
+    ],
+    "motivo": "Curva inteira e dois suportes visíveis."
+  },
+  {
+    "numero": 6,
+    "parecer": "APROVADO",
+    "elemento": "Detritos pequenos",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      199,
+      201
+    ],
+    "gids": [
+      2657,
+      2659
+    ],
+    "matriz": [
+      [
+        2657,
+        2659
+      ]
+    ],
+    "motivo": "Fragmentos baixos; reservar aglomerados para ruínas."
+  },
+  {
+    "numero": 7,
+    "parecer": "APROVADO",
+    "elemento": "Ossada ambiental",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      200
+    ],
+    "gids": [
+      2658
+    ],
+    "matriz": [
+      [
+        2658
+      ]
+    ],
+    "motivo": "Crânio e ossos; exclusivo da cela fechada."
+  },
+  {
+    "numero": 8,
+    "parecer": "APROVADO",
+    "elemento": "Teia inteira no canto",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      220,
+      221,
+      222,
+      223
+    ],
+    "gids": [
+      2678,
+      2679,
+      2680,
+      2681
+    ],
+    "matriz": [
+      [
+        2678,
+        2679,
+        2680,
+        2681
+      ]
+    ],
+    "motivo": "Somente sob teto e junto à parede; uma ocorrência."
+  },
+  {
+    "numero": 9,
+    "parecer": "APROVADO",
+    "elemento": "Grade com moldura contínua",
+    "tileset": "Platformer K - grade continua",
+    "ids_locais": [
+      268,
+      269,
+      270,
+      317,
+      318,
+      319,
+      366,
+      367,
+      368,
+      415,
+      416,
+      417
+    ],
+    "gids": [
+      3268,
+      3269,
+      3270,
+      3317,
+      3318,
+      3319,
+      3366,
+      3367,
+      3368,
+      3415,
+      3416,
+      3417
+    ],
+    "matriz": [
+      [
+        3268,
+        3269,
+        3270
+      ],
+      [
+        3317,
+        3318,
+        3319
+      ],
+      [
+        3366,
+        3367,
+        3368
+      ],
+      [
+        3415,
+        3416,
+        3417
+      ]
+    ],
+    "motivo": "Recorte nativo sem lacunas; janela da cela / ferro recolhido."
+  },
+  {
+    "numero": 10,
+    "parecer": "APROVADO",
+    "elemento": "Arco de saída assentado",
+    "tileset": "The Sidescroller's Dungeon Tiles 32x32",
+    "ids_locais": [
+      237,
+      238,
+      258,
+      259,
+      279,
+      280,
+      300,
+      301
+    ],
+    "gids": [
+      434,
+      435,
+      455,
+      456,
+      476,
+      477,
+      497,
+      498
+    ],
+    "matriz": [
+      [
+        434,
+        435
+      ],
+      [
+        455,
+        456
+      ],
+      [
+        476,
+        477
+      ],
+      [
+        497,
+        498
+      ]
+    ],
+    "motivo": "Só na saída; base atrás do piso, sem espaço vazio sob ela."
+  },
+  {
+    "numero": 11,
+    "parecer": "APROVADO",
+    "elemento": "Tijolos do fundo existente",
+    "tileset": "The Sidescroller's Dungeon Tiles 32x32",
+    "ids_locais": [
+      232,
+      233
+    ],
+    "gids": [
+      429,
+      430
+    ],
+    "matriz": [
+      [
+        429,
+        430
+      ]
+    ],
+    "motivo": "Base fria preservada; não usar como prop sobreposto."
+  },
+  {
+    "numero": 12,
+    "parecer": "APROVADO",
+    "elemento": "Piso físico existente",
+    "tileset": "Platformer Asset All K",
+    "ids_locais": [
+      1263,
+      1264
+    ],
+    "gids": [
+      1859,
+      1860
+    ],
+    "matriz": [
+      [
+        1859,
+        1860
+      ]
+    ],
+    "motivo": "Preservado em colisao; não representa uma cama."
+  },
+  {
+    "numero": 13,
+    "parecer": "REJEITADO",
+    "elemento": "Falsa rachadura profana",
+    "tileset": "Platformer Asset All K",
+    "ids_locais": [
+      1324,
+      1325,
+      1362,
+      1363,
+      1400,
+      1401
+    ],
+    "gids": [
+      1920,
+      1921,
+      1958,
+      1959,
+      1996,
+      1997
+    ],
+    "matriz": [
+      [
+        1920,
+        1921
+      ],
+      [
+        1958,
+        1959
+      ],
+      [
+        1996,
+        1997
+      ]
+    ],
+    "motivo": "Ornamento biomecânico fragmentado; não é rachadura."
+  },
+  {
+    "numero": 14,
+    "parecer": "REJEITADO",
+    "elemento": "Ruína anterior",
+    "tileset": "Platformer Asset All K",
+    "ids_locais": [
+      308,
+      1402,
+      347,
+      348
+    ],
+    "gids": [
+      904,
+      1998,
+      943,
+      944
+    ],
+    "matriz": [
+      [
+        0,
+        904,
+        0
+      ],
+      [
+        1998,
+        943,
+        944
+      ]
+    ],
+    "motivo": "Recortes desconexos, caveira e ferragens; pedras sem apoio."
+  },
+  {
+    "numero": 15,
+    "parecer": "REJEITADO",
+    "elemento": "Cama improvisada",
+    "tileset": "Platformer Asset All K",
+    "ids_locais": [
+      1082,
+      1263,
+      1264,
+      1263
+    ],
+    "gids": [
+      1678,
+      1859,
+      1860,
+      1859
+    ],
+    "matriz": [
+      [
+        1678,
+        0,
+        0
+      ],
+      [
+        1859,
+        1860,
+        1859
+      ]
+    ],
+    "motivo": "Pilhas de blocos aparentam colisão; falta sprite de cama."
+  },
+  {
+    "numero": 16,
+    "parecer": "REJEITADO",
+    "elemento": "Grade truncada repetida",
+    "tileset": "Platformer Asset All K",
+    "ids_locais": [
+      170,
+      171,
+      208,
+      209,
+      246,
+      247
+    ],
+    "gids": [
+      766,
+      767,
+      804,
+      805,
+      842,
+      843
+    ],
+    "matriz": [
+      [
+        766,
+        767
+      ],
+      [
+        804,
+        805
+      ],
+      [
+        842,
+        843
+      ]
+    ],
+    "motivo": "Passo 42 corta a moldura; repetição amplia o defeito."
+  },
+  {
+    "numero": 17,
+    "parecer": "REJEITADO",
+    "elemento": "Teia vertical isolada",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      221,
+      222
+    ],
+    "gids": [
+      2679,
+      2680
+    ],
+    "matriz": [
+      [
+        2679
+      ],
+      [
+        2680
+      ]
+    ],
+    "motivo": "Dois miolos de teia não formam bandeira nem teia presa."
+  },
+  {
+    "numero": 18,
+    "parecer": "REJEITADO",
+    "elemento": "Hastes da saída anterior",
+    "tileset": "Platformer Asset All K",
+    "ids_locais": [
+      1004,
+      1006,
+      1004,
+      1006
+    ],
+    "gids": [
+      1600,
+      1602,
+      1600,
+      1602
+    ],
+    "matriz": [
+      [
+        1600,
+        0,
+        1602
+      ],
+      [
+        1600,
+        0,
+        1602
+      ]
+    ],
+    "motivo": "Repetição de partes de janela; não são folhas de ferro."
+  },
+  {
+    "numero": 19,
+    "parecer": "REJEITADO",
+    "elemento": "Lâmina semicircular",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      232,
+      233,
+      234
+    ],
+    "gids": [
+      2690,
+      2691,
+      2692
+    ],
+    "matriz": [
+      [
+        2690,
+        2691,
+        2692
+      ]
+    ],
+    "motivo": "Não usar o nome arch_dome para inferir arquitetura."
+  },
+  {
+    "numero": 20,
+    "parecer": "REJEITADO",
+    "elemento": "Baú decorativo",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      147
+    ],
+    "gids": [
+      2605
+    ],
+    "matriz": [
+      [
+        2605
+      ]
+    ],
+    "motivo": "Sugere recompensa/interação inexistente nesta área."
+  },
+  {
+    "numero": 21,
+    "parecer": "ADAPTAVEL",
+    "elemento": "Janela circular gradeada",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      55,
+      56,
+      70,
+      71
+    ],
+    "gids": [
+      2513,
+      2514,
+      2528,
+      2529
+    ],
+    "matriz": [
+      [
+        2513,
+        2514
+      ],
+      [
+        2528,
+        2529
+      ]
+    ],
+    "motivo": "Desenho completo; fundo opaco pede alvenaria da mesma família."
+  },
+  {
+    "numero": 22,
+    "parecer": "ADAPTAVEL",
+    "elemento": "Musgo de superfície",
+    "tileset": "The Sidescroller's Dungeon Tiles 32x32",
+    "ids_locais": [
+      18,
+      19
+    ],
+    "gids": [
+      215,
+      216
+    ],
+    "matriz": [
+      [
+        215,
+        216
+      ]
+    ],
+    "motivo": "Verde muito vivo; exige ajuste futuro de paleta e encaixe."
+  },
+  {
+    "numero": 23,
+    "parecer": "ADAPTAVEL",
+    "elemento": "Madeira e prateleira",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      142,
+      143
+    ],
+    "gids": [
+      2600,
+      2601
+    ],
+    "matriz": [
+      [
+        2600,
+        2601
+      ]
+    ],
+    "motivo": "Só como apoio preso à parede; nunca substituir cama por suposição."
+  },
+  {
+    "numero": 24,
+    "parecer": "REJEITADO",
+    "elemento": "Escada quebrada como íntegra",
+    "tileset": "Dungeon Tile Set 32px",
+    "ids_locais": [
+      155
+    ],
+    "gids": [
+      2613
+    ],
+    "matriz": [
+      [
+        2613
+      ]
+    ],
+    "motivo": "Faltam degraus; não mudar a escada funcional aprovada."
+  }
+]

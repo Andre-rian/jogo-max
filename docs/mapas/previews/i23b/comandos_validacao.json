@@ -1,0 +1,32 @@
+{
+  "0": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "59a57b",
+      "wall_time_seconds": 7.4088867,
+      "exit_code": 0,
+      "original_token_count": 102,
+      "output": "........................................................................ [ 24%]\r\n........................................................................ [ 48%]\r\n........................................................................ [ 72%]\r\n........................................................................ [ 96%]\r\n.........                                                                [100%]\r\n"
+    }
+  },
+  "1": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "eab874",
+      "wall_time_seconds": 2.6061384,
+      "exit_code": 0,
+      "original_token_count": 338,
+      "output": "libpng warning: iCCP: known incorrect sRGB profile\npygame-ce 2.5.7 (SDL 2.32.10, Python 3.14.7)\r\n[SANITY] spawn bruto={'default': (11, 10), 'direita': (122, 24)}, resolvido=(11,10)\r\n{\r\n  \"frames\": 3290,\r\n  \"saltos_e_drops\": 6,\r\n  \"marcos\": [\r\n    {\r\n      \"nome\": \"01_spawn\",\r\n      \"frame\": 55,\r\n      \"posicao\": [\r\n        352,\r\n        320\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"02_corredor\",\r\n      \"frame\": 323,\r\n      \"posicao\": [\r\n        791,\r\n        768\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"03_cela_destruida\",\r\n      \"frame\": 799,\r\n      \"posicao\": [\r\n        2007,\r\n        320\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"04_passagem_profana\",\r\n      \"frame\": 987,\r\n      \"posicao\": [\r\n        2549,\r\n        320\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"05_plataforma\",\r\n      \"frame\": 1526,\r\n      \"posicao\": [\r\n        2231,\r\n        608\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"06_galeria\",\r\n      \"frame\": 1802,\r\n      \"posicao\": [\r\n        2647,\r\n        544\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"07_saida\",\r\n      \"frame\": 2226,\r\n      \"posicao\": [\r\n        3909,\r\n        768\r\n      ]\r\n    },\r\n    {\r\n      \"nome\": \"08_retorno\",\r\n      \"frame\": 3290,\r\n      \"posicao\": [\r\n        343,\r\n        320\r\n      ]\r\n    }\r\n  ]\r\n}\r\nI.2.2: o TMX � a fonte de verdade. Regenera��o aposentada; validando sem gravar.\r\nTMX preservado e v�lido.\r\n"
+    }
+  },
+  "2": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "780fdb",
+      "wall_time_seconds": 1.2659247,
+      "exit_code": 0,
+      "original_token_count": 88,
+      "output": "Tiled exit code: 0\r\nwarning: in the working copy of 'assets/maps/calabouco_1.tmx', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'core/game_scene.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'main.py', LF will be replaced by CRLF the next time Git touches it\n"
+    }
+  }
+}

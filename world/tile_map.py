@@ -27,7 +27,7 @@ def _carregar_folha(path):
 class TileRef:
     # descreve Um tile pintado numa celula Tiled: de qual tileset veio e a posição dele dentro do tile
     __slots__ = ("tileset_nome", "imagem_path", "col", "linha", "tile_id_legado", "spacing", "margin", "gid",
-                 "flip_h", "flip_v", "flip_d")
+                 "flip_h", "flip_v", "flip_d", "tintcolor")
 
     def __init__(self, tileset_nome, imagem_path, col, linha, tile_id_legado=None, spacing=0, margin=0, gid=None):
 
@@ -39,6 +39,7 @@ class TileRef:
         self.spacing = spacing
         self.margin = margin
         self.gid = gid
+        self.tintcolor = None
         #Tiled guarda 3 bits de flip no topo do gid (0xE0000000); o id do tile fica nos 29 bits (0x1FFFFFFF)
         self.flip_h = bool(gid and gid & 0x80000000)  # horizontal
         self.flip_v = bool(gid and gid & 0x40000000)  # vertical
@@ -61,6 +62,9 @@ class TileRef:
             surf = pygame.transform.rotate(surf, 90)
         if self.flip_h or self.flip_v:
             surf = pygame.transform.flip(surf, self.flip_h, self.flip_v)
+        if self.tintcolor:
+            surf = surf.copy()
+            surf.fill(self.tintcolor, special_flags=pygame.BLEND_RGBA_MULT)
         return surf
 
 
@@ -68,7 +72,8 @@ class TileMap:
 
     #calcula a fisica dos blocos, danos e desenha na tela
 
-    def __init__(self, grid, grid_decoracao=None, grid_fundo=None, grid_escadas=None, grid_plataformas=None):
+    def __init__(self, grid, grid_decoracao=None, grid_fundo=None, grid_escadas=None, grid_plataformas=None,
+                 grid_decoracao_fundo=None):
 
         self.grid = self._converter_grid_fallback(grid)
         self.linhas = len(self.grid)
@@ -76,8 +81,10 @@ class TileMap:
 
         self.grid_decoracao = grid_decoracao
         self.grid_fundo = grid_fundo
+        self.grid_decoracao_fundo = grid_decoracao_fundo
         self.grid_escadas = grid_escadas
         self.grid_plataformas = grid_plataformas
+        self.aberturas_passagens = []
 
         self.rects_solidos = self._calcular_rects_solidos()
         self.rects_plataforma = self._calcular_rects_plataforma()
@@ -217,7 +224,6 @@ class TileMap:
         arvore = ET.parse(caminho)
         raiz = arvore.getroot()
 
-
         grupo = None
         nomes_encontrados = []
 
@@ -228,29 +234,47 @@ class TileMap:
                 break
 
         if grupo is None:
-            logger.warning(f"[MAPA] object layer '{nome_camada}' não encontrado em '{caminho}'"
-                           f"Object layers disponíveis: {nomes_encontrados}")
+            logger.warning(
+                f"[MAPA] object layer '{nome_camada}' não encontrado em '{caminho}'. "
+                f"Object layers disponíveis: {nomes_encontrados}"
+            )
             return None
 
         objetos = []
         for obj in grupo.findall("object"):
             tipo = (obj.get("type") or obj.get("class") or "").strip().lower()
-            x, y = float(obj.get("x")), float(obj.get("y"))
-
+            if tipo == "spwan":
+                tipo = "spawn"  # compatibilidade legado; convenção oficial: spawn
+            x, y = float(obj.get("x", 0)), float(obj.get("y", 0))
 
             propriedades = {}
             props_el = obj.find("properties")
             if props_el is not None:
                 for p in props_el.findall("property"):
-                    propriedades[p.get("name")] = p.get("value")
+                    nome_prop = p.get("name")
+                    valor = p.get("value")
+                    if valor is None:
+                        valor = p.get("propertytype") or p.text
+                    if nome_prop:
+                        propriedades[nome_prop] = valor
+
+            # Normalização de aliases comuns (legado -> oficial)
+            if "tipo" not in propriedades and "type" in propriedades:
+                propriedades["tipo"] = propriedades.get("type")
+            if "type" not in propriedades and "tipo" in propriedades:
+                propriedades["type"] = propriedades.get("tipo")
 
             objetos.append({
-                "tipo" : tipo,
-                "id": int(obj.get("id")),
-                "col" : int(x // Tile_size),
-                "linha" : int(y // Tile_size) ,
-                "propriedades" : propriedades ,
-                
+                "tipo": tipo,
+                "id": int(obj.get("id", 0)),
+                "nome": obj.get("name") or "",
+                "col": int(x // Tile_size),
+                "linha": int(y // Tile_size),
+                "x": x,
+                "y": y,
+                "width": float(obj.get("width", 0) or 0),
+                "height": float(obj.get("height", 0) or 0),
+                "propriedades": propriedades,
             })
         return objetos
 
@@ -258,7 +282,7 @@ class TileMap:
 
 
     @staticmethod
-    def carregar_camada_tmx(caminho, nome_camada):
+    def carregar_camada_tmx(caminho, nome_camada, obrigatoria=True):
         arvore = ET.parse(caminho)
         raiz = arvore.getroot()
         largura = int(raiz.get("width"))
@@ -276,22 +300,39 @@ class TileMap:
                 break
 
         if camada is None:
-            logger.warning(
-                f"[MAPA] camada '{nome_camada}' não encontrado em '{caminho}'. "
-                f"Camadas disponiveis: {nomes_encontrados}"
-
-            )
+            if obrigatoria:
+                logger.warning(
+                    f"[MAPA] camada '{nome_camada}' não encontrada em '{caminho}'. "
+                    f"Camadas disponíveis: {nomes_encontrados}"
+                )
+            else:
+                logger.info(
+                    f"[MAPA] camada opcional '{nome_camada}' ausente em '{caminho}'."
+                )
             return None
 
         dados = camada.find("data")
         texto = dados.text.strip()
         gids = [int(v) for v in texto.replace("\n", "").split(",") if v.strip() != ""]
+        # Tiled usa #AARRGGBB; pygame usa RGBA. Tint é local à camada,
+        # sem alterar a folha compartilhada ou acrescentar iluminação global.
+        tint = camada.get("tintcolor")
+        cor = None
+        if tint:
+            hex_cor = tint.lstrip("#")
+            if len(hex_cor) == 8:
+                hex_cor = hex_cor[2:] + hex_cor[:2]
+            cor = pygame.Color("#" + hex_cor)
 
         grid = []
         for linha_i in range(altura):
             inicio = linha_i * largura
             linha_gids = gids[inicio:inicio + largura]
             linha = [TileMap._resolver_gid(g, tilesets) for g in linha_gids]
+            if cor:
+                for ref in linha:
+                    if ref is not None:
+                        ref.tintcolor = cor
             grid.append(linha)
 
         return grid
@@ -400,6 +441,12 @@ class TileMap:
 
 
         self._desenhar_camada_simples(tela, camera, self.grid_fundo, 
+                                      linha_inicio, linha_fim, col_inicio, col_fim)
+        # Vão atrás do arco existente: o fundo de tijolos não fecha uma porta aberta.
+        for abertura in self.aberturas_passagens:
+            pygame.draw.rect(tela, (6, 8, 16), camera.aplicar(abertura),
+                             border_top_left_radius=24, border_top_right_radius=24)
+        self._desenhar_camada_simples(tela, camera, self.grid_decoracao_fundo,
                                       linha_inicio, linha_fim, col_inicio, col_fim)
 
         self._desenhar_camada_simples(tela, camera, self.grid_escadas,

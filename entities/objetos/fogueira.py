@@ -116,9 +116,9 @@ class Fogueira:
 
                     audio.play_sfx("campfire_light")
 
-                    fogueiras_ativas.add((self.col, self.linha))
+                    fogueiras_ativas.add((sala_atual, self.col, self.linha))
 
-                    player.defenir_checkpoint(sala_atual, x=self.rect.centerx, y=self.rect.centery)
+                    player.defenir_checkpoint(sala_atual, x=player.rect.x, y=player.rect.y)
 
                     player.cooldown_interacao = 60
 
@@ -133,6 +133,8 @@ class Fogueira:
                 hud.mostrar_prompt("pressione E para interagir")
 
                 if pode_interagir and teclas[pygame.K_e]:
+
+                    player.defenir_checkpoint(sala_atual, x=player.rect.x, y=player.rect.y)
 
                     logger.debug(f"E pressionado na fogueira id={id(self)}, callback={self._callback_abrir_menu}")
 
@@ -174,128 +176,77 @@ class Fogueira:
 
 
 
-    def _garantir_particulas(self):
-        if not hasattr(self, '_particulas'):
-            self._particulas = []
-        if not self._particulas:
-            base_x = self.rect.centerx
-            base_y = self.rect.bottom - 12
-            for i in range(8):
-                self._particulas.append({
-                    'x': base_x + (i % 4 - 1.5) * 2,
-                    'y': base_y - i * 3,
-                    'vx': 0.0,
-                    'vy': -0.25 - (i % 3) * 0.05,
-                    'vida': 30 + i * 7,
-                    'vida_max': 40 + i * 5,
-                    'cor': (150, 200, 255) if i % 2 == 0 else (175, 120, 255),
-                })
-
-    def _atualizar_particulas(self):
-        self._garantir_particulas()
-        import random, math
-        rnd = random.Random((self.col * 131 + self.linha * 17 + self._frame // 6) & 0xFFFFFFFF)
-        for p in self._particulas:
-            p['x'] += p['vx'] + math.sin((self._frame + p['vida']) * 0.08) * 0.08
-            p['y'] += p['vy']
-            p['vida'] -= 1
-            if p['vida'] <= 0:
-                p['x'] = self.rect.centerx + rnd.uniform(-4, 4)
-                p['y'] = self.rect.bottom - 14 + rnd.uniform(-2, 2)
-                p['vy'] = rnd.uniform(-0.45, -0.20)
-                p['vida_max'] = rnd.randint(28, 52)
-                p['vida'] = p['vida_max']
-                p['cor'] = (150, 210, 255) if rnd.random() < 0.5 else (180, 130, 255)
-
     @classmethod
-    def _obter_mascara_luz(cls, raio):
-        cache = getattr(cls, '_cache_luz', None)
-        if cache is None:
-            cache = {}
-            cls._cache_luz = cache
-        surf = cache.get(raio)
-        if surf is not None:
-            return surf
-        surf = pygame.Surface((raio * 2, raio * 2), pygame.SRCALPHA)
-        cx = cy = raio
-        max_d2 = raio * raio
-        # Máscara radial suave (sem anéis/círculo sólido). Pequena e delicada.
-        for y in range(raio * 2):
-            dy = y - cy
-            for x in range(raio * 2):
-                dx = x - cx
-                d2 = dx * dx + dy * dy
-                if d2 > max_d2:
-                    continue
-                t = 1.0 - (d2 / max_d2)
-                # curva suave: centro leve, borda some naturalmente
-                a = int(70 * (t * t))
-                if a <= 0:
-                    continue
-                b = 255
-                g = 170
-                r = 120
-                # leve nuance violeta nas bordas
-                if t < 0.45:
-                    r = 150
-                    b = 235
-                surf.set_at((x, y), (r, g, b, a))
-        cache[raio] = surf
-        return surf
-
-    def _desenhar_luz_ambiente(self, tela, camera, sr, pulso):
-        # Iluminação 2D gradual localizada, sem contorno perceptível.
-        if not self.ativa:
-            return
-        import math
-        raio = 26  # pequena, sensação de solidão
-        intensidade = 0.22 + 0.05 * (0.5 + 0.5 * math.sin(self._frame * 0.07))
-        base = self._obter_mascara_luz(raio)
-        luz = base.copy()
-        luz.fill((255, 255, 255, max(0, min(255, int(255 * intensidade)))), special_flags=pygame.BLEND_RGBA_MULT)
-        # leve deslocamento vertical acompanha chama; sem forma geométrica visível
-        tela.blit(luz, (sr.centerx - raio, sr.bottom - raio - 10 + pulso), special_flags=pygame.BLEND_RGBA_ADD)
+    def _obter_luz(cls, largura, altura, alfa):
+        """Textura pequena com queda suave de alpha; calculada uma vez por tamanho."""
+        if not hasattr(cls, "_cache_luz_suave"):
+            cls._cache_luz_suave = {}
+        chave = (largura, altura, alfa)
+        if chave not in cls._cache_luz_suave:
+            luz = pygame.Surface((largura, altura), pygame.SRCALPHA)
+            for y in range(altura):
+                dy = (2 * y / (altura - 1)) - 1
+                for x in range(largura):
+                    dx = (2 * x / (largura - 1)) - 1
+                    queda = max(0.0, 1.0 - dx * dx - dy * dy)
+                    luz.set_at((x, y), (95, 155, 250, round(alfa * queda ** 3)))
+            cls._cache_luz_suave[chave] = luz
+        return cls._cache_luz_suave[chave]
 
     def desenhar(self, tela, camera):
-        sr = camera.aplicar(self.rect)
         import math
 
-        pygame.draw.rect(tela, (70, 72, 82), (sr.x + 4, sr.bottom - 10, sr.width - 8, 8), border_radius=2)
-        pygame.draw.rect(tela, (95, 96, 110), (sr.x + 6, sr.bottom - 9, sr.width - 12, 2), border_radius=1)
-
-        if not self.ativa:
-            pygame.draw.ellipse(tela, (60, 55, 75), (sr.centerx - 6, sr.bottom - 16, 12, 8))
-            pygame.draw.ellipse(tela, (95, 85, 130), (sr.centerx - 3, sr.bottom - 14, 6, 4))
-            if DEBUG:
-                pygame.draw.rect(tela, (200, 100, 30), sr, 1)
-            return
-
-        pulso = int(math.sin(self._frame * 0.12) * 2)
-        altura_extra = int(math.sin(self._frame * 0.07) * 1)
-        self._atualizar_particulas()
-        self._desenhar_luz_ambiente(tela, camera, sr, pulso)
-        # brilho discreto local na chama (gradiente suave, sem círculo visível)
-        glow_r = 8
-        glow = self._obter_mascara_luz(glow_r).copy()
-        glow.fill((255, 255, 255, 46), special_flags=pygame.BLEND_RGBA_MULT)
-        tela.blit(glow, (sr.centerx - glow_r, sr.centery - glow_r + 2 + pulso), special_flags=pygame.BLEND_RGBA_ADD)
-
-        topo = sr.top + 7 + pulso - altura_extra
+        sr = camera.aplicar(self.rect)
+        # Ciclo de tres segundos a 60 Hz, sem alterar o ritmo de gameplay.
+        pulso = math.sin(self._frame * math.tau / 180)
         base_y = sr.bottom - 12
-        pygame.draw.polygon(tela, (120, 80, 210), [(sr.centerx, topo), (sr.centerx - 9, base_y), (sr.centerx + 9, base_y)])
-        pygame.draw.polygon(tela, (90, 140, 255), [(sr.centerx, topo + 3), (sr.centerx - 6, base_y), (sr.centerx + 6, base_y)])
-        pygame.draw.polygon(tela, (170, 225, 255), [(sr.centerx, topo + 7), (sr.centerx - 3, base_y), (sr.centerx + 3, base_y)])
-        pygame.draw.ellipse(tela, (235, 245, 255), (sr.centerx - 2, sr.centery + 2 + pulso, 4, 4))
+        altura = (30 + round(2 * pulso)) if self.ativa else (12 + round(pulso))
+        cx = sr.centerx
+        topo = base_y - altura
+        oscilacao = round(2 * math.sin(self._frame * math.tau / 120))
 
-        for p in self._particulas:
-            vida_t = max(0.0, min(1.0, p['vida'] / max(1, p['vida_max'])))
-            a = int(140 * vida_t)
-            px = int(p['x'])
-            py = int(p['y'] + pulso * 0.2)
-            pr = camera.aplicar(pygame.Rect(px, py, 2, 2))
-            ps = pygame.Surface((2, 2), pygame.SRCALPHA)
-            ps.fill((*p['cor'], a))
-            tela.blit(ps, (pr.x, pr.y))
+        luz = self._obter_luz(44, 60, 26) if self.ativa else self._obter_luz(26, 32, 14)
+        luz.set_alpha(round(225 + 20 * pulso))
+        # Blit alpha normal: a luz nunca soma RGB ignorando o alpha da textura.
+        tela.blit(luz, luz.get_rect(center=(cx, base_y - altura // 2)))
+        reflexo = self._obter_luz(40, 6, 34) if self.ativa else self._obter_luz(24, 4, 16)
+        reflexo.set_alpha(round(215 + 20 * pulso))
+        tela.blit(reflexo, reflexo.get_rect(center=(cx, sr.bottom + 1)))
+
+        pygame.draw.rect(tela, (70, 72, 82), (sr.x + 4, sr.bottom - 10, sr.width - 8, 8), border_radius=2)
+        pygame.draw.rect(tela, (95, 105, 135) if self.ativa else (80, 87, 106),
+                         (sr.x + 6, sr.bottom - 9, sr.width - 12, 2), border_radius=1)
+
+        largura = 8 if self.ativa else 5
+        externa = (119, 91, 218) if self.ativa else (86, 74, 153)
+        interna = (113, 174, 255) if self.ativa else (90, 132, 214)
+        nucleo = (218, 244, 255) if self.ativa else (150, 191, 239)
+        pygame.draw.polygon(tela, externa, [
+            (cx + oscilacao, topo), (cx + largura - 2, topo + altura // 2),
+            (cx + largura, base_y - 7), (cx + largura - 2, base_y),
+            (cx - largura + 2, base_y), (cx - largura, base_y - 6),
+            (cx - 3, topo + altura // 2),
+        ])
+        pygame.draw.polygon(tela, interna, [
+            (cx + oscilacao, topo + altura // 5), (cx + largura - 3, base_y - 5),
+            (cx + 3, base_y), (cx - 3, base_y), (cx - largura + 3, base_y - 5),
+        ])
+        pygame.draw.polygon(tela, nucleo, [
+            (cx, topo + altura // 2), (cx + 2, base_y - 2),
+            (cx, base_y), (cx - 2, base_y - 2),
+        ])
+
+        if not hasattr(self, "_sprite_particula"):
+            self._sprite_particula = pygame.Surface((2, 2), pygame.SRCALPHA)
+        # Trajetorias deterministicas: desenhar duas vezes nao avanca particulas.
+        for i in range(7 if self.ativa else 2):
+            fase = ((self._frame + i * 17) % 110) / 110
+            px = cx + round(math.sin(fase * math.tau + i) * (4 if self.ativa else 2))
+            py = base_y - 3 - round(fase * (45 if self.ativa else 20))
+            alfa = round((140 if self.ativa else 70) * math.sin(math.pi * fase))
+            cor = (160, 204, 255) if i % 2 == 0 else (180, 142, 250)
+            self._sprite_particula.fill((*cor, alfa))
+            tela.blit(self._sprite_particula, (px, py))
 
         if DEBUG:
             pygame.draw.rect(tela, (120, 100, 220), sr, 1)

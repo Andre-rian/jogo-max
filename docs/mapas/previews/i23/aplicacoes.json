@@ -1,0 +1,171 @@
+[
+  {
+    "sprite": "cama_pedra",
+    "camada": "decoracao",
+    "col": 5,
+    "row": 11,
+    "gids": [
+      [
+        7000,
+        7001,
+        7002
+      ]
+    ]
+  },
+  {
+    "sprite": "fissura_profana",
+    "camada": "decoracao_fundo",
+    "col": 69,
+    "row": 7,
+    "gids": [
+      [
+        7003,
+        7004
+      ],
+      [
+        7011,
+        7012
+      ],
+      [
+        7019,
+        7020
+      ]
+    ]
+  },
+  {
+    "sprite": "umidade",
+    "camada": "decoracao_fundo",
+    "col": 3,
+    "row": 2,
+    "gids": [
+      [
+        7005,
+        7006
+      ],
+      [
+        7013,
+        7014
+      ]
+    ]
+  },
+  {
+    "sprite": "umidade",
+    "camada": "decoracao_fundo",
+    "col": 45,
+    "row": 9,
+    "gids": [
+      [
+        7005,
+        7006
+      ],
+      [
+        7013,
+        7014
+      ]
+    ]
+  },
+  {
+    "sprite": "umidade",
+    "camada": "decoracao_fundo",
+    "col": 27,
+    "row": 13,
+    "gids": [
+      [
+        7005,
+        7006
+      ],
+      [
+        7013,
+        7014
+      ]
+    ]
+  },
+  {
+    "sprite": "umidade",
+    "camada": "decoracao_fundo",
+    "col": 94,
+    "row": 13,
+    "gids": [
+      [
+        7005,
+        7006
+      ],
+      [
+        7013,
+        7014
+      ]
+    ]
+  },
+  {
+    "sprite": "umidade",
+    "camada": "decoracao_fundo",
+    "col": 115,
+    "row": 13,
+    "gids": [
+      [
+        7005,
+        7006
+      ],
+      [
+        7013,
+        7014
+      ]
+    ]
+  },
+  {
+    "sprite": "rachadura",
+    "camada": "decoracao_fundo",
+    "col": 18,
+    "row": 6,
+    "gids": [
+      [
+        7007
+      ],
+      [
+        7015
+      ]
+    ]
+  },
+  {
+    "sprite": "rachadura",
+    "camada": "decoracao_fundo",
+    "col": 30,
+    "row": 6,
+    "gids": [
+      [
+        7007
+      ],
+      [
+        7015
+      ]
+    ]
+  },
+  {
+    "sprite": "rachadura",
+    "camada": "decoracao_fundo",
+    "col": 60,
+    "row": 18,
+    "gids": [
+      [
+        7007
+      ],
+      [
+        7015
+      ]
+    ]
+  },
+  {
+    "sprite": "rachadura",
+    "camada": "decoracao_fundo",
+    "col": 105,
+    "row": 18,
+    "gids": [
+      [
+        7007
+      ],
+      [
+        7015
+      ]
+    ]
+  }
+]

@@ -1,0 +1,303 @@
+{
+  "atributos": {
+    "version": "1.10",
+    "tiledversion": "1.12.2",
+    "orientation": "orthogonal",
+    "renderorder": "right-down",
+    "width": "128",
+    "height": "32",
+    "tilewidth": "32",
+    "tileheight": "32",
+    "infinite": "0",
+    "backgroundcolor": "#0b0d18",
+    "nextlayerid": "9",
+    "nextobjectid": "21"
+  },
+  "elementos": {
+    "properties:": "3b1e9fa3885bdcf28b358f6469bedd9d6ccf644d133e37977d46a22e0da40d84",
+    "layer:fundo": "ecb1c096555341207e0808024c238bf04b22e348917065a9cd0782854237b5eb",
+    "layer:escadas": "77052db8cbaa5305e72547693fbe171003521ba0af01df5248cf41287102b7dc",
+    "layer:plataformas": "87fcdbdd60464fd5df80702595fdb46ad03b77fff4e9f559eea18723ab8fb034",
+    "layer:colisao": "0b932609bac68efa9082a8ab504912f1e1b37efe2a91f6024935b321d88c410e",
+    "objectgroup:objetos": "6b3755157db25b04b70ef03b88a274383f06220a05f05be6ca4dde6914334e1d",
+    "objectgroup:referencias": "41897ef095d5636e0d5d4a567a8e64b942102ac8aae239e186e31e89128e8ae6"
+  },
+  "arquivos": {
+    "assets/tileset/calabouco/chao_variantes.png": {
+      "sha256": "aa6de469168a47f91c06ab3aa021316d17cd8cf601e4ed6ac28106ab7fc6d992",
+      "mtime_ns": 1794352805172693500
+    },
+    "assets/tileset/calabouco/Dungeon Tile Set 32px.png": {
+      "sha256": "292ffc5db6691cfc4cc512dee9ee72f233d4c70e2067cd1311dc9f830efc7b5a",
+      "mtime_ns": 1794352805140927600
+    },
+    "assets/tileset/calabouco/Dungeon Tile Set.png": {
+      "sha256": "315508f7745691a1927fab2df06e27cd7fa51b8fba47d713d4ffb3cbbf0a6a89",
+      "mtime_ns": 1794352805140927600
+    },
+    "assets/tileset/calabouco/parede_variantes.png": {
+      "sha256": "45a84a989b9b93fc91b020ec7699bc96dd8781ac09442f79560ef080c0076943",
+      "mtime_ns": 1794352805189745400
+    },
+    "assets/tileset/calabouco/Platformer Asset All K.png": {
+      "sha256": "5261a2e84f2ba45131e82d14ad85a28eb40d164a22eb46240185b251e57b4f4b",
+      "mtime_ns": 1794352805169642800
+    },
+    "assets/tileset/calabouco/The Sidescroller's Dungeon Tiles 32x32.png": {
+      "sha256": "6f9dde9cf1589c059d7f7c8530d5e6469015fc6483274ed8338227c47a126efc",
+      "mtime_ns": 1794352805171146600
+    },
+    "assets/tileset/calabouco/tileset.png": {
+      "sha256": "9952414dee4606ee31fa80b6ff83c8f49d15a5217acf222a906c2cafb5be393d",
+      "mtime_ns": 1794352805190755900
+    },
+    "assets/tileset/calabouco/Torch Sprite Sheet 32x64.png": {
+      "sha256": "d0a20de8d253f2bfb862b9d049ddca3b824570e9fc2154e0b6599db2f3c3a203",
+      "mtime_ns": 1794352805171146600
+    },
+    "assets/tileset/calabouco/[32x32] Dungeon Bricks Plain.png": {
+      "sha256": "7417186b2172e19077123d276844fadd617f0181688e283cfb0e5afef2855ec9",
+      "mtime_ns": 1794352805171146600
+    },
+    "assets/tileset/calabouco/[32x32] Dungeon Bricks Shadow.png": {
+      "sha256": "6dd9abc39e15f9af5bc8a98044cae6f918ed4e816a3030f920d4eec84c8fcea7",
+      "mtime_ns": 1794352805172693500
+    },
+    "assets/tileset/profane_echo_celas/cama_pedra.png": {
+      "sha256": "e34c6b6cdc02c9c959488a50248467020bb956d9c61692b60bee9e558b1634a7",
+      "mtime_ns": 1795389582113095600
+    },
+    "assets/tileset/profane_echo_celas/decoracao_celas.png": {
+      "sha256": "c850dcb545dedd9b8a42cb5de40d37b722faa80edf9772c7b85d7c8172fc4726",
+      "mtime_ns": 1795389582201615400
+    },
+    "assets/tileset/profane_echo_celas/fissura_profana.png": {
+      "sha256": "c8f4fc2ed5c6a8e9f774a94f0ab49bac16b41ef8bba1e90f64ffb6f5db496858",
+      "mtime_ns": 1795389582144758900
+    },
+    "assets/tileset/profane_echo_celas/manifesto.json": {
+      "sha256": "cf6757a728e9903f7490d0fc8ebe212cb293b2cbc266efccc82b212d5e74b0b6",
+      "mtime_ns": 1795389582201615400
+    },
+    "assets/tileset/profane_echo_celas/rachadura.png": {
+      "sha256": "f1f695b85f7f2802415c1d921b5648016cbb8476b86115466480ddbbe9063ccd",
+      "mtime_ns": 1795389582197312600
+    },
+    "assets/tileset/profane_echo_celas/README.md": {
+      "sha256": "8a7cc3330bb719ffab448eb4fd31fbbfb0b6a5c6eb85c7037de89b2ab6faf8f0",
+      "mtime_ns": 1795389752199402600
+    },
+    "assets/tileset/profane_echo_celas/umidade.png": {
+      "sha256": "03ad6f77f912fba20b6b13cfe2dd713ee5e9db37b82f493afa61f665ea2976c6",
+      "mtime_ns": 1795389582171310700
+    },
+    "assets/tileset/tilesets/chao_variantes.tsx": {
+      "sha256": "cc8a97a4c7b21281b9e9f57aefe03b97e1cdd8c92b190923c405f14665ac8a3c",
+      "mtime_ns": 1794352805192893200
+    },
+    "assets/tileset/tilesets/decoracao_tileset.tsx": {
+      "sha256": "a03fbec6c460f7d27f91bf310eefec75f7a711781a0dc410ec5f6680f8a23d2f",
+      "mtime_ns": 1794352805193901300
+    },
+    "assets/tileset/tilesets/Dungeon Tile Set 32px.tsx": {
+      "sha256": "e80730ab054700e5df36f2888f6d7fa5150931654c55cd19bb924678b899a5c8",
+      "mtime_ns": 1794352805191764900
+    },
+    "assets/tileset/tilesets/parede_variantes.tsx": {
+      "sha256": "266f4a96858b15e2926cac58e416881310fe73cbc0c155c55e7d14260d07d6c2",
+      "mtime_ns": 1794352805193901300
+    },
+    "assets/tileset/tilesets/Platformer Asset All K.tsx": {
+      "sha256": "adcc9d71ffbb4ae06a1287d6bae7d06b68f72ea00bf11bf8acbaf10fdf350763",
+      "mtime_ns": 1794352805191764900
+    },
+    "assets/tileset/tilesets/Platformer K - grade continua.tsx": {
+      "sha256": "7bf50f43ff6d0cc64459cd0ef6c506e38261c4b902227e72998d3d926420a35a",
+      "mtime_ns": 1795365472130830100
+    },
+    "assets/tileset/tilesets/Profane Echo - celas decoracao.tsx": {
+      "sha256": "95693b073ae5b91e3a44558c0f0a4746e2aea9cf19c88adf0cc0e24bb5cff8c5",
+      "mtime_ns": 1795389581701366600
+    },
+    "assets/tileset/tilesets/The Sidescroller's Dungeon Tiles 32x32.tsx": {
+      "sha256": "93caaf13a49e0f80048349eb3b852921fe3dafdf17affa435f38cf348f400dab",
+      "mtime_ns": 1794352805191764900
+    },
+    "assets/tileset/tilesets/tileset.tsx": {
+      "sha256": "d4b9b2ac12813cf16b9ff3f3140ad2611bd4e8f746f9c8bdd43a08434b9b33ee",
+      "mtime_ns": 1794352805193901300
+    },
+    "assets/tileset/tilesets/Torch Sprite Sheet 32x64.tsx": {
+      "sha256": "8019e33383d4a96871ac8e27fc61cf5815f8d24ff68cc5391fc544a832eb0458",
+      "mtime_ns": 1794352805192893200
+    },
+    "assets/tileset/calabouco/decoracao/decoracao_tileset.png": {
+      "sha256": "1b23d1dcfc7025e7241a4d440e4c65f71ba1faf08f8d944fc20a3e0e6f96d65e",
+      "mtime_ns": 1794352805187729600
+    },
+    "assets/tileset/calabouco/decoracao/decoracao_tileset_1.png": {
+      "sha256": "1bb3cadead89a455ccbdb11345878421199de30d6e9974e566cd265083b3fac6",
+      "mtime_ns": 1794352805187729600
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px.zip": {
+      "sha256": "e38c6c41395a3372bb8cfd25127fbd8b0335278ffc794447e81ac67d936a247d",
+      "mtime_ns": 1794352805172693500
+    },
+    "assets/tileset/calabouco/decoracao/escada_base.png": {
+      "sha256": "b251b259271be3fbd7419b84f7c4b8b3161baf1a7df9610062f9484a0ca5109f",
+      "mtime_ns": 1794352805188739100
+    },
+    "assets/tileset/calabouco/decoracao/escada_meio.png": {
+      "sha256": "e266773e58ee40aa311873ef8dbd7c9d40dba82ed3edf8775ff595edccd606c0",
+      "mtime_ns": 1794352805188739100
+    },
+    "assets/tileset/calabouco/decoracao/escada_topo.png": {
+      "sha256": "6fa335b9f13289d1b13e8f0bf9c6281a5523d43037c0657029414272eb7ca581",
+      "mtime_ns": 1794352805188739100
+    },
+    "assets/tileset/calabouco/decoracao/tileset_decoracao_dungeon_32px.png": {
+      "sha256": "eb8c386f8ac929a8483ca7f064345bdbf6bcd24e0b08d2002350ade55b07902a",
+      "mtime_ns": 1794352805189745400
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/01_ladder.png": {
+      "sha256": "5f1e1e6f466234de091d6463687970e47b2c80ec279ba37b463bb4ff931302d2",
+      "mtime_ns": 1794352805174821100
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/02_plank_bar_A.png": {
+      "sha256": "e3af061ad914dea0b33667a9d1d1d9856b6038105ebf63b73fe88c15f9f14e7b",
+      "mtime_ns": 1794352805174821100
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/03_plank_bar_B.png": {
+      "sha256": "5001382c98054a77b44e65ea94bdaa0409a6632ac7752c0b9872dfa177d9c0c6",
+      "mtime_ns": 1794352805176070300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/04_wall_bracket_shelf.png": {
+      "sha256": "09dcc96c4e5effea9595d2ad5933aaf284a452cc617ed33645dfa291a8f9fe0c",
+      "mtime_ns": 1794352805176070300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/05_hatch_trapdoor.png": {
+      "sha256": "496f25838149e6cb5e63c2232237d699a3fa26b9911126a730ef83ad7ec2fe9e",
+      "mtime_ns": 1794352805176070300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/06_chest_A.png": {
+      "sha256": "8f2eb9732d3c784758eef5b6c811949298a2d34e4a05378abdd154090f848386",
+      "mtime_ns": 1794352805177082300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/07_chest_B.png": {
+      "sha256": "8149eee4e43023b67dd89ee4c125b2491a221b09e0b432268bc0c51020d46ed6",
+      "mtime_ns": 1794352805177082300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/08_key.png": {
+      "sha256": "35a1ba2f2932936beec312ff6b5704edca16c7c93b8b42360c7a1c87f6e5b306",
+      "mtime_ns": 1794352805178092000
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/09_torch_bracket_left.png": {
+      "sha256": "fcc9e1dee54ff9894d3a206b10b120aa191631c32d4b7d6912156d1fd2efe662",
+      "mtime_ns": 1794352805178092000
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/10_torch_bracket_right.png": {
+      "sha256": "8462037733c549b9dc81cf90c1a03300f91ed22913e6eaa1395e2efb207a5792",
+      "mtime_ns": 1794352805179130600
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/11_wall_sconce.png": {
+      "sha256": "e80d113e22d962871b45e1a72d02061079c35f4a6c0fbd40d73eb4eb1b43e0b8",
+      "mtime_ns": 1794352805179130600
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/12_door_barred.png": {
+      "sha256": "c037f3ac86963d0e49b13b21242da43e82eadf3d877d6104d1ad8e48c7b6c154",
+      "mtime_ns": 1794352805179130600
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/13_hook_nub_A.png": {
+      "sha256": "b855c1ee165924f8e8069385a6e6a7926007604404cbe362e1685aa58c2f3eb3",
+      "mtime_ns": 1794352805180156700
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/14_hook_nub_B.png": {
+      "sha256": "db7a1a13e61bbb28cb1e26932dfe72f56da5f259d9b443332f63685e65329124",
+      "mtime_ns": 1794352805180156700
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/15_fence_ornate.png": {
+      "sha256": "8baafe7fed7763a86cce976a6f49db43c177357804ff16749929661cefd4407f",
+      "mtime_ns": 1794352805181155400
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/16_lantern_hanging.png": {
+      "sha256": "1a249ada0d99a7fe3db5f8bcd38b8cdd8a84febb051272084303fd5870eb22be",
+      "mtime_ns": 1794352805181659900
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/17_fence_plain.png": {
+      "sha256": "820a956b73028a24aa75f5acabe56dc08c7c3a0e1cf72955ce8a7f480e690b7a",
+      "mtime_ns": 1794352805181659900
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/18_chain_pendant_A.png": {
+      "sha256": "7a08ea023673a85c0065590afdbba0b9f596b229bbc515a0e9abf94f41472914",
+      "mtime_ns": 1794352805181659900
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/19_chain_pendant_B.png": {
+      "sha256": "e1c07897bbfe19631b0dea1fdaa58702b85b058ab354b035f4bc9455d61073f5",
+      "mtime_ns": 1794352805182663500
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/20_chain_pendant_C.png": {
+      "sha256": "31c1330dca18177b3aab7229ac515aa8500c16b8b684bdc881c6bfb7bc743234",
+      "mtime_ns": 1794352805182663500
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/21_chain_swag.png": {
+      "sha256": "d33ed450e5d94afb612aca739ef6526372a1ff72d654a9215e5f2ed0167a24e0",
+      "mtime_ns": 1794352805183677000
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/22_vase_large.png": {
+      "sha256": "1c8bcbea5006301909722f65bf509317537572d0118dc07975a42b8fc20c9217",
+      "mtime_ns": 1794352805184070700
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/23_barrel.png": {
+      "sha256": "da037bc56ea7ca418cf131bcaf2abe2d9bf1207471165b9fe5554e33a64fc786",
+      "mtime_ns": 1794352805184701900
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/24_rubble_A.png": {
+      "sha256": "3050d5e7e23fbc133ee05fdc39ffbea790c3481433aeb52d449d441556ce2d7f",
+      "mtime_ns": 1794352805184701900
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/25_rubble_B.png": {
+      "sha256": "3b5339229b3de3d172b982e4e3b8bc1207bff769fcf876669a768c55728387e2",
+      "mtime_ns": 1794352805185716300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/26_spiderweb.png": {
+      "sha256": "9318c51b5ed30e9e693f76563555faacfe22276e2830866954967be1a0c19e22",
+      "mtime_ns": 1794352805185716300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/27_arch_dome_gray.png": {
+      "sha256": "a103f6ace851eab4a19763d43d9c4519585557bee5ac283d35a7beb45eba47fe",
+      "mtime_ns": 1794352805185716300
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/28_arch_dome_tan.png": {
+      "sha256": "69271f3068f1bce804560ce43b62cc7dfb23293903d40b33b14a2602d4183f1a",
+      "mtime_ns": 1794352805186722700
+    },
+    "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/29_border_strip.png": {
+      "sha256": "96174e4fbea3990576fee15b582470ebd2d1a51ec2d08f3e548c7c13057f0323",
+      "mtime_ns": 1794352805186722700
+    },
+    "jogo.log": {
+      "sha256": "445a4cec6fb91f8b9c1f86c2e0dd3e0a54a08b9d91342489fab8b10e7267c8a5",
+      "mtime_ns": 1795362917462280400
+    },
+    "saves.db": {
+      "sha256": "76900c13ced5aec1247a525856d6cbb2944059248a37334351849b2d8ade09bc",
+      "mtime_ns": 1795294057361541300
+    },
+    "main.py": {
+      "sha256": "f9ea96ebc491f7a6209f9332b7280a5bef38c4690c9d6093b5690294f64524ac",
+      "mtime_ns": 1795360102682707000
+    },
+    "core/game_scene.py": {
+      "sha256": "cd3fa641e09353e2be58c59b234da6ee407a6584b3b445cd4377560f53e4c27a",
+      "mtime_ns": 1795360221458160800
+    },
+    "world/tile_map.py": {
+      "sha256": "fdadde79acd0cb14fd81f0e05d89bfcfaefcbf421a967e93c9345680ecfad0f6",
+      "mtime_ns": 1795360102683730900
+    },
+    "core/camera.py": {
+      "sha256": "8131ec41c8481dca3636a6b117e2144cdb43c5ce22e5edbcca7d4d66bfcbf9b5",
+      "mtime_ns": 1795133085630522900
+    }
+  }
+}

@@ -1,0 +1,452 @@
+[
+  {
+    "arquivo": "assets/tileset/calabouco/[32x32] Dungeon Bricks Plain.png",
+    "dimensoes": [
+      256,
+      224
+    ],
+    "alpha_nao_zero": 57344,
+    "pixels": 57344,
+    "sha256": "7417186b2172e19077123d276844fadd617f0181688e283cfb0e5afef2855ec9"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/[32x32] Dungeon Bricks Shadow.png",
+    "dimensoes": [
+      256,
+      224
+    ],
+    "alpha_nao_zero": 57344,
+    "pixels": 57344,
+    "sha256": "6dd9abc39e15f9af5bc8a98044cae6f918ed4e816a3030f920d4eec84c8fcea7"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/chao_variantes.png",
+    "dimensoes": [
+      384,
+      256
+    ],
+    "alpha_nao_zero": 98304,
+    "pixels": 98304,
+    "sha256": "aa6de469168a47f91c06ab3aa021316d17cd8cf601e4ed6ac28106ab7fc6d992"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/decoracao_tileset.png",
+    "dimensoes": [
+      128,
+      32
+    ],
+    "alpha_nao_zero": 2868,
+    "pixels": 4096,
+    "sha256": "1b23d1dcfc7025e7241a4d440e4c65f71ba1faf08f8d944fc20a3e0e6f96d65e"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/decoracao_tileset_1.png",
+    "dimensoes": [
+      256,
+      288
+    ],
+    "alpha_nao_zero": 26376,
+    "pixels": 73728,
+    "sha256": "1bb3cadead89a455ccbdb11345878421199de30d6e9974e566cd265083b3fac6"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/01_ladder.png",
+    "dimensoes": [
+      38,
+      106
+    ],
+    "alpha_nao_zero": 2424,
+    "pixels": 4028,
+    "sha256": "5f1e1e6f466234de091d6463687970e47b2c80ec279ba37b463bb4ff931302d2"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/02_plank_bar_A.png",
+    "dimensoes": [
+      102,
+      18
+    ],
+    "alpha_nao_zero": 832,
+    "pixels": 1836,
+    "sha256": "e3af061ad914dea0b33667a9d1d1d9856b6038105ebf63b73fe88c15f9f14e7b"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/03_plank_bar_B.png",
+    "dimensoes": [
+      102,
+      18
+    ],
+    "alpha_nao_zero": 832,
+    "pixels": 1836,
+    "sha256": "5001382c98054a77b44e65ea94bdaa0409a6632ac7752c0b9872dfa177d9c0c6"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/04_wall_bracket_shelf.png",
+    "dimensoes": [
+      48,
+      26
+    ],
+    "alpha_nao_zero": 680,
+    "pixels": 1248,
+    "sha256": "09dcc96c4e5effea9595d2ad5933aaf284a452cc617ed33645dfa291a8f9fe0c"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/05_hatch_trapdoor.png",
+    "dimensoes": [
+      48,
+      70
+    ],
+    "alpha_nao_zero": 2160,
+    "pixels": 3360,
+    "sha256": "496f25838149e6cb5e63c2232237d699a3fa26b9911126a730ef83ad7ec2fe9e"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/06_chest_A.png",
+    "dimensoes": [
+      38,
+      38
+    ],
+    "alpha_nao_zero": 806,
+    "pixels": 1444,
+    "sha256": "8f2eb9732d3c784758eef5b6c811949298a2d34e4a05378abdd154090f848386"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/07_chest_B.png",
+    "dimensoes": [
+      38,
+      38
+    ],
+    "alpha_nao_zero": 1002,
+    "pixels": 1444,
+    "sha256": "8149eee4e43023b67dd89ee4c125b2491a221b09e0b432268bc0c51020d46ed6"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/08_key.png",
+    "dimensoes": [
+      32,
+      14
+    ],
+    "alpha_nao_zero": 122,
+    "pixels": 448,
+    "sha256": "35a1ba2f2932936beec312ff6b5704edca16c7c93b8b42360c7a1c87f6e5b306"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/09_torch_bracket_left.png",
+    "dimensoes": [
+      36,
+      36
+    ],
+    "alpha_nao_zero": 462,
+    "pixels": 1296,
+    "sha256": "fcc9e1dee54ff9894d3a206b10b120aa191631c32d4b7d6912156d1fd2efe662"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/10_torch_bracket_right.png",
+    "dimensoes": [
+      36,
+      36
+    ],
+    "alpha_nao_zero": 462,
+    "pixels": 1296,
+    "sha256": "8462037733c549b9dc81cf90c1a03300f91ed22913e6eaa1395e2efb207a5792"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/11_wall_sconce.png",
+    "dimensoes": [
+      36,
+      100
+    ],
+    "alpha_nao_zero": 1450,
+    "pixels": 3600,
+    "sha256": "e80d113e22d962871b45e1a72d02061079c35f4a6c0fbd40d73eb4eb1b43e0b8"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/12_door_barred.png",
+    "dimensoes": [
+      38,
+      68
+    ],
+    "alpha_nao_zero": 1917,
+    "pixels": 2584,
+    "sha256": "c037f3ac86963d0e49b13b21242da43e82eadf3d877d6104d1ad8e48c7b6c154"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/13_hook_nub_A.png",
+    "dimensoes": [
+      20,
+      18
+    ],
+    "alpha_nao_zero": 132,
+    "pixels": 360,
+    "sha256": "b855c1ee165924f8e8069385a6e6a7926007604404cbe362e1685aa58c2f3eb3"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/14_hook_nub_B.png",
+    "dimensoes": [
+      20,
+      18
+    ],
+    "alpha_nao_zero": 132,
+    "pixels": 360,
+    "sha256": "db7a1a13e61bbb28cb1e26932dfe72f56da5f259d9b443332f63685e65329124"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/15_fence_ornate.png",
+    "dimensoes": [
+      98,
+      34
+    ],
+    "alpha_nao_zero": 1700,
+    "pixels": 3332,
+    "sha256": "8baafe7fed7763a86cce976a6f49db43c177357804ff16749929661cefd4407f"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/16_lantern_hanging.png",
+    "dimensoes": [
+      98,
+      64
+    ],
+    "alpha_nao_zero": 1084,
+    "pixels": 6272,
+    "sha256": "1a249ada0d99a7fe3db5f8bcd38b8cdd8a84febb051272084303fd5870eb22be"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/17_fence_plain.png",
+    "dimensoes": [
+      38,
+      30
+    ],
+    "alpha_nao_zero": 644,
+    "pixels": 1140,
+    "sha256": "820a956b73028a24aa75f5acabe56dc08c7c3a0e1cf72955ce8a7f480e690b7a"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/18_chain_pendant_A.png",
+    "dimensoes": [
+      16,
+      34
+    ],
+    "alpha_nao_zero": 124,
+    "pixels": 544,
+    "sha256": "7a08ea023673a85c0065590afdbba0b9f596b229bbc515a0e9abf94f41472914"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/19_chain_pendant_B.png",
+    "dimensoes": [
+      16,
+      46
+    ],
+    "alpha_nao_zero": 164,
+    "pixels": 736,
+    "sha256": "e1c07897bbfe19631b0dea1fdaa58702b85b058ab354b035f4bc9455d61073f5"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/20_chain_pendant_C.png",
+    "dimensoes": [
+      16,
+      30
+    ],
+    "alpha_nao_zero": 104,
+    "pixels": 480,
+    "sha256": "31c1330dca18177b3aab7229ac515aa8500c16b8b684bdc881c6bfb7bc743234"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/21_chain_swag.png",
+    "dimensoes": [
+      82,
+      36
+    ],
+    "alpha_nao_zero": 520,
+    "pixels": 2952,
+    "sha256": "d33ed450e5d94afb612aca739ef6526372a1ff72d654a9215e5f2ed0167a24e0"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/22_vase_large.png",
+    "dimensoes": [
+      34,
+      38
+    ],
+    "alpha_nao_zero": 587,
+    "pixels": 1292,
+    "sha256": "1c8bcbea5006301909722f65bf509317537572d0118dc07975a42b8fc20c9217"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/23_barrel.png",
+    "dimensoes": [
+      34,
+      36
+    ],
+    "alpha_nao_zero": 776,
+    "pixels": 1224,
+    "sha256": "da037bc56ea7ca418cf131bcaf2abe2d9bf1207471165b9fe5554e33a64fc786"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/24_rubble_A.png",
+    "dimensoes": [
+      52,
+      18
+    ],
+    "alpha_nao_zero": 288,
+    "pixels": 936,
+    "sha256": "3050d5e7e23fbc133ee05fdc39ffbea790c3481433aeb52d449d441556ce2d7f"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/25_rubble_B.png",
+    "dimensoes": [
+      22,
+      14
+    ],
+    "alpha_nao_zero": 94,
+    "pixels": 308,
+    "sha256": "3b5339229b3de3d172b982e4e3b8bc1207bff769fcf876669a768c55728387e2"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/26_spiderweb.png",
+    "dimensoes": [
+      134,
+      36
+    ],
+    "alpha_nao_zero": 1232,
+    "pixels": 4824,
+    "sha256": "9318c51b5ed30e9e693f76563555faacfe22276e2830866954967be1a0c19e22"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/27_arch_dome_gray.png",
+    "dimensoes": [
+      94,
+      38
+    ],
+    "alpha_nao_zero": 2008,
+    "pixels": 3572,
+    "sha256": "a103f6ace851eab4a19763d43d9c4519585557bee5ac283d35a7beb45eba47fe"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/28_arch_dome_tan.png",
+    "dimensoes": [
+      94,
+      38
+    ],
+    "alpha_nao_zero": 2032,
+    "pixels": 3572,
+    "sha256": "69271f3068f1bce804560ce43b62cc7dfb23293903d40b33b14a2602d4183f1a"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/Dungeon_Tileset_Items_32px/tileset_items/29_border_strip.png",
+    "dimensoes": [
+      196,
+      24
+    ],
+    "alpha_nao_zero": 1264,
+    "pixels": 4704,
+    "sha256": "96174e4fbea3990576fee15b582470ebd2d1a51ec2d08f3e548c7c13057f0323"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/escada_base.png",
+    "dimensoes": [
+      32,
+      32
+    ],
+    "alpha_nao_zero": 776,
+    "pixels": 1024,
+    "sha256": "b251b259271be3fbd7419b84f7c4b8b3161baf1a7df9610062f9484a0ca5109f"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/escada_meio.png",
+    "dimensoes": [
+      32,
+      32
+    ],
+    "alpha_nao_zero": 728,
+    "pixels": 1024,
+    "sha256": "e266773e58ee40aa311873ef8dbd7c9d40dba82ed3edf8775ff595edccd606c0"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/escada_topo.png",
+    "dimensoes": [
+      32,
+      32
+    ],
+    "alpha_nao_zero": 832,
+    "pixels": 1024,
+    "sha256": "6fa335b9f13289d1b13e8f0bf9c6281a5523d43037c0657029414272eb7ca581"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/decoracao/tileset_decoracao_dungeon_32px.png",
+    "dimensoes": [
+      1112,
+      812
+    ],
+    "alpha_nao_zero": 104136,
+    "pixels": 902944,
+    "sha256": "eb8c386f8ac929a8483ca7f064345bdbf6bcd24e0b08d2002350ade55b07902a"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/Dungeon Tile Set 32px.png",
+    "dimensoes": [
+      480,
+      576
+    ],
+    "alpha_nao_zero": 93688,
+    "pixels": 276480,
+    "sha256": "292ffc5db6691cfc4cc512dee9ee72f233d4c70e2067cd1311dc9f830efc7b5a"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/Dungeon Tile Set.png",
+    "dimensoes": [
+      240,
+      288
+    ],
+    "alpha_nao_zero": 23422,
+    "pixels": 69120,
+    "sha256": "315508f7745691a1927fab2df06e27cd7fa51b8fba47d713d4ffb3cbbf0a6a89"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/parede_variantes.png",
+    "dimensoes": [
+      384,
+      256
+    ],
+    "alpha_nao_zero": 98304,
+    "pixels": 98304,
+    "sha256": "45a84a989b9b93fc91b020ec7699bc96dd8781ac09442f79560ef080c0076943"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/Platformer Asset All K.png",
+    "dimensoes": [
+      1616,
+      2080
+    ],
+    "alpha_nao_zero": 2348803,
+    "pixels": 3361280,
+    "sha256": "5261a2e84f2ba45131e82d14ad85a28eb40d164a22eb46240185b251e57b4f4b"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/The Sidescroller's Dungeon Tiles 32x32.png",
+    "dimensoes": [
+      672,
+      608
+    ],
+    "alpha_nao_zero": 132013,
+    "pixels": 408576,
+    "sha256": "6f9dde9cf1589c059d7f7c8530d5e6469015fc6483274ed8338227c47a126efc"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/tileset.png",
+    "dimensoes": [
+      128,
+      160
+    ],
+    "alpha_nao_zero": 17260,
+    "pixels": 20480,
+    "sha256": "9952414dee4606ee31fa80b6ff83c8f49d15a5217acf222a906c2cafb5be393d"
+  },
+  {
+    "arquivo": "assets/tileset/calabouco/Torch Sprite Sheet 32x64.png",
+    "dimensoes": [
+      128,
+      128
+    ],
+    "alpha_nao_zero": 2612,
+    "pixels": 16384,
+    "sha256": "d0a20de8d253f2bfb862b9d049ddca3b824570e9fc2154e0b6599db2f3c3a203"
+  }
+]

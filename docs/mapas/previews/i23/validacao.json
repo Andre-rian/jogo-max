@@ -1,0 +1,42 @@
+{
+  "pytest": {
+    "passed": 297,
+    "exit_code": 0
+  },
+  "py_compile": "passed",
+  "protected_elements": 7,
+  "protected_files_sha256_and_mtime": 61,
+  "log_and_saves_unchanged": true,
+  "changed_cells": {
+    "decoracao_fundo": 34,
+    "decoracao": 3
+  },
+  "existing_nonzero_cells_preserved": true,
+  "gid_ranges": [
+    [
+      197,
+      595
+    ],
+    [
+      596,
+      2457
+    ],
+    [
+      2458,
+      2727
+    ],
+    [
+      3000,
+      6086
+    ],
+    [
+      7000,
+      7023
+    ]
+  ],
+  "all_new_references_render_nonempty": true,
+  "route_frames": 3290,
+  "route_waypoints": 8,
+  "tiled_rasterizer_exit_code": 0,
+  "git_diff_check": "passed"
+}

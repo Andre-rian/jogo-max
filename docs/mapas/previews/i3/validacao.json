@@ -1,0 +1,17 @@
+{
+  "pytest_passed": 320,
+  "new_tests": 23,
+  "exit_code": 0,
+  "py_compile": "passed",
+  "git_diff_check": "passed",
+  "protected_files_sha256_and_mtime": 94,
+  "map_art_physics_log_saves_unchanged": true,
+  "captures": 10,
+  "capture_size": [
+    1280,
+    720
+  ],
+  "zoom": 1.35,
+  "route_with_tutorial_frames": 3307,
+  "route_without_tutorial_frames": 3290
+}

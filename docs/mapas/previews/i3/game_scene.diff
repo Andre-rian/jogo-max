@@ -1,0 +1,76 @@
+--- antes/core/game_scene.py
++++ depois/core/game_scene.py
+@@ -46,6 +46,7 @@
+ from ui.estilo import Fonte_texto
+ from ui.prompts_teclas import PromptTeclaMundo
+ from core.interacoes import GerenciadorInteracoes
++from core.tutorial_contextual import TutorialContextual
+ 
+ 
+ 
+@@ -248,6 +249,9 @@
+         self.player.material_piso = MATERIAL_PISO.get(nome_sala, "pedra")
+ 
+         self._limpar_estado_interacao()
++
++        # Dicas pertencem a esta entrada de sala, nunca ao save.
++        self.tutorial_contextual = None
+ 
+         parar_mundo = getattr(audio, "stop_world_sfx", None)
+         if parar_mundo is not None:
+@@ -591,6 +595,9 @@
+                         ))
+ 
+         self._atualizar_audio_sala()
++        if (getattr(self, "sala_teste", None) == "bloco_celas_esquecidas"
++                and nome_sala == "bloco_celas_esquecidas"):
++            self.tutorial_contextual = TutorialContextual(self.mapa, self.player)
+ 
+     def _contexto_musical_sala(self):
+         menu = getattr(self, "menu_fogueira", None)
+@@ -814,6 +821,9 @@
+ 
+     def atualizar(self, eventos): 
+         teclas = pygame.key.get_pressed()
++        tutorial = getattr(self, "tutorial_contextual", None)
++        if tutorial and (self._contexto_suprime_interacao() or not self.player.vivo):
++            tutorial.ocultar(self.player)
+ 
+         #F3 liga/desliga o debug de plataforma/escada
+         reiniciar_teste = False
+@@ -1013,6 +1023,13 @@
+ 
+         #hud
+         self.hud.atualizar()
++
++        tutorial = getattr(self, "tutorial_contextual", None)
++        if tutorial:
++            tutorial.atualizar(
++                self.player, teclas, suprimido=self._contexto_suprime_interacao(),
++                interacao=getattr(self, "_alvo_interacao_atual", None) is not None,
++            )
+ 
+ 
+     def _atualizar_zoom_camera(self):
+@@ -1543,6 +1560,8 @@
+         for fogueira in self.fogueiras:
+             fogueira.desenhar(vista, self.camera)
+ 
++        # Interacao tem prioridade exclusiva sobre dicas de exploracao.
++        desenhou_interacao = False
+         # prompt de interacao no mundo (sprite de tecla sobre a cabeca do player)
+         if (not self._contexto_suprime_interacao() and
+                 getattr(self, "_alvo_interacao_atual", None) is not None and
+@@ -1556,6 +1575,12 @@
+                 ax = self.player.rect.centerx
+                 ay = self.player.rect.top - 4
+                 self.prompt_interacao_mundo.desenhar(vista, self.camera, ax, ay, visivel=True)
++                desenhou_interacao = True
++
++        tutorial = getattr(self, "tutorial_contextual", None)
++        if (tutorial and not desenhou_interacao and not self._contexto_suprime_interacao()
++                and self.player.vivo):
++            tutorial.desenhar(vista, self.camera, self.player)
+ 
+         if DEBUG:
+             pygame.draw.rect(vista, (0, 255, 0), sr_player, 2)

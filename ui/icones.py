@@ -6,14 +6,17 @@ from ui.estilo import Roxo_espectral, Azul_espectral, Azul_claro, Branco_texto
 from ui.sprites_itens import obter_fallback, obter_sprite_de_item
 
 
+ICONS_COM_CONTAGEM = {"pocao", "raiz", "atadura", "cinzas", "lasca_umbrita"}
+
+
 def _desenhar_contagem(tela, item, sx, sy, slot_size, fonte_pequena):
     icone = getattr(item, "icone", None)
+    if icone not in ICONS_COM_CONTAGEM:
+        return
     if icone == "pocao":
         valor = item.cargas if item.cargas is not None else item.quantidade
-    elif icone == "raiz":
-        valor = item.quantidade
     else:
-        return
+        valor = item.quantidade
     txt = fonte_pequena.render(str(valor), True, Branco_texto)
     tela.blit(txt, (sx + slot_size - 16, sy + slot_size - 18))
 

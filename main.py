@@ -48,7 +48,7 @@ from ui.estilo import definir_escala_texto
 
 
 class Jogo:
-    def __init__(self, modo_teste_combate=False):
+    def __init__(self, modo_teste_combate=False, teste_celas=False):
         pygame.mixer.pre_init(44100, -16, 2, 512)
         pygame.init()
         self.preferencias = prefs.carregar()
@@ -63,6 +63,7 @@ class Jogo:
         self.slot_atual = None
         self.scene = None
         self.modo_teste_combate = modo_teste_combate
+        self.teste_celas = teste_celas
 
         self.menu = MenuInicial(self.tela, self.save_manager, preferencias=self.preferencias)
         self.menu.callback_iniciar = self._iniciar_jogo
@@ -72,7 +73,7 @@ class Jogo:
         except TypeError:
             audio.play_music("menu")
 
-        if self.modo_teste_combate:
+        if self.modo_teste_combate or self.teste_celas:
             self._iniciar_jogo(None, None)
         
 
@@ -84,6 +85,7 @@ class Jogo:
         if self.estado == "jogo" and self.scene:
             menu_aberto = (
                 self.scene.pausado or self.scene.inventario.aberto or self.scene.menu_fogueira.aberto
+                or self.scene.fim_beta is not None
             )
             pygame.mouse.set_visible(menu_aberto)
         else:
@@ -91,7 +93,12 @@ class Jogo:
 
     def _iniciar_jogo(self, slot, dados_save):
         self.slot_atual = slot
-        self.scene = Gamescene(self.tela, modo_teste_combate=self.modo_teste_combate)
+        if self.teste_celas:
+            self.slot_atual = None
+            dados_save = None
+            self.scene = Gamescene(self.tela, sala_teste="bloco_celas_esquecidas")
+        else:
+            self.scene = Gamescene(self.tela, modo_teste_combate=self.modo_teste_combate)
         self.scene._menu_callback = self._voltar_menu
 
         if self.slot_atual is not None:
@@ -109,6 +116,8 @@ class Jogo:
 
 
     def _voltar_menu(self):
+        self.teste_celas = False
+        self.modo_teste_combate = False
         audio.stop_all_sfx()
         try:
             audio.play_music("menu", origem="main", fade_ms=2000, fade_out_ms=800, motivo="voltar_menu")
@@ -202,7 +211,10 @@ class Jogo:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Profane Echo")
-    parser.add_argument("--teste-combate", action="store_true",
+    modos = parser.add_mutually_exclusive_group()
+    modos.add_argument("--teste-combate", action="store_true",
                         help="inicia direto na arena de teste de combate")
+    modos.add_argument("--teste-celas", action="store_true",
+                       help="abre o Bloco das Celas em sessão temporária, sem saves")
     args = parser.parse_args()
-    Jogo(modo_teste_combate=args.teste_combate).rodar()
+    Jogo(modo_teste_combate=args.teste_combate, teste_celas=args.teste_celas).rodar()

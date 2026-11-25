@@ -1,0 +1,25 @@
+﻿numero,parecer,elemento,tileset,ids_locais,gids,matriz,motivo
+1,APROVADO,Barril,Dungeon Tile Set 32px,[190],[2648],[[2648]],Recipiente completo; apoiar no piso ou plataforma.
+2,APROVADO,Vaso,Dungeon Tile Set 32px,[191],[2649],[[2649]],Perfil legível; nenhum brilho de coleta ou interação.
+3,APROVADO,Argola e corrente curta,Dungeon Tile Set 32px,[181],[2639],[[2639]],Uma fixação na parede; não empilhar argolas.
+4,APROVADO,Corrente com continuação,Dungeon Tile Set 32px,"[182, 197]","[2640, 2655]","[[2640], [2655]]",Um só ponto de fixação; término completo.
+5,APROVADO,Grilhões na parede,Dungeon Tile Set 32px,"[184, 185, 186]","[2642, 2643, 2644]","[[2642, 2643, 2644]]",Curva inteira e dois suportes visíveis.
+6,APROVADO,Detritos pequenos,Dungeon Tile Set 32px,"[199, 201]","[2657, 2659]","[[2657, 2659]]",Fragmentos baixos; reservar aglomerados para ruínas.
+7,APROVADO,Ossada ambiental,Dungeon Tile Set 32px,[200],[2658],[[2658]],Crânio e ossos; exclusivo da cela fechada.
+8,APROVADO,Teia inteira no canto,Dungeon Tile Set 32px,"[220, 221, 222, 223]","[2678, 2679, 2680, 2681]","[[2678, 2679, 2680, 2681]]",Somente sob teto e junto à parede; uma ocorrência.
+9,APROVADO,Grade com moldura contínua,Platformer K - grade continua,"[268, 269, 270, 317, 318, 319, 366, 367, 368, 415, 416, 417]","[3268, 3269, 3270, 3317, 3318, 3319, 3366, 3367, 3368, 3415, 3416, 3417]","[[3268, 3269, 3270], [3317, 3318, 3319], [3366, 3367, 3368], [3415, 3416, 3417]]",Recorte nativo sem lacunas; janela da cela / ferro recolhido.
+10,APROVADO,Arco de saída assentado,The Sidescroller's Dungeon Tiles 32x32,"[237, 238, 258, 259, 279, 280, 300, 301]","[434, 435, 455, 456, 476, 477, 497, 498]","[[434, 435], [455, 456], [476, 477], [497, 498]]","Só na saída; base atrás do piso, sem espaço vazio sob ela."
+11,APROVADO,Tijolos do fundo existente,The Sidescroller's Dungeon Tiles 32x32,"[232, 233]","[429, 430]","[[429, 430]]",Base fria preservada; não usar como prop sobreposto.
+12,APROVADO,Piso físico existente,Platformer Asset All K,"[1263, 1264]","[1859, 1860]","[[1859, 1860]]",Preservado em colisao; não representa uma cama.
+13,REJEITADO,Falsa rachadura profana,Platformer Asset All K,"[1324, 1325, 1362, 1363, 1400, 1401]","[1920, 1921, 1958, 1959, 1996, 1997]","[[1920, 1921], [1958, 1959], [1996, 1997]]",Ornamento biomecânico fragmentado; não é rachadura.
+14,REJEITADO,Ruína anterior,Platformer Asset All K,"[308, 1402, 347, 348]","[904, 1998, 943, 944]","[[0, 904, 0], [1998, 943, 944]]","Recortes desconexos, caveira e ferragens; pedras sem apoio."
+15,REJEITADO,Cama improvisada,Platformer Asset All K,"[1082, 1263, 1264, 1263]","[1678, 1859, 1860, 1859]","[[1678, 0, 0], [1859, 1860, 1859]]",Pilhas de blocos aparentam colisão; falta sprite de cama.
+16,REJEITADO,Grade truncada repetida,Platformer Asset All K,"[170, 171, 208, 209, 246, 247]","[766, 767, 804, 805, 842, 843]","[[766, 767], [804, 805], [842, 843]]",Passo 42 corta a moldura; repetição amplia o defeito.
+17,REJEITADO,Teia vertical isolada,Dungeon Tile Set 32px,"[221, 222]","[2679, 2680]","[[2679], [2680]]",Dois miolos de teia não formam bandeira nem teia presa.
+18,REJEITADO,Hastes da saída anterior,Platformer Asset All K,"[1004, 1006, 1004, 1006]","[1600, 1602, 1600, 1602]","[[1600, 0, 1602], [1600, 0, 1602]]",Repetição de partes de janela; não são folhas de ferro.
+19,REJEITADO,Lâmina semicircular,Dungeon Tile Set 32px,"[232, 233, 234]","[2690, 2691, 2692]","[[2690, 2691, 2692]]",Não usar o nome arch_dome para inferir arquitetura.
+20,REJEITADO,Baú decorativo,Dungeon Tile Set 32px,[147],[2605],[[2605]],Sugere recompensa/interação inexistente nesta área.
+21,ADAPTAVEL,Janela circular gradeada,Dungeon Tile Set 32px,"[55, 56, 70, 71]","[2513, 2514, 2528, 2529]","[[2513, 2514], [2528, 2529]]",Desenho completo; fundo opaco pede alvenaria da mesma família.
+22,ADAPTAVEL,Musgo de superfície,The Sidescroller's Dungeon Tiles 32x32,"[18, 19]","[215, 216]","[[215, 216]]",Verde muito vivo; exige ajuste futuro de paleta e encaixe.
+23,ADAPTAVEL,Madeira e prateleira,Dungeon Tile Set 32px,"[142, 143]","[2600, 2601]","[[2600, 2601]]",Só como apoio preso à parede; nunca substituir cama por suposição.
+24,REJEITADO,Escada quebrada como íntegra,Dungeon Tile Set 32px,[155],[2613],[[2613]],Faltam degraus; não mudar a escada funcional aprovada.

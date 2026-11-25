@@ -7,9 +7,9 @@ Cooldown_uso_max = 90 #1.5 segundos entre os usos
 
 class Pocao:
 
-    def __init__(self):
-        self.cargas_max = Cargas_inicias
-        self.cargas = Cargas_inicias
+    def __init__(self, cargas_iniciais=Cargas_inicias):
+        self.cargas_max = max(0, min(Cargas_inicias, cargas_iniciais))
+        self.cargas = self.cargas_max
         self._colldown = 0
         self._curando = False       #flag para usamos na sprite futuramente
         self._timer_cura = 0
@@ -41,3 +41,11 @@ class Pocao:
     
     def recarregar(self):
         self.cargas = self.cargas_max
+
+    def obter_frasco(self):
+        """Uma obtenção única libera uma carga restaurável, até o limite existente."""
+        if self.cargas_max >= Cargas_inicias:
+            return False
+        self.cargas_max += 1
+        self.cargas = min(self.cargas_max, self.cargas + 1)
+        return True

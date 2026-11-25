@@ -6,7 +6,7 @@ import random
 
 import logging
 
-from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave
+from entities.objetos.item import Arma, get_item, Consumivel, Material, Chave, Reliquia
 
 from entities.entity import Entity
 
@@ -414,6 +414,8 @@ class Player(Entity):
 
             self.Correndo: AnimatedSprite(KNIGHT + "_Run.png",   120, 80, velocidade=6,  escala=1.7, loop=True),
 
+            self.Escalando: AnimatedSprite(KNIGHT + "_LadderClimb.png", 120, 80, velocidade=7, escala=1.7, loop=True),
+
             self.Pulando:  AnimatedSprite(KNIGHT + "_Jump.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
 
             self.Caindo:   AnimatedSprite(KNIGHT + "_Fall.png",  120, 80, velocidade=8,  escala=1.7, loop=True),
@@ -686,7 +688,8 @@ class Player(Entity):
 
 
 
-            self.inventario["equipamentos"].append(item.id)
+            if item.id != self.inventario["mao_direita"] and item.id not in self.inventario["equipamentos"]:
+                self.inventario["equipamentos"].append(item.id)
 
             self.itens_novos.add(item.id)
 
@@ -726,6 +729,16 @@ class Player(Entity):
 
             self.itens_novos.add(item.id)
 
+
+
+
+
+        elif isinstance(item, Reliquia):
+
+            if item.id not in self.inventario["chaves"]:
+                self.inventario["chaves"].append(item.id)
+
+            self.itens_novos.add(item.id)
 
 
 
@@ -1474,7 +1487,8 @@ class Player(Entity):
 
 
 
-                #bonus do escalonamento
+                # O dano-base cobre os atributos exigidos para empunhar a arma.
+                # Só o investimento acima dos requisitos acrescenta escalonamento.
 
                 for atributo, grau in arma.escalonamento.items():
 
@@ -1484,13 +1498,15 @@ class Player(Entity):
 
                     if atributo == "forca":
 
-                        dano += int(self.forca * multiplicador)
+                        excedente = max(0, self.forca - arma.requisitos["forca"])
+                        dano += int(excedente * multiplicador)
 
 
 
                     elif atributo == "destreza":
 
-                        dano += int(self.destreza * multiplicador)
+                        excedente = max(0, self.destreza - arma.requisitos["destreza"])
+                        dano += int(excedente * multiplicador)
 
 
 
@@ -1896,6 +1912,12 @@ class Player(Entity):
 
         self.vivo = True
 
+        self.stamina = self.stamina_max
+        self.recebendo_knockback = False
+        self.timer_knockback = 0
+        self.invencivel = False
+        self.timer_invenc = 0
+
         self.vel = pygame.Vector2(0,0)
 
         self.estado = self.Parado
@@ -2236,7 +2258,11 @@ class Player(Entity):
 
         sprite_h = self.anim_atual.altura
 
-        if  self.olhando_dir:
+        if self.estado == self.Escalando:
+
+            offset_x = sr.centerx - sprite_w // 2
+
+        elif self.olhando_dir:
 
             offset_x = sr.centerx - sprite_w // 2 + 10
 

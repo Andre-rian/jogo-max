@@ -1,4 +1,33 @@
 <?xml version="1.0" ?>
+<!--
+  TEMPLATE OFICIAL TMX - Fase I.1
+  Convenções:
+  - Tamanho padrão: 56x23 tiles, tile 32x32, orientação orthogonal, renderorder right-down.
+  - Tilesets: manter ordem/firstgid existentes; NÃO reordenar nem alterar GIDs indiscriminadamente.
+  - Camadas (nomes oficiais, case-insensitive no loader):
+      fundo       (opcional) - visual de fundo
+      escadas     (opcional) - escadas
+      plataformas (opcional) - plataformas one-way (GIDs em world/tiles.py PLATAFORMA_GIDS)
+      colisao     (obrigatória) - colisão sólida
+      decoracao   (opcional) - decoração visual
+  - Object layer oficial: "objetos".
+  - Coordenadas de objeto: origem Tiled (x,y) em pixels; loader converte para col/linha por Tile_size.
+  - Tipos de objeto oficiais:
+      spawn    - ponto de entrada. props: nome=default|esquerda|direita
+                 legado aceito: spwan
+      inimigo  - spawn de inimigo. props: tipo=<skeleton|globin|mushroom|flying_eye|esqueleto_boss>
+                 patrulha_esq/patrulha_dir (int, pixels) para inimigos comuns
+                 legado aceito: propriedade "type" como alias de "tipo"
+      fogueira - Ecofoco/checkpoint. props opcionais conforme gameplay
+      tocha    - luz decorativa. props: variante=forte|fraca (opcional)
+      bau      - baú. props: id_item=<int>
+      porta    - transição. props conforme runtime
+  - Propriedades obrigatórias mínimas:
+      spawn: nome (recomendado; default implícito se ausente)
+      inimigo: tipo/type
+      bau: id_item
+  - Validação: scripts/world.validacao_tiled ou testes de fase I.1.
+-->
 <map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" infinite="0" width="56" height="23" tilewidth="32" tileheight="32" nextlayerid="7" nextobjectid="1">
   <tileset firstgid="1" source="../tileset/tilesets/parede_variantes.tsx"/>
   <tileset firstgid="97" source="../tileset/tilesets/chao_variantes.tsx"/>

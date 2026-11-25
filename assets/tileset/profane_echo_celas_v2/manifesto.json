@@ -1,0 +1,343 @@
+{
+  "firstgid": 7100,
+  "tile_size": 32,
+  "columns": 8,
+  "sprites": {
+    "cama_pedra": {
+      "size": [
+        96,
+        32
+      ],
+      "atlas_xy": [
+        0,
+        0
+      ],
+      "local_ids": [
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "gids": [
+        [
+          7100,
+          7101,
+          7102
+        ]
+      ],
+      "offset": [
+        1,
+        0
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/cama_pedra.png",
+      "source_sha256": "fd30e8426a27e7a85bd0fd790f090385002fd83346c87209526fc2498e7b1bf1",
+      "alpha_bbox": [
+        0,
+        0,
+        2152,
+        724
+      ],
+      "scaled_size": [
+        94,
+        32
+      ]
+    },
+    "fissura_profana": {
+      "size": [
+        64,
+        96
+      ],
+      "atlas_xy": [
+        96,
+        0
+      ],
+      "local_ids": [
+        [
+          3,
+          4
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          19,
+          20
+        ]
+      ],
+      "gids": [
+        [
+          7103,
+          7104
+        ],
+        [
+          7111,
+          7112
+        ],
+        [
+          7119,
+          7120
+        ]
+      ],
+      "offset": [
+        1,
+        0
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/fissura_profana.png",
+      "source_sha256": "24c25e737b0ca7f6c10be3126afa607a8ad2c1691e894ca8beb03964057b8f48",
+      "alpha_bbox": [
+        59,
+        43,
+        929,
+        1461
+      ],
+      "scaled_size": [
+        61,
+        96
+      ]
+    },
+    "umidade": {
+      "size": [
+        64,
+        64
+      ],
+      "atlas_xy": [
+        160,
+        0
+      ],
+      "local_ids": [
+        [
+          5,
+          6
+        ],
+        [
+          13,
+          14
+        ]
+      ],
+      "gids": [
+        [
+          7105,
+          7106
+        ],
+        [
+          7113,
+          7114
+        ]
+      ],
+      "offset": [
+        1,
+        1
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/umidade.png",
+      "source_sha256": "48529d94a55d352b9621881cddaa682089c25f31c1708552cc016a6d88b12fe9",
+      "alpha_bbox": [
+        53,
+        11,
+        1189,
+        1218
+      ],
+      "scaled_size": [
+        61,
+        62
+      ]
+    },
+    "rachadura": {
+      "size": [
+        32,
+        64
+      ],
+      "atlas_xy": [
+        224,
+        0
+      ],
+      "local_ids": [
+        [
+          7
+        ],
+        [
+          15
+        ]
+      ],
+      "gids": [
+        [
+          7107
+        ],
+        [
+          7115
+        ]
+      ],
+      "offset": [
+        2,
+        1
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/rachadura.png",
+      "source_sha256": "e9d1231893b8b08a94cde30368d4f16530767bc2c8b1e217553320416024ae98",
+      "alpha_bbox": [
+        114,
+        19,
+        759,
+        1699
+      ],
+      "scaled_size": [
+        28,
+        62
+      ]
+    },
+    "marcas_dias": {
+      "size": [
+        64,
+        32
+      ],
+      "atlas_xy": [
+        0,
+        96
+      ],
+      "local_ids": [
+        [
+          24,
+          25
+        ]
+      ],
+      "gids": [
+        [
+          7124,
+          7125
+        ]
+      ],
+      "offset": [
+        4,
+        1
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/marcas_dias.png",
+      "source_sha256": "9885200026cf9c17262455330eb363db79179d924d94e3783eb495ed5972d3eb",
+      "alpha_bbox": [
+        65,
+        16,
+        1570,
+        842
+      ],
+      "scaled_size": [
+        56,
+        30
+      ]
+    },
+    "esqueleto_sentado": {
+      "size": [
+        64,
+        64
+      ],
+      "atlas_xy": [
+        64,
+        96
+      ],
+      "local_ids": [
+        [
+          26,
+          27
+        ],
+        [
+          34,
+          35
+        ]
+      ],
+      "gids": [
+        [
+          7126,
+          7127
+        ],
+        [
+          7134,
+          7135
+        ]
+      ],
+      "offset": [
+        1,
+        5
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/esqueleto_sentado.png",
+      "source_sha256": "c829989bd48521cb7ea23540385e376c258ad6c59ef7f62222a3a814e2b1f8c4",
+      "alpha_bbox": [
+        30,
+        47,
+        1222,
+        1157
+      ],
+      "scaled_size": [
+        62,
+        59
+      ]
+    },
+    "porta_saida": {
+      "size": [
+        96,
+        128
+      ],
+      "atlas_xy": [
+        128,
+        96
+      ],
+      "local_ids": [
+        [
+          28,
+          29,
+          30
+        ],
+        [
+          36,
+          37,
+          38
+        ],
+        [
+          44,
+          45,
+          46
+        ],
+        [
+          52,
+          53,
+          54
+        ]
+      ],
+      "gids": [
+        [
+          7128,
+          7129,
+          7130
+        ],
+        [
+          7136,
+          7137,
+          7138
+        ],
+        [
+          7144,
+          7145,
+          7146
+        ],
+        [
+          7152,
+          7153,
+          7154
+        ]
+      ],
+      "offset": [
+        1,
+        3
+      ],
+      "source": "docs/mapas/previews/i23b/fontes/porta_saida.png",
+      "source_sha256": "29d3e6df7cdff288857776a9b5923108649169301f266face12e214165684678",
+      "alpha_bbox": [
+        0,
+        0,
+        1085,
+        1448
+      ],
+      "scaled_size": [
+        94,
+        125
+      ]
+    }
+  }
+}

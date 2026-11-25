@@ -1,0 +1,40 @@
+{
+  "pytest": {
+    "command": "python -m pytest -q --tb=short",
+    "exit_code": 0,
+    "tests": 350
+  },
+  "compiled_modules": [
+    "core/game_scene.py",
+    "world/niveis.py",
+    "main.py",
+    "entities/player.py",
+    "entities/objetos/fogueira.py",
+    "core/inventario.py",
+    "entities/objetos/item.py",
+    "entities/monsters/skeleton.py",
+    "save_manager.py",
+    "ui/hud/status.py",
+    "ui/fim_beta.py",
+    "scripts/gerar_mapas_beta.py",
+    "scripts/validar_beta_final.py",
+    "tests/test_beta_final.py",
+    "tests/test_fase_i2_celas.py"
+  ],
+  "tmx_count": 7,
+  "tmx_warnings": [
+    "[AVISO] calabouco_1.tmx: Camada opcional oficial 'plataformas' ausente",
+    "[AVISO] calabouco_2.tmx: Camada opcional oficial 'escadas' ausente",
+    "[AVISO] calabouco_2.tmx: Camada opcional oficial 'plataformas' ausente",
+    "[AVISO] calabouco_2.tmx: Camada opcional oficial 'decoracao' ausente"
+  ],
+  "protected_sha256": {
+    "jogo.log": "5973bf1d157c0f77026f2a2d49102f60a584c6f000367a7bf11b5c7a8e184dde",
+    "saves.db": "76900c13ced5aec1247a525856d6cbb2944059248a37334351849b2d8ade09bc",
+    "configuracoes_usuario.json": "bd4f054a4d05655ea00795eb5a5d569f4ea1fc12c1f1e31790500fc1a345251e",
+    "assets\\maps\\bloco_celas_esquecidas.tmx": "00241857590639584d2dee90707769a1573eed77fc9e30f3aeb3a757f44e49c4",
+    "assets\\maps\\calabouco_1.tmx": "e32387ef9ab48a4f7fb39690dd3c950a7ac9afe1030429795d7b3a624c6b6a46",
+    "assets\\maps\\calabouco_2.tmx": "7547ea95ae5f554472d2fe1d41a32f5901a06d32cb932871e04f55d651ec28d5"
+  },
+  "capture_count": 8
+}

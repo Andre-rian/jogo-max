@@ -1,0 +1,23 @@
+[
+  {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "f085e1",
+      "wall_time_seconds": 10.0098914,
+      "session_id": 64041,
+      "original_token_count": 102,
+      "output": "........................................................................ [ 22%]\r\n........................................................................ [ 45%]\r\n........................................................................ [ 67%]\r\n........................................................................ [ 90%]\r\n................................                                         [100%]\r\n",
+      "exit_code": 0
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "83b1ee",
+      "wall_time_seconds": 0.2191412,
+      "exit_code": 0,
+      "original_token_count": 97,
+      "output": "warning: in the working copy of 'assets/maps/calabouco_1.tmx', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'core/game_scene.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'main.py', LF will be replaced by CRLF the next time Git touches it\n94 protected files: hashes and timestamps unchanged.\r\n"
+    }
+  }
+]

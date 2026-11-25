@@ -1,0 +1,245 @@
+{
+  "frames": 7799,
+  "marcos": [
+    {
+      "nome": "01_celas",
+      "sala": "bloco_celas_esquecidas",
+      "frame": 15,
+      "hp": 200,
+      "frascos": [
+        0,
+        0
+      ],
+      "posicao": [
+        352,
+        320
+      ]
+    },
+    {
+      "nome": "01b_insignia",
+      "sala": "bloco_celas_esquecidas",
+      "frame": 830,
+      "hp": 200,
+      "frascos": [
+        0,
+        0
+      ],
+      "posicao": [
+        2535,
+        320
+      ]
+    },
+    {
+      "nome": "02_arsenal",
+      "sala": "antigo_arsenal_guardas",
+      "frame": 1927,
+      "hp": 200,
+      "frascos": [
+        0,
+        0
+      ],
+      "posicao": [
+        326,
+        576
+      ]
+    },
+    {
+      "nome": "02a_primeiro_frasco",
+      "sala": "antigo_arsenal_guardas",
+      "frame": 2406,
+      "hp": 200,
+      "frascos": [
+        1,
+        1
+      ],
+      "posicao": [
+        1135,
+        576
+      ]
+    },
+    {
+      "nome": "02b_inventario",
+      "sala": "antigo_arsenal_guardas",
+      "frame": 2723,
+      "hp": 180,
+      "frascos": [
+        1,
+        1
+      ],
+      "posicao": [
+        1364,
+        576
+      ]
+    },
+    {
+      "nome": "03a_galeria",
+      "sala": "corredores_profundos",
+      "frame": 3544,
+      "hp": 180,
+      "frascos": [
+        1,
+        1
+      ],
+      "posicao": [
+        871,
+        384
+      ]
+    },
+    {
+      "nome": "03c_segundo_frasco",
+      "sala": "corredores_profundos",
+      "frame": 4321,
+      "hp": 180,
+      "frascos": [
+        2,
+        2
+      ],
+      "posicao": [
+        2064,
+        352
+      ]
+    },
+    {
+      "nome": "03d_terceiro_frasco",
+      "sala": "corredores_profundos",
+      "frame": 5264,
+      "hp": 141,
+      "frascos": [
+        3,
+        3
+      ],
+      "posicao": [
+        3245,
+        576
+      ]
+    },
+    {
+      "nome": "03b_ecofoco_menu",
+      "sala": "corredores_profundos",
+      "frame": 5293,
+      "hp": 141,
+      "frascos": [
+        3,
+        3
+      ],
+      "posicao": [
+        3360,
+        576
+      ]
+    },
+    {
+      "nome": "03_corredores",
+      "sala": "corredores_profundos",
+      "frame": 5294,
+      "hp": 200,
+      "frascos": [
+        3,
+        3
+      ],
+      "posicao": [
+        3360,
+        576
+      ]
+    },
+    {
+      "nome": "save_load_morte_respawn",
+      "resultado": "ok"
+    },
+    {
+      "nome": "04_arena",
+      "sala": "arena_chefe",
+      "frame": 5441,
+      "hp": 200,
+      "frascos": [
+        3,
+        3
+      ],
+      "posicao": [
+        684,
+        576
+      ]
+    },
+    {
+      "nome": "05_fim_beta",
+      "sala": "arena_chefe",
+      "frame": 7798,
+      "hp": 140,
+      "frascos": [
+        1,
+        3
+      ],
+      "posicao": [
+        855,
+        576
+      ]
+    }
+  ],
+  "inimigos_derrotados": [
+    "Skeleton",
+    "Globin",
+    "Globin",
+    "Skeleton",
+    "Mushroom",
+    "FlyingEye",
+    "EsqueletoBoss"
+  ],
+  "combates": [
+    {
+      "inimigo": "Skeleton",
+      "hp": 150,
+      "frames": 176,
+      "impactos": 4,
+      "dano_recebido": 0,
+      "frascos_usados": 0
+    },
+    {
+      "inimigo": "Globin",
+      "hp": 85,
+      "frames": 48,
+      "impactos": 2,
+      "dano_recebido": 0,
+      "frascos_usados": 0
+    },
+    {
+      "inimigo": "Globin",
+      "hp": 85,
+      "frames": 152,
+      "impactos": 2,
+      "dano_recebido": 0,
+      "frascos_usados": 0
+    },
+    {
+      "inimigo": "Skeleton",
+      "hp": 150,
+      "frames": 176,
+      "impactos": 4,
+      "dano_recebido": 0,
+      "frascos_usados": 0
+    },
+    {
+      "inimigo": "Mushroom",
+      "hp": 145,
+      "frames": 280,
+      "impactos": 4,
+      "dano_recebido": 24,
+      "frascos_usados": 0
+    },
+    {
+      "inimigo": "FlyingEye",
+      "hp": 80,
+      "frames": 80,
+      "impactos": 2,
+      "dano_recebido": 15,
+      "frascos_usados": 0
+    },
+    {
+      "inimigo": "EsqueletoBoss",
+      "hp": 495,
+      "frames": 2232,
+      "impactos": 11,
+      "dano_recebido": 220,
+      "frascos_usados": 2
+    }
+  ],
+  "metodo": "Teclado simulado, física/IA/combate reais; morte induzida em cena separada; SQLite temporário."
+}

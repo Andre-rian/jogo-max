@@ -23,6 +23,11 @@ _MAPA_SPRITES = {
     3: os.path.join(_PASTA_ITENS, "equipamentos", "machado_guerra.png"),
     4: os.path.join(_PASTA_ITENS, "consumiveis", "raiz_amarga.png"),
     5: os.path.join(_PASTA_ITENS, "materiais", "umbrita.png"),
+    6: os.path.join(_PASTA_ITENS, "consumiveis", "atadura_gasta.png"),
+    7: os.path.join(_PASTA_ITENS, "consumiveis", "cinzas_eco.png"),
+    8: os.path.join(_PASTA_ITENS, "materiais", "lasca_umbrita.png"),
+    9: os.path.join(_PASTA_ITENS, "reliquias", "insignia_carcereiro.png"),
+    10: os.path.join(_PASTA_ITENS, "reliquias", "anel_vigilia.png"),
 }
 
 _CAMINHO_FALLBACK = os.path.join(

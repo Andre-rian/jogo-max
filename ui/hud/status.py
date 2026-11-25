@@ -62,7 +62,7 @@ class BarrasStatus:
             self._texto_hp = self.fonte_pequena.render(
                 f'{player.hp} / {player.hp_max}', True, (220, 224, 235))
         clip = tela.get_clip()
-        area_txt = pygame.Rect(90, 24, self._w - 102, self.fonte_pequena.get_height() + 4)
+        area_txt = pygame.Rect(90, 24, self._w - 82, self.fonte_pequena.get_height() + 4)
         tela.set_clip(clip.clip(area_txt))
         tela.blit(self._texto_hp, (20 + self._w - 12 - self._texto_hp.get_width(), 26))
         tela.set_clip(clip)

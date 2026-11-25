@@ -2,8 +2,8 @@
 
 Mapa entre elementos do jogo e arquivos aprovados.
 
-**Status (16/11/2026): Fase F.3 integrada; F.1/F.2 preservadas.** Cinco ícones
-integrados (IDs 1–5), fallback global ativo, prompts de teclado integrados e
+**Status (24/11/2026): Fase F.3 integrada; F.1/F.2 preservadas.** Dez ícones
+integrados (IDs 1–10), fallback global ativo, prompts de teclado integrados e
 LY005 1× adotado como moldura preferencial do inventário. A moldura anterior
 permanece como fallback. Na E.2, `Frame1Empty`/`Frame1` entraram em teste nos
 slots do menu, com `USAR_MOLDURA_LYGAME` para rollback. Abissita e Nyxita
@@ -19,6 +19,11 @@ contador da HUD; a poção F reutiliza M095 sem consultar o estoque do ID 2.
 | 3 | Machado de Guerra | arma | `assets/sprites/itens/equipamentos/machado_guerra.png` | Beast Weapons and Tools (A045) | integrado |
 | 4 | Raiz Amarga | consumivel | `assets/sprites/itens/consumiveis/raiz_amarga.png` | Beast Crafting Materials (M067) | integrado |
 | 5 | Umbrita | material | `assets/sprites/itens/materiais/umbrita.png` | Beast Crafting Materials (M042; paleta D.1) | integrado |
+| 6 | Atadura Gasta | consumivel | `assets/sprites/itens/consumiveis/atadura_gasta.png` | Original do projeto | integrado (24/11/2026) |
+| 7 | Cinzas de um Eco | consumivel | `assets/sprites/itens/consumiveis/cinzas_eco.png` | Original do projeto | integrado (24/11/2026) |
+| 8 | Lasca de Umbrita | material | `assets/sprites/itens/materiais/lasca_umbrita.png` | Original do projeto | integrado (24/11/2026) |
+| 9 | Insígnia do Carcereiro | reliquia | `assets/sprites/itens/reliquias/insignia_carcereiro.png` | Original do projeto | integrado (24/11/2026) |
+| 10 | Anel da Vigília | reliquia | `assets/sprites/itens/reliquias/anel_vigilia.png` | Original do projeto | integrado (24/11/2026) |
 
 Fallback global: `assets/sprites/itens/_default/item_desconhecido.png` (24×24,
 gerado para o projeto). Se o arquivo faltar, `ui/icones.py` recorre ao desenho
@@ -26,7 +31,7 @@ procedural antigo.
 
 ### Integração (Fase B)
 
-- Mapa explícito por ID real em `ui/sprites_itens.py` (1–5).
+- Mapa explícito por ID real em `ui/sprites_itens.py` (1–10).
 - `player.pocao` não possui `id`; o resolvedor usa `icone == "pocao"` → ID 2.
 - Cache de `Surface` por ID; carregamento e escala (`pygame.transform.scale`,
   nearest-neighbor, 24×24 → 48×48) acontecem uma vez por sessão.

@@ -1,0 +1,79 @@
+--- antes/ui/prompts_teclas.py
++++ depois/ui/prompts_teclas.py
+@@ -31,14 +31,16 @@
+     "delete": (80, 16, 16, 16),
+ }
+ 
+-# Teclas para prompts no mundo (G.1). E conforme especificacao.
++# Mesma folha G.1: bloco claro normal e bloco pressionado 112 px abaixo.
++# Recortes conferidos visualmente na I.3; nenhum PNG foi alterado.
+ _RECORTES_MUNDO = {
+-    "e": {"normal": (96, 48, 16, 16), "pressionado": (96, 64, 16, 16)},
+-    # Candidatos best-effort no mesmo layout; fallback textual se invalidos.
+-    "a": {"normal": (32, 48, 16, 16), "pressionado": (32, 64, 16, 16)},
+-    "d": {"normal": (48, 48, 16, 16), "pressionado": (48, 64, 16, 16)},
+-    "k": {"normal": (160, 48, 16, 16), "pressionado": (160, 64, 16, 16)},
+-    "espaco": {"normal": (496, 112, 64, 16), "pressionado": (496, 112, 64, 16)},
++    "e": {"normal": (96, 48, 16, 16), "pressionado": (96, 160, 16, 16)},
++    "a": {"normal": (64, 64, 16, 16), "pressionado": (64, 176, 16, 16)},
++    "d": {"normal": (96, 64, 16, 16), "pressionado": (96, 176, 16, 16)},
++    "w": {"normal": (80, 48, 16, 16), "pressionado": (80, 160, 16, 16)},
++    "s": {"normal": (80, 64, 16, 16), "pressionado": (80, 176, 16, 16)},
++    "k": {"normal": (176, 64, 16, 16), "pressionado": (176, 176, 16, 16)},
++    "espaco": {"normal": (100, 96, 104, 16), "pressionado": (100, 208, 104, 16)},
+ }
+ 
+ _ROTULOS_FALLBACK = {
+@@ -53,6 +55,8 @@
+     "e": "E",
+     "a": "A",
+     "d": "D",
++    "w": "W",
++    "s": "S",
+     "k": "K",
+     "espaco": "SPACE",
+ }
+@@ -157,6 +161,9 @@
+         if rect is not None:
+             tamanho = (rect[2], rect[3])
+         base = _extrair_recorte(rect, f"{nome}:{estado}", tamanho)
++    if nome == "espaco":
++        # Barra compacta com a mesma altura das letras, sem painel ou texto extra.
++        base = pygame.transform.scale(base, (48, 16))
+     if escala != 1.0:
+         base = pygame.transform.scale(
+             base, (max(1, round(base.get_width() * escala)),
+@@ -246,8 +253,11 @@
+         self._offset_flutuar = 2
+         self._offset_press = 1
+ 
+-    def atualizar(self, pressionada=False):
++    def atualizar(self, pressionada=False, *, entrada_real=False):
+         self._timer += 1
++        if entrada_real:
++            self._press_timer = int(bool(pressionada))
++            return
+         if pressionada:
+             self._press_timer = self._press_duracao
+         else:
+@@ -261,8 +271,8 @@
+     def estado(self):
+         return "pressionado" if self._press_timer > 0 else "normal"
+ 
+-    def desenhar(self, tela_vista, camera, centro_mundo_x, topo_mundo_y, visivel=True):
+-        if not visivel:
++    def desenhar(self, tela_vista, camera, centro_mundo_x, topo_mundo_y, visivel=True, opacidade=255):
++        if not visivel or opacidade <= 0:
+             return False
+         sprite = obter_tecla_mundo(self.tecla, self.estado, self.escala)
+         # flutuacao discreta
+@@ -275,6 +285,9 @@
+         tela_rect = tela_vista.get_rect()
+         if not rect.colliderect(tela_rect):
+             return False
++        if opacidade < 255:
++            sprite = sprite.copy()
++            sprite.set_alpha(max(0, min(255, int(opacidade))))
+         tela_vista.blit(sprite, rect.topleft)
+         return True
+ 

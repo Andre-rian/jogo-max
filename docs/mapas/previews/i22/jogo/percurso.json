@@ -1,0 +1,70 @@
+{
+  "frames": 3290,
+  "saltos_e_drops": 6,
+  "marcos": [
+    {
+      "nome": "01_spawn",
+      "frame": 55,
+      "posicao": [
+        352,
+        320
+      ]
+    },
+    {
+      "nome": "02_corredor",
+      "frame": 323,
+      "posicao": [
+        791,
+        768
+      ]
+    },
+    {
+      "nome": "03_cela_destruida",
+      "frame": 799,
+      "posicao": [
+        2007,
+        320
+      ]
+    },
+    {
+      "nome": "04_passagem_profana",
+      "frame": 987,
+      "posicao": [
+        2549,
+        320
+      ]
+    },
+    {
+      "nome": "05_plataforma",
+      "frame": 1526,
+      "posicao": [
+        2231,
+        608
+      ]
+    },
+    {
+      "nome": "06_galeria",
+      "frame": 1802,
+      "posicao": [
+        2647,
+        544
+      ]
+    },
+    {
+      "nome": "07_saida",
+      "frame": 2226,
+      "posicao": [
+        3909,
+        768
+      ]
+    },
+    {
+      "nome": "08_retorno",
+      "frame": 3290,
+      "posicao": [
+        343,
+        320
+      ]
+    }
+  ]
+}

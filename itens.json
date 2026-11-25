@@ -53,6 +53,47 @@
     "tipo": "material",
     "icone": "mineral",
     "descricao": "Pedras escuras impregnadas por ecos fracos."
+    },
+
+    "6": {
+    "nome": "Atadura Gasta",
+    "tipo": "consumivel",
+    "icone": "atadura",
+    "efeito": "cura",
+    "cura_percentual": 0.12,
+    "quantidade": 1,
+    "descricao": "Um pedaço de linho esquecido nas celas. Ainda pode aliviar ferimentos leves."
+    },
+
+    "7": {
+    "nome": "Cinzas de um Eco",
+    "tipo": "consumivel",
+    "icone": "cinzas",
+    "efeito": "ecos",
+    "valor": 5,
+    "quantidade": 1,
+    "descricao": "Restos de uma lembrança que já não encontra seu dono."
+    },
+
+    "8": {
+    "nome": "Lasca de Umbrita",
+    "tipo": "material",
+    "icone": "lasca_umbrita",
+    "descricao": "Um fragmento de minério escuro, capaz de fortalecer o aço quando trabalhado corretamente."
+    },
+
+    "9": {
+    "nome": "Insígnia do Carcereiro",
+    "tipo": "reliquia",
+    "icone": "insignia",
+    "descricao": "O símbolo de um guarda que serviu ao castelo antes de suas masmorras serem esquecidas."
+    },
+
+    "10": {
+    "nome": "Anel da Vigília",
+    "tipo": "reliquia",
+    "icone": "anel",
+    "descricao": "Dizem que os guardas o utilizavam para suportar as longas noites nas profundezas."
     }
 }
 

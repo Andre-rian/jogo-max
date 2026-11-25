@@ -1,0 +1,205 @@
+{
+  "firstgid": 7000,
+  "tile_size": 32,
+  "columns": 8,
+  "sprites": {
+    "cama_pedra": {
+      "size": [
+        96,
+        32
+      ],
+      "atlas_xy": [
+        0,
+        0
+      ],
+      "local_ids": [
+        [
+          0,
+          1,
+          2
+        ]
+      ],
+      "gids": [
+        [
+          7000,
+          7001,
+          7002
+        ]
+      ],
+      "source": "docs/mapas/previews/i23/fontes/cama_pedra.png",
+      "source_sha256": "10eb3c155bac6e9b25d22bae61dccc16f3efcaec9ea796d6ba861593f1d8f24c",
+      "source_size": [
+        2172,
+        724
+      ],
+      "alpha_bbox": [
+        17,
+        19,
+        2107,
+        665
+      ],
+      "scaled_size": [
+        94,
+        30
+      ],
+      "offset": [
+        1,
+        2
+      ]
+    },
+    "fissura_profana": {
+      "size": [
+        64,
+        96
+      ],
+      "atlas_xy": [
+        96,
+        0
+      ],
+      "local_ids": [
+        [
+          3,
+          4
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          19,
+          20
+        ]
+      ],
+      "gids": [
+        [
+          7003,
+          7004
+        ],
+        [
+          7011,
+          7012
+        ],
+        [
+          7019,
+          7020
+        ]
+      ],
+      "source": "docs/mapas/previews/i23/fontes/fissura_profana.png",
+      "source_sha256": "7585305f0b68f70dc6a3b0ac11b79aaca715167acd9c6a7402dba68f9cc115ac",
+      "source_size": [
+        1024,
+        1536
+      ],
+      "alpha_bbox": [
+        129,
+        39,
+        705,
+        1497
+      ],
+      "scaled_size": [
+        44,
+        94
+      ],
+      "offset": [
+        10,
+        1
+      ]
+    },
+    "umidade": {
+      "size": [
+        64,
+        64
+      ],
+      "atlas_xy": [
+        160,
+        0
+      ],
+      "local_ids": [
+        [
+          5,
+          6
+        ],
+        [
+          13,
+          14
+        ]
+      ],
+      "gids": [
+        [
+          7005,
+          7006
+        ],
+        [
+          7013,
+          7014
+        ]
+      ],
+      "source": "docs/mapas/previews/i23/fontes/umidade.png",
+      "source_sha256": "fb17d3f8830cd8528915aae86c80a9bbe0cd6f466ca3f7ebef3e2a3274dc3530",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "alpha_bbox": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "scaled_size": [
+        62,
+        62
+      ],
+      "offset": [
+        1,
+        1
+      ]
+    },
+    "rachadura": {
+      "size": [
+        32,
+        64
+      ],
+      "atlas_xy": [
+        224,
+        0
+      ],
+      "local_ids": [
+        [
+          7
+        ],
+        [
+          15
+        ]
+      ],
+      "gids": [
+        [
+          7007
+        ],
+        [
+          7015
+        ]
+      ],
+      "source": "docs/mapas/previews/i23/fontes/rachadura.png",
+      "source_sha256": "72c73ae47cc7fee61d3b9ce8f7346241b9949685d9d1399da78747b2e07c4c70",
+      "source_size": [
+        887,
+        1774
+      ],
+      "alpha_bbox": [
+        0,
+        69,
+        865,
+        1608
+      ],
+      "scaled_size": [
+        30,
+        56
+      ],
+      "offset": [
+        1,
+        4
+      ]
+    }
+  }
+}
